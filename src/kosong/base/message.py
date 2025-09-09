@@ -1,7 +1,7 @@
 from abc import ABC
 from typing import Any, Literal, override
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_serializer
 
 
 class MergableMixin:
@@ -109,3 +109,9 @@ class Message(BaseModel):
     """In tool messages, there can be a tool call ID."""
 
     partial: bool | None = None
+
+    @field_serializer("content")
+    def serialize_content(self, content: str | list[ContentPart]) -> str | list[dict]:
+        if isinstance(content, str):
+            return content
+        return [part.model_dump() for part in content]
