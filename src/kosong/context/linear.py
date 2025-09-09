@@ -10,7 +10,7 @@ class LinearContext:
     def __init__(self, system_prompt: str, toolset: Toolset):
         self._system_prompt = system_prompt
         self._toolset = toolset
-        self._history = []
+        self._history: list[Message] = []
 
     @property
     def system_prompt(self) -> str:

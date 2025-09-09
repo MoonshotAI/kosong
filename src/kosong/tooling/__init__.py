@@ -15,6 +15,7 @@ __all__ = [
     "ToolResultFuture",
     "Toolset",
     "EmptyToolset",
+    "SimpleToolset",
 ]
 
 type ToolReturnType = str | ContentPart | Sequence[ContentPart]
