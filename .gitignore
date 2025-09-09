@@ -11,3 +11,6 @@ wheels/
 
 # Project files
 .vscode
+.env
+.env.local
+/tests_local
