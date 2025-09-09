@@ -1,17 +1,8 @@
 from collections.abc import AsyncIterator, Sequence
 
-from kosong.base.chat_provider import ChatProvider, StreamedMessage, StreamedMessagePart, TokenUsage
+from kosong.base.chat_provider import StreamedMessagePart, TokenUsage
 from kosong.base.message import Message
 from kosong.base.tool import Tool
-
-
-def _assert_types(
-    chat_provider: "MockChatProvider",
-    streamed_message: "MockStreamedMessage",
-):
-    """Use type checking to ensure the types are correct implemented."""
-    _1: ChatProvider = chat_provider
-    _2: StreamedMessage = streamed_message
 
 
 class MockChatProvider:

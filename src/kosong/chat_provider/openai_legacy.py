@@ -11,18 +11,9 @@ from openai.types.chat import (
 from openai.types.chat.chat_completion_tool_param import FunctionDefinition
 from openai.types.completion_usage import CompletionUsage
 
-from kosong.base.chat_provider import ChatProvider, StreamedMessage, StreamedMessagePart, TokenUsage
+from kosong.base.chat_provider import StreamedMessagePart, TokenUsage
 from kosong.base.message import Message, TextPart, ToolCall, ToolCallPart
 from kosong.base.tool import Tool
-
-
-def _assert_types(
-    chat_provider: "OpenAILegacyChatProvider",
-    streamed_message: "OpenAILegacyStreamedMessage",
-):
-    """Use type checking to ensure the types are correct implemented."""
-    _1: ChatProvider = chat_provider
-    _2: StreamedMessage = streamed_message
 
 
 class OpenAILegacyChatProvider:
