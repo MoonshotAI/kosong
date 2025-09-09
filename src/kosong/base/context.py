@@ -1,12 +1,16 @@
 from collections.abc import Sequence
-from dataclasses import dataclass
+from typing import NamedTuple
 
-from .message import History
-from .tool import Tool
+from kosong.base.message import History
+from kosong.base.tool import Tool
 
 
-@dataclass
-class Context:
+class Context(NamedTuple):
+    """
+    An immutable context for a chat.
+    It is used to generate a new assistant message.
+    """
+
     system: str
     """The system prompt."""
 
@@ -14,4 +18,4 @@ class Context:
     """The tools to use."""
 
     history: History
-    """The conversation history."""
+    """The chat history."""

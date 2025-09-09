@@ -1,17 +1,41 @@
 from abc import ABC
 from collections.abc import Sequence
-from typing import Literal
+from typing import Any, Literal, override
 
 from pydantic import BaseModel
 
 
-class ContentPart(BaseModel, ABC):
+class MergableMixin:
+    def merge_in_place(self, other: Any) -> bool:
+        """Merge the other part into the current part. Return True if the merge is successful."""
+        return False
+
+
+class ContentPart(BaseModel, ABC, MergableMixin):
     """A part of a message content."""
 
     type: str
+    ...  # to be added by subclasses
 
 
-class ToolCall(BaseModel):
+class TextPart(ContentPart):
+    """
+    >>> TextPart(text="Hello, world!").model_dump()
+    {'type': 'text', 'text': 'Hello, world!'}
+    """
+
+    type: Literal["text"] = "text"
+    text: str
+
+    @override
+    def merge_in_place(self, other) -> bool:
+        if not isinstance(other, TextPart):
+            return False
+        self.text += other.text
+        return True
+
+
+class ToolCall(BaseModel, MergableMixin):
     """
     A tool call requested by the assistant.
 
@@ -36,12 +60,32 @@ class ToolCall(BaseModel):
     function: FunctionBody
     """The function body of the tool call."""
 
+    @override
+    def merge_in_place(self, other) -> bool:
+        if not isinstance(other, ToolCallPart):
+            return False
+        if self.function.arguments is None:
+            self.function.arguments = other.arguments_part
+        else:
+            self.function.arguments += other.arguments_part or ""
+        return True
 
-class ToolCallPart(BaseModel):
+
+class ToolCallPart(BaseModel, MergableMixin):
     """A part of the tool call."""
 
     arguments_part: str | None = None
     """A part of the arguments of the tool call."""
+
+    @override
+    def merge_in_place(self, other) -> bool:
+        if not isinstance(other, ToolCallPart):
+            return False
+        if self.arguments_part is None:
+            self.arguments_part = other.arguments_part
+        else:
+            self.arguments_part += other.arguments_part or ""
+        return True
 
 
 class Message(BaseModel):
@@ -69,4 +113,4 @@ class Message(BaseModel):
 
 
 type History = Sequence[Message]
-"""A history of messages in a conversation."""
+"""A history of messages."""

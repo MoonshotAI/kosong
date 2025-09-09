@@ -11,18 +11,10 @@ from openai.types.chat import (
 from openai.types.chat.chat_completion_tool_param import FunctionDefinition
 from openai.types.completion_usage import CompletionUsage
 
-from kosong.base import (
-    ChatProvider,
-    Context,
-    Message,
-    StreamedMessage,
-    StreamedMessagePart,
-    TokenUsage,
-    Tool,
-    ToolCall,
-    ToolCallPart,
-)
-from kosong.message import TextSegment
+from kosong.base.chat_provider import ChatProvider, StreamedMessage, StreamedMessagePart, TokenUsage
+from kosong.base.context import Context
+from kosong.base.message import Message, TextPart, ToolCall, ToolCallPart
+from kosong.base.tool import Tool
 
 
 def _assert_types(
@@ -135,7 +127,7 @@ class OpenAILegacyStreamedMessage:
 
                 # convert text content
                 if delta.content:
-                    yield TextSegment(text=delta.content)
+                    yield TextPart(text=delta.content)
 
                 # convert tool calls
                 for tool_call in delta.tool_calls or []:
@@ -166,9 +158,6 @@ class OpenAILegacyStreamedMessage:
 
 
 if __name__ == "__main__":
-    import asyncio
-
-    from dotenv import load_dotenv
 
     async def _dev_main():
         chat = OpenAILegacyChatProvider()
@@ -180,25 +169,31 @@ if __name__ == "__main__":
         async for part in await chat.generate(context):
             print(part.model_dump(exclude_none=True))
 
-        context.tools = [
-            Tool(
-                name="get_weather",
-                description="Get the weather",
-                parameters={
-                    "type": "object",
-                    "properties": {
-                        "city": {
-                            "type": "string",
-                            "description": "The city to get the weather for.",
+        context = Context(
+            system="You are a helpful assistant.",
+            tools=[
+                Tool(
+                    name="get_weather",
+                    description="Get the weather",
+                    parameters={
+                        "type": "object",
+                        "properties": {
+                            "city": {
+                                "type": "string",
+                                "description": "The city to get the weather for.",
+                            },
                         },
                     },
-                },
-            )
-        ]
-        context.history = [Message(role="user", content="What's the weather in Beijing?")]
-
+                )
+            ],
+            history=[Message(role="user", content="What's the weather in Beijing?")],
+        )
         async for part in await chat.generate(context):
             print(part.model_dump(exclude_none=True))
+
+    import asyncio
+
+    from dotenv import load_dotenv
 
     load_dotenv()
     asyncio.run(_dev_main())

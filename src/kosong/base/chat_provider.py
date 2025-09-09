@@ -1,8 +1,8 @@
 from collections.abc import AsyncIterator
 from typing import NamedTuple, Protocol, runtime_checkable
 
-from .context import Context
-from .message import ContentPart, ToolCall, ToolCallPart
+from kosong.base.context import Context
+from kosong.base.message import ContentPart, ToolCall, ToolCallPart
 
 
 @runtime_checkable
