@@ -3,6 +3,8 @@ from typing import Any, Self
 import jsonschema
 from pydantic import BaseModel, model_validator
 
+type ParametersType = dict[str, Any]
+
 
 class Tool(BaseModel):
     name: str
@@ -11,7 +13,7 @@ class Tool(BaseModel):
     description: str
     """The description of the tool."""
 
-    parameters: dict[str, Any]
+    parameters: ParametersType
     """The parameters of the tool, in JSON Schema format."""
 
     @model_validator(mode="after")
