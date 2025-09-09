@@ -1,0 +1,54 @@
+import asyncio
+
+from kosong import step
+from kosong.base.chat_provider import StreamedMessagePart
+from kosong.base.message import TextPart, ToolCall
+from kosong.base.tool import ParametersType
+from kosong.chat_provider.mock import MockChatProvider
+from kosong.context.linear import LinearContext
+from kosong.tooling import CallableTool, ToolResult
+from kosong.tooling.simple import SimpleToolset
+
+
+def test_step():
+    class PlusTool(CallableTool):
+        name: str = "plus"
+        description: str = "This is a plus tool"
+        parameters: ParametersType = {
+            "type": "object",
+            "properties": {
+                "a": {"type": "integer"},
+                "b": {"type": "integer"},
+            },
+        }
+
+        async def __call__(self, a: int, b: int) -> str:
+            return str(a + b)
+
+    plus_tool_call = ToolCall(
+        id="plus#123",
+        function=ToolCall.FunctionBody(name="plus", arguments='{"a": 1, "b": 2}'),
+    )
+    input_parts = [
+        TextPart(text="Hello, world!"),
+        plus_tool_call,
+    ]
+    chat_provider = MockChatProvider(message_parts=input_parts)
+    toolset = SimpleToolset([PlusTool()])
+    context = LinearContext(system_prompt="", toolset=toolset)
+
+    output_parts = []
+
+    def on_message_part(part: StreamedMessagePart):
+        output_parts.append(part)
+
+    async def run():
+        step_result = await step(chat_provider, context, on_message_part=on_message_part)
+        tool_results = await step_result.tool_results()
+        return step_result, tool_results
+
+    step_result, tool_results = asyncio.run(run())
+    assert step_result.message.content == [TextPart(text="Hello, world!")]
+    assert step_result.tool_calls == [plus_tool_call]
+    assert output_parts == input_parts
+    assert tool_results == [ToolResult(tool_call_id="plus#123", result="3")]
