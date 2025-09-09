@@ -14,6 +14,7 @@ from kosong.tooling.error import (
     ToolRuntimeError,
     ToolValidateError,
 )
+from kosong.utils.typing import JsonType
 
 
 class SimpleToolset:
@@ -49,7 +50,7 @@ class SimpleToolset:
         tool = self._tool_dict[tool_call.function.name]
 
         try:
-            arguments = json.loads(tool_call.function.arguments or "{}")
+            arguments: JsonType = json.loads(tool_call.function.arguments or "{}")
             jsonschema.validate(arguments, tool.parameters)
         except json.JSONDecodeError as e:
             future.set_result(ToolResult(tool_call.id, ToolParseError(str(e))))
