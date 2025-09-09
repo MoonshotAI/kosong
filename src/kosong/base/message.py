@@ -1,5 +1,4 @@
 from abc import ABC
-from collections.abc import Sequence
 from typing import Any, Literal, override
 
 from pydantic import BaseModel
@@ -110,7 +109,3 @@ class Message(BaseModel):
     """In tool messages, there can be a tool call ID."""
 
     partial: bool | None = None
-
-
-type History = Sequence[Message]
-"""A history of messages."""

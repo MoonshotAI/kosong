@@ -1,7 +1,8 @@
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Sequence
 
 from kosong.base.chat_provider import ChatProvider, StreamedMessage, StreamedMessagePart, TokenUsage
-from kosong.base.context import Context
+from kosong.base.message import Message
+from kosong.base.tool import Tool
 
 
 def _assert_types(
@@ -30,7 +31,12 @@ class MockChatProvider:
     def model_name(self) -> str:
         return "mock"
 
-    async def generate(self, context: Context) -> "MockStreamedMessage":
+    async def generate(
+        self,
+        system_prompt: str,
+        tools: Sequence[Tool],
+        history: Sequence[Message],
+    ) -> "MockStreamedMessage":
         return MockStreamedMessage(self._message_parts)
 
 

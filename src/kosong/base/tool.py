@@ -1,11 +1,10 @@
-from abc import ABC
 from typing import Any, Self
 
 import jsonschema
 from pydantic import BaseModel, model_validator
 
 
-class Tool(BaseModel, ABC):
+class Tool(BaseModel):
     name: str
     """The name of the tool."""
 

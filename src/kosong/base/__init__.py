@@ -1,12 +1,16 @@
+from collections.abc import Sequence
+
 from kosong.base.chat_provider import ChatProvider, StreamedMessagePart, TokenUsage
-from kosong.base.context import Context
 from kosong.base.message import ContentPart, Message, TextPart, ToolCall
+from kosong.base.tool import Tool
 from kosong.utils.aio import Callback, callback
 
 
 async def generate(
     chat_provider: ChatProvider,
-    context: Context,
+    system_prompt: str,
+    tools: Sequence[Tool],
+    history: Sequence[Message],
     *,
     on_message_part: Callback[[StreamedMessagePart], None] | None = None,
     on_tool_call: Callback[[ToolCall], None] | None = None,
@@ -24,7 +28,7 @@ async def generate(
     message = Message(role="assistant", content=[])
     pending_part: StreamedMessagePart | None = None  # message part that is currently incomplete
 
-    stream = await chat_provider.generate(context)
+    stream = await chat_provider.generate(system_prompt, tools, history)
     async for part in stream:
         if on_message_part:
             await callback(on_message_part, part)

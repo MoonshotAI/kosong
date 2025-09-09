@@ -1,8 +1,8 @@
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Sequence
 from typing import NamedTuple, Protocol, runtime_checkable
 
-from kosong.base.context import Context
-from kosong.base.message import ContentPart, ToolCall, ToolCallPart
+from kosong.base.message import ContentPart, Message, ToolCall, ToolCallPart
+from kosong.base.tool import Tool
 
 
 @runtime_checkable
@@ -19,9 +19,14 @@ class ChatProvider(Protocol):
         """
         ...
 
-    async def generate(self, context: Context) -> "StreamedMessage":
+    async def generate(
+        self,
+        system_prompt: str,
+        tools: Sequence[Tool],
+        history: Sequence[Message],
+    ) -> "StreamedMessage":
         """
-        Generate a new message based on the given context.
+        Generate a new message based on the given system prompt, tools, and history.
         """
         ...
 

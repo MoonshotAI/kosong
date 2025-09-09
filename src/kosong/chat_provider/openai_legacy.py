@@ -1,5 +1,5 @@
 import uuid
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Sequence
 from typing import cast
 
 from openai import AsyncOpenAI
@@ -12,7 +12,6 @@ from openai.types.chat.chat_completion_tool_param import FunctionDefinition
 from openai.types.completion_usage import CompletionUsage
 
 from kosong.base.chat_provider import ChatProvider, StreamedMessage, StreamedMessagePart, TokenUsage
-from kosong.base.context import Context
 from kosong.base.message import Message, TextPart, ToolCall, ToolCallPart
 from kosong.base.tool import Tool
 
@@ -57,19 +56,22 @@ class OpenAILegacyChatProvider:
     def model_name(self) -> str:
         return self._model
 
-    async def generate(self, context: Context) -> "OpenAILegacyStreamedMessage":
+    async def generate(
+        self,
+        system_prompt: str,
+        tools: Sequence[Tool],
+        history: Sequence[Message],
+    ) -> "OpenAILegacyStreamedMessage":
         messages: list[ChatCompletionMessageParam] = []
-        if context.system:
-            messages.append({"role": "system", "content": context.system})
-        messages.extend(_message_to_openai(message) for message in context.history)
-
-        tools = [_tool_to_openai(tool) for tool in context.tools]
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        messages.extend(_message_to_openai(message) for message in history)
 
         try:
             response = await self._client.chat.completions.create(
                 model=self._model,
                 messages=messages,
-                tools=tools,
+                tools=(_tool_to_openai(tool) for tool in tools),
                 stream=True,
                 stream_options={"include_usage": True},
             )
@@ -161,34 +163,28 @@ if __name__ == "__main__":
 
     async def _dev_main():
         chat = OpenAILegacyChatProvider()
-        context = Context(
-            system="You are a helpful assistant.",
-            tools=[],
-            history=[Message(role="user", content="Hello, how are you?")],
-        )
-        async for part in await chat.generate(context):
+        system_prompt = "You are a helpful assistant."
+        history = [Message(role="user", content="Hello, how are you?")]
+        async for part in await chat.generate(system_prompt, [], history):
             print(part.model_dump(exclude_none=True))
 
-        context = Context(
-            system="You are a helpful assistant.",
-            tools=[
-                Tool(
-                    name="get_weather",
-                    description="Get the weather",
-                    parameters={
-                        "type": "object",
-                        "properties": {
-                            "city": {
-                                "type": "string",
-                                "description": "The city to get the weather for.",
-                            },
+        tools = [
+            Tool(
+                name="get_weather",
+                description="Get the weather",
+                parameters={
+                    "type": "object",
+                    "properties": {
+                        "city": {
+                            "type": "string",
+                            "description": "The city to get the weather for.",
                         },
                     },
-                )
-            ],
-            history=[Message(role="user", content="What's the weather in Beijing?")],
-        )
-        async for part in await chat.generate(context):
+                },
+            )
+        ]
+        history = [Message(role="user", content="What's the weather in Beijing?")]
+        async for part in await chat.generate(system_prompt, tools, history):
             print(part.model_dump(exclude_none=True))
 
     import asyncio

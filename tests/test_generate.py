@@ -2,7 +2,6 @@ import asyncio
 
 from kosong.base import generate
 from kosong.base.chat_provider import StreamedMessagePart
-from kosong.base.context import Context
 from kosong.base.message import TextPart, ToolCall, ToolCallPart
 from kosong.chat_provider.mock import MockChatProvider
 from kosong.message import ImageURLPart
@@ -28,8 +27,7 @@ def test_generate():
             ToolCallPart(arguments_part=None),
         ]
     )
-    context = Context(system="", tools=[], history=[])
-    message, _usage = asyncio.run(generate(chat_provider, context))
+    message, _usage = asyncio.run(generate(chat_provider, system_prompt="", tools=[], history=[]))
     assert message.content == [
         TextPart(text="Hello, world!"),
         ImageURLPart(image_url=ImageURLPart.ImageURL(url="https://example.com/image.png")),
@@ -62,7 +60,6 @@ def test_generate_with_callbacks():
         ),
     ]
     chat_provider = MockChatProvider(message_parts=input_parts)
-    context = Context(system="", tools=[], history=[])
 
     output_parts = []
     output_tool_calls = []
@@ -76,7 +73,9 @@ def test_generate_with_callbacks():
     message, _usage = asyncio.run(
         generate(
             chat_provider,
-            context,
+            system_prompt="",
+            tools=[],
+            history=[],
             on_message_part=on_message_part,
             on_tool_call=on_tool_call,
         )
