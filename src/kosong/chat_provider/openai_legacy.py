@@ -32,7 +32,8 @@ class OpenAILegacy:
 
     def __init__(
         self,
-        model: str = "gpt-4o",
+        *,
+        model: str,
         api_key: str | None = None,
         base_url: str | None = None,
         **client_kwargs,
@@ -153,7 +154,7 @@ class OpenAILegacyStreamedMessage:
 if __name__ == "__main__":
 
     async def _dev_main():
-        chat = OpenAILegacy()
+        chat = OpenAILegacy(model="gpt-4o")
         system_prompt = "You are a helpful assistant."
         history = [Message(role="user", content="Hello, how are you?")]
         async for part in await chat.generate(system_prompt, [], history):

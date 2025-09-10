@@ -36,7 +36,8 @@ class Kimi(OpenAILegacy):
 
     def __init__(
         self,
-        model: str = "kimi-k2-turbo-preview",
+        *,
+        model: str,
         api_key: str | None = None,
         base_url: str | None = None,
         **client_kwargs,
@@ -49,7 +50,7 @@ class Kimi(OpenAILegacy):
             )
         if base_url is None:
             base_url = os.getenv("KIMI_BASE_URL", "https://api.moonshot.cn/v1")
-        super().__init__(model, api_key, base_url, **client_kwargs)
+        super().__init__(model=model, api_key=api_key, base_url=base_url, **client_kwargs)
 
         self._generation_kwargs = {}
 
@@ -106,7 +107,7 @@ KimiStreamedMessage = OpenAILegacyStreamedMessage
 if __name__ == "__main__":
 
     async def _dev_main():
-        chat = Kimi()
+        chat = Kimi(model="kimi-k2-turbo-preview")
         system_prompt = ""
         history = [
             Message(role="user", content="Hello, who is Confucius?"),
