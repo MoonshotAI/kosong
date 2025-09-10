@@ -2,7 +2,7 @@ import uuid
 from collections.abc import AsyncIterator, Sequence
 from typing import cast
 
-from openai import AsyncOpenAI
+from openai import AsyncOpenAI, OpenAIError
 from openai.types.chat import (
     ChatCompletionChunk,
     ChatCompletionMessageParam,
@@ -14,13 +14,14 @@ from openai.types.completion_usage import CompletionUsage
 from kosong.base.chat_provider import StreamedMessagePart, TokenUsage
 from kosong.base.message import Message, TextPart, ToolCall, ToolCallPart
 from kosong.base.tool import Tool
+from kosong.chat_provider import ChatProviderError
 
 
-class OpenAILegacyChatProvider:
+class OpenAILegacy:
     """
     A chat provider that uses the OpenAI Chat Completion API.
 
-    >>> chat_provider = OpenAILegacyChatProvider(model="gpt-5", api_key="sk-1234567890")
+    >>> chat_provider = OpenAILegacy(model="gpt-5", api_key="sk-1234567890")
     >>> chat_provider.name
     'openai'
     >>> chat_provider.model_name
@@ -34,13 +35,13 @@ class OpenAILegacyChatProvider:
         model: str = "gpt-4o",
         api_key: str | None = None,
         base_url: str | None = None,
-        **openai_kwargs,
+        **client_kwargs,
     ):
         self._model = model
         self._client = AsyncOpenAI(
             api_key=api_key,
             base_url=base_url,
-            **openai_kwargs,
+            **client_kwargs,
         )
 
     @property
@@ -56,29 +57,29 @@ class OpenAILegacyChatProvider:
         messages: list[ChatCompletionMessageParam] = []
         if system_prompt:
             messages.append({"role": "system", "content": system_prompt})
-        messages.extend(_message_to_openai(message) for message in history)
+        messages.extend(message_to_openai(message) for message in history)
 
         try:
             response = await self._client.chat.completions.create(
                 model=self._model,
                 messages=messages,
-                tools=(_tool_to_openai(tool) for tool in tools),
+                tools=(tool_to_openai(tool) for tool in tools),
                 stream=True,
                 stream_options={"include_usage": True},
+                max_completion_tokens=32000,
             )
             return OpenAILegacyStreamedMessage(response)
-        except Exception as e:
-            # TODO: new exception type
-            raise e
+        except OpenAIError as e:
+            raise ChatProviderError(f"Error generating message: {e}") from e
 
 
-def _message_to_openai(message: Message) -> ChatCompletionMessageParam:
+def message_to_openai(message: Message) -> ChatCompletionMessageParam:
     """Convert a single message to OpenAI message format."""
     # simply `model_dump` because the `Message` type is OpenAI-compatible
     return cast(ChatCompletionMessageParam, message.model_dump(exclude_none=True))
 
 
-def _tool_to_openai(tool: Tool) -> ChatCompletionToolParam:
+def tool_to_openai(tool: Tool) -> ChatCompletionToolParam:
     """Convert a single tool to OpenAI tool format."""
     # simply `model_dump` because the `Tool` type is OpenAI-compatible
     return {
@@ -145,15 +146,14 @@ class OpenAILegacyStreamedMessage:
 
                 if chunk.usage:
                     self._usage = chunk.usage
-        except Exception as e:
-            # TODO: new exception type
-            raise e
+        except OpenAIError as e:
+            raise ChatProviderError(f"Error streaming response: {e}") from e
 
 
 if __name__ == "__main__":
 
     async def _dev_main():
-        chat = OpenAILegacyChatProvider()
+        chat = OpenAILegacy()
         system_prompt = "You are a helpful assistant."
         history = [Message(role="user", content="Hello, how are you?")]
         async for part in await chat.generate(system_prompt, [], history):
