@@ -6,7 +6,7 @@ from typing import NamedTuple, Protocol, final, runtime_checkable
 from kosong.base.message import ContentPart, ToolCall
 from kosong.base.tool import Tool
 from kosong.tooling.error import ToolError
-from kosong.utils.typing import JsonType
+from kosong.utils.typing import JsonType, Stringifyable
 
 __all__ = [
     "ToolReturnType",
@@ -34,14 +34,17 @@ class CallableTool(Tool, ABC):
     @final
     async def call(self, arguments: JsonType) -> ToolReturnType:
         if isinstance(arguments, list):
-            return await self.__call__(*arguments)
+            ret = await self.__call__(*arguments)
         elif isinstance(arguments, dict):
-            return await self.__call__(**arguments)
+            ret = await self.__call__(**arguments)
         else:
-            return await self.__call__(arguments)
+            ret = await self.__call__(arguments)
+        if isinstance(ret, Stringifyable):
+            return str(ret)
+        return ret
 
     @abstractmethod
-    async def __call__(self, *args, **kwargs) -> ToolReturnType: ...
+    async def __call__(self, *args, **kwargs) -> ToolReturnType | Stringifyable: ...
 
 
 class ToolResult(NamedTuple):
