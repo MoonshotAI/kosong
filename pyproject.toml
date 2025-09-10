@@ -1,6 +1,6 @@
 [project]
 name = "kosong"
-version = "0.2.0"
+version = "0.2.1"
 description = "The AI agent building blocks."
 readme = "README.md"
 requires-python = ">=3.13"
