@@ -31,6 +31,8 @@ def test_linear_context():
 
 def test_linear_context_with_jsonl_storage():
     test_path = Path(__file__).parent / "test.jsonl"
+    if test_path.exists():
+        test_path.unlink()
 
     async def run():
         storage = JsonlLinearStorage(path=test_path)
@@ -55,3 +57,5 @@ def test_linear_context_with_jsonl_storage():
 {"role":"assistant","content":"def"}
 """
         assert f.read() == expected
+
+    test_path.unlink()
