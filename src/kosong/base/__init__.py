@@ -31,7 +31,7 @@ async def generate(
     stream = await chat_provider.generate(system_prompt, tools, history)
     async for part in stream:
         if on_message_part:
-            await callback(on_message_part, part)
+            await callback(on_message_part, part.model_copy(deep=True))
 
         if pending_part is None:
             pending_part = part
