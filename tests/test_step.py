@@ -42,12 +42,21 @@ def test_step():
     )
 
     output_parts = []
+    collected_tool_results = []
 
     def on_message_part(part: StreamedMessagePart):
         output_parts.append(part)
 
+    def on_tool_result(result: ToolResult):
+        collected_tool_results.append(result)
+
     async def run():
-        step_result = await step(chat_provider, context, on_message_part=on_message_part)
+        step_result = await step(
+            chat_provider,
+            context,
+            on_message_part=on_message_part,
+            on_tool_result=on_tool_result,
+        )
         tool_results = await step_result.tool_results()
         return step_result, tool_results
 
@@ -56,3 +65,4 @@ def test_step():
     assert step_result.tool_calls == [plus_tool_call]
     assert output_parts == input_parts
     assert tool_results == [ToolResult(tool_call_id="plus#123", result="3")]
+    assert collected_tool_results == tool_results

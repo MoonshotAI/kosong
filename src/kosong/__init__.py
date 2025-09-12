@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from dataclasses import dataclass
 
 from kosong.base import generate
@@ -13,6 +14,7 @@ async def step(
     context: Context,
     *,
     on_message_part: Callback[[StreamedMessagePart], None] | None = None,
+    on_tool_result: Callable[[ToolResult], None] | None = None,
 ) -> "StepResult":
     """
     Run one "step". In one step, the function generates LLM response based on the given context for
@@ -30,8 +32,13 @@ async def step(
     tool_result_futures: dict[str, ToolResultFuture] = {}
 
     async def on_tool_call(tool_call: ToolCall):
+        def future_done_callback(result: ToolResultFuture):
+            if on_tool_result:
+                on_tool_result(result.result())
+
         tool_calls.append(tool_call)
         future = ToolResultFuture()
+        future.add_done_callback(future_done_callback)
         tool_result_futures[tool_call.id] = future
         context.toolset.handle(tool_call, future)
 
