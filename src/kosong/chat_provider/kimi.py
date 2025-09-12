@@ -112,11 +112,13 @@ if __name__ == "__main__":
         history = [
             Message(role="user", content="Hello, who is Confucius?"),
         ]
-        async for part in await chat.with_generation_kwargs(
+        stream = await chat.with_generation_kwargs(
             temperature=0,
             max_tokens=10,
-        ).generate(system_prompt, [], history):
+        ).generate(system_prompt, [], history)
+        async for part in stream:
             print(part.model_dump(exclude_none=True))
+        print(stream.usage)
 
     import asyncio
 

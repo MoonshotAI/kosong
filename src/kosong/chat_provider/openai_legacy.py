@@ -67,7 +67,6 @@ class OpenAILegacy:
                 tools=(tool_to_openai(tool) for tool in tools),
                 stream=True,
                 stream_options={"include_usage": True},
-                max_completion_tokens=32000,
             )
             return OpenAILegacyStreamedMessage(response)
         except OpenAIError as e:
@@ -115,6 +114,9 @@ class OpenAILegacyStreamedMessage:
     ) -> AsyncIterator[StreamedMessagePart]:
         try:
             async for chunk in response:
+                if chunk.usage:
+                    self._usage = chunk.usage
+
                 if not chunk.choices:
                     continue
 
@@ -144,9 +146,6 @@ class OpenAILegacyStreamedMessage:
                     else:
                         # skip empty tool calls
                         pass
-
-                if chunk.usage:
-                    self._usage = chunk.usage
         except OpenAIError as e:
             raise ChatProviderError(f"Error streaming response: {e}") from e
 
@@ -176,8 +175,10 @@ if __name__ == "__main__":
             )
         ]
         history = [Message(role="user", content="What's the weather in Beijing?")]
-        async for part in await chat.generate(system_prompt, tools, history):
+        stream = await chat.generate(system_prompt, tools, history)
+        async for part in stream:
             print(part.model_dump(exclude_none=True))
+        print("usage:", stream.usage)
 
     import asyncio
 
