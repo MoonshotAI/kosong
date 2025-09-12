@@ -1,4 +1,5 @@
 import asyncio
+from copy import deepcopy
 
 from kosong.base import generate
 from kosong.base.chat_provider import StreamedMessagePart
@@ -59,7 +60,7 @@ def test_generate_with_callbacks():
             function=ToolCall.FunctionBody(name="get_time", arguments=""),
         ),
     ]
-    chat_provider = MockChatProvider(message_parts=input_parts)
+    chat_provider = MockChatProvider(message_parts=deepcopy(input_parts))
 
     output_parts = []
     output_tool_calls = []
