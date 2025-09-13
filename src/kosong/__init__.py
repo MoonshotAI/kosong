@@ -1,3 +1,4 @@
+import asyncio
 from collections.abc import Callable
 from dataclasses import dataclass
 
@@ -31,11 +32,16 @@ async def step(
     tool_calls: list[ToolCall] = []
     tool_result_futures: dict[str, ToolResultFuture] = {}
 
-    async def on_tool_call(tool_call: ToolCall):
-        def future_done_callback(result: ToolResultFuture):
-            if on_tool_result:
-                on_tool_result(result.result())
+    def future_done_callback(future: ToolResultFuture):
+        if on_tool_result:
+            try:
+                result = future.result()
+                on_tool_result(result)
+            except Exception:
+                # ignore any exception, especially CancelledError
+                return
 
+    async def on_tool_call(tool_call: ToolCall):
         tool_calls.append(tool_call)
         result = context.toolset.handle(tool_call)
 
@@ -48,14 +54,21 @@ async def step(
             result.add_done_callback(future_done_callback)
             tool_result_futures[tool_call.id] = result
 
-    message, usage = await generate(
-        chat_provider,
-        context.system_prompt,
-        context.toolset.tools,
-        context.history,
-        on_message_part=on_message_part,
-        on_tool_call=on_tool_call,
-    )
+    try:
+        message, usage = await generate(
+            chat_provider,
+            context.system_prompt,
+            context.toolset.tools,
+            context.history,
+            on_message_part=on_message_part,
+            on_tool_call=on_tool_call,
+        )
+    except asyncio.CancelledError:
+        # cancel all the futures to avoid hanging tasks
+        for future in tool_result_futures.values():
+            future.remove_done_callback(future_done_callback)
+            future.cancel()
+        raise
 
     return StepResult(message, usage, tool_calls, tool_result_futures)
 
