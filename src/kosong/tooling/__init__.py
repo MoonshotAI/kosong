@@ -1,14 +1,16 @@
 from abc import ABC, abstractmethod
 from asyncio import Future
 from collections.abc import Sequence
-from typing import NamedTuple, Protocol, final, runtime_checkable
+from dataclasses import dataclass
+from typing import Protocol, final, runtime_checkable
 
 from kosong.base.message import ContentPart, ToolCall
 from kosong.base.tool import Tool
-from kosong.tooling.error import ToolError
-from kosong.utils.typing import JsonType, Stringifyable
+from kosong.utils.typing import JsonType
 
 __all__ = [
+    "ToolOk",
+    "ToolError",
     "ToolReturnType",
     "CallableTool",
     "ToolResult",
@@ -19,7 +21,22 @@ __all__ = [
     "SimpleToolset",
 ]
 
-type ToolReturnType = str | ContentPart | Sequence[ContentPart]
+
+@dataclass(frozen=True)
+class ToolOk:
+    value: str | ContentPart | Sequence[ContentPart]
+    brief: str = ""
+
+
+@dataclass(frozen=True)
+class ToolError:
+    """The error returned by a tool. This is not an exception."""
+
+    message: str
+    brief: str = ""
+
+
+type ToolReturnType = ToolOk | ToolError
 
 
 class CallableTool(Tool, ABC):
@@ -40,17 +57,19 @@ class CallableTool(Tool, ABC):
             ret = await self.__call__(**arguments)
         else:
             ret = await self.__call__(arguments)
-        if isinstance(ret, Stringifyable):
-            return str(ret)
+        if not isinstance(ret, ToolOk | ToolError):
+            # let's do not trust the return type of the tool
+            ret = ToolError(f"Invalid return type: {type(ret)}", "Invalid return type")
         return ret
 
     @abstractmethod
-    async def __call__(self, *args, **kwargs) -> ToolReturnType | Stringifyable: ...
+    async def __call__(self, *args, **kwargs) -> ToolReturnType: ...
 
 
-class ToolResult(NamedTuple):
+@dataclass(frozen=True)
+class ToolResult:
     tool_call_id: str
-    result: ToolReturnType | ToolError
+    result: ToolReturnType
 
 
 ToolResultFuture = Future[ToolResult]
@@ -70,7 +89,7 @@ class Toolset(Protocol):
         """
         Handle a tool call.
         The result of the tool call, or the async future of the result, should be returned.
-        The result can be either a `ToolReturnType` or a `ToolError`.
+        The result should be a `ToolReturnType`, which means `ToolOk` or `ToolError`.
 
         This method MUST NOT do any blocking operations because it will be called during
         consuming the chat response stream.

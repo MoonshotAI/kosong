@@ -1,4 +1,5 @@
 import asyncio
+import inspect
 import json
 from collections.abc import Iterable
 from typing import Self
@@ -7,7 +8,7 @@ import jsonschema
 
 from kosong.base.message import ToolCall
 from kosong.base.tool import Tool
-from kosong.tooling import CallableTool, HandleResult, ToolResult
+from kosong.tooling import CallableTool, HandleResult, ToolResult, ToolReturnType
 from kosong.tooling.error import (
     ToolNotFoundError,
     ToolParseError,
@@ -29,6 +30,12 @@ class SimpleToolset:
                 self += tool
 
     def __iadd__(self, tool: CallableTool) -> Self:
+        return_annotation = inspect.signature(tool.__call__).return_annotation
+        if return_annotation is not ToolReturnType:
+            raise TypeError(
+                f"Expected tool `{tool.name}` to return `ToolReturnType`, "
+                f"but got `{return_annotation}`"
+            )
         self._tool_dict[tool.name] = tool
         return self
 
@@ -44,7 +51,10 @@ class SimpleToolset:
 
     def handle(self, tool_call: ToolCall) -> HandleResult:
         if tool_call.function.name not in self._tool_dict:
-            return ToolResult(tool_call.id, ToolNotFoundError(tool_call.function.name))
+            return ToolResult(
+                tool_call.id,
+                ToolNotFoundError(tool_call.function.name),
+            )
 
         tool = self._tool_dict[tool_call.function.name]
 

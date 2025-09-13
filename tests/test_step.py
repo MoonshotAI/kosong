@@ -1,4 +1,5 @@
 import asyncio
+from typing import override
 
 from kosong import step
 from kosong.base.chat_provider import StreamedMessagePart
@@ -6,7 +7,7 @@ from kosong.base.message import TextPart, ToolCall
 from kosong.base.tool import ParametersType
 from kosong.chat_provider.mock import MockChatProvider
 from kosong.context.linear import LinearContext, MemoryLinearStorage
-from kosong.tooling import CallableTool, ToolResult
+from kosong.tooling import CallableTool, ToolOk, ToolResult, ToolReturnType
 from kosong.tooling.simple import SimpleToolset
 
 
@@ -22,8 +23,9 @@ def test_step():
             },
         }
 
-        async def __call__(self, a: int, b: int) -> str:
-            return str(a + b)
+        @override
+        async def __call__(self, a: int, b: int) -> ToolReturnType:
+            return ToolOk(str(a + b))
 
     plus_tool_call = ToolCall(
         id="plus#123",
@@ -64,5 +66,5 @@ def test_step():
     assert step_result.message.content == [TextPart(text="Hello, world!")]
     assert step_result.tool_calls == [plus_tool_call]
     assert output_parts == input_parts
-    assert tool_results == [ToolResult(tool_call_id="plus#123", result="3")]
+    assert tool_results == [ToolResult(tool_call_id="plus#123", result=ToolOk("3"))]
     assert collected_tool_results == tool_results

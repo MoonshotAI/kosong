@@ -1,9 +1,17 @@
 import asyncio
 import json
+from typing import override
 
 from kosong.base.message import ToolCall
 from kosong.base.tool import ParametersType
-from kosong.tooling import CallableTool, ToolResult, ToolResultFuture
+from kosong.tooling import (
+    CallableTool,
+    ToolError,
+    ToolOk,
+    ToolResult,
+    ToolResultFuture,
+    ToolReturnType,
+)
 from kosong.tooling.error import (
     ToolNotFoundError,
     ToolParseError,
@@ -21,11 +29,12 @@ def test_callable_tool_int_argument():
             "type": "integer",
         }
 
-        async def __call__(self, test: int) -> str:
-            return f"Test tool called with {test}"
+        @override
+        async def __call__(self, test: int) -> ToolReturnType:
+            return ToolOk(f"Test tool called with {test}")
 
     tool = TestTool()
-    assert asyncio.run(tool.call(1)) == "Test tool called with 1"
+    assert asyncio.run(tool.call(1)) == ToolOk("Test tool called with 1")
 
 
 def test_callable_tool_list_argument():
@@ -39,11 +48,12 @@ def test_callable_tool_list_argument():
             },
         }
 
-        async def __call__(self, a: str, b: str) -> str:
-            return f"Test tool called with {a} and {b}"
+        @override
+        async def __call__(self, a: str, b: str) -> ToolReturnType:
+            return ToolOk("Test tool called with a and b")
 
     tool = TestTool()
-    assert asyncio.run(tool.call(["a", "b"])) == "Test tool called with a and b"
+    assert asyncio.run(tool.call(["a", "b"])) == ToolOk("Test tool called with a and b")
 
 
 def test_callable_tool_dict_argument():
@@ -58,11 +68,12 @@ def test_callable_tool_dict_argument():
             },
         }
 
-        async def __call__(self, a: str, b: int) -> str:
-            return f"Test tool called with {a} and {b}"
+        @override
+        async def __call__(self, a: str, b: int) -> ToolReturnType:
+            return ToolOk(f"Test tool called with {a} and {b}")
 
     tool = TestTool()
-    assert asyncio.run(tool.call({"a": "a", "b": 1})) == "Test tool called with a and 1"
+    assert asyncio.run(tool.call({"a": "a", "b": 1})) == ToolOk("Test tool called with a and 1")
 
 
 def test_simple_toolset():
@@ -78,8 +89,9 @@ def test_simple_toolset():
             "required": ["a", "b"],
         }
 
-        async def __call__(self, a: int, b: int) -> str:
-            return str(a + b)
+        @override
+        async def __call__(self, a: int, b: int) -> ToolReturnType:
+            return ToolOk(str(a + b))
 
     class CompareTool(CallableTool):
         name: str = "compare"
@@ -93,8 +105,9 @@ def test_simple_toolset():
             "required": ["a", "b"],
         }
 
-        async def __call__(self, a: int, b: int) -> str:
-            return "greater" if a > b else "less" if a < b else "equal"
+        @override
+        async def __call__(self, a: int, b: int) -> ToolReturnType:
+            return ToolOk("greater" if a > b else "less" if a < b else "equal")
 
     class RaiseTool(CallableTool):
         name: str = "raise"
@@ -104,15 +117,52 @@ def test_simple_toolset():
             "properties": {},
         }
 
-        async def __call__(self) -> str:
+        @override
+        async def __call__(self) -> ToolReturnType:
             raise Exception("test exception")
+
+    class ErrorTool(CallableTool):
+        name: str = "error"
+        description: str = "This is a error tool"
+        parameters: ParametersType = {
+            "type": "object",
+            "properties": {},
+        }
+
+        @override
+        async def __call__(self) -> ToolReturnType:
+            return ToolError("test error")
+
+    class InvalidReturnTypeTool(CallableTool):
+        name: str = "invalid_return_type"
+        description: str = "This is a invalid return type tool"
+        parameters: ParametersType = {
+            "type": "object",
+            "properties": {},
+        }
+
+        @override
+        async def __call__(self) -> str:
+            return "invalid return type"
 
     toolset = SimpleToolset([PlusTool()])
     toolset += CompareTool()
     toolset += RaiseTool()
+    toolset += ErrorTool()
     assert toolset.tools[0].name == "plus"
     assert toolset.tools[1].name == "compare"
     assert toolset.tools[2].name == "raise"
+    assert toolset.tools[3].name == "error"
+
+    try:
+        toolset += InvalidReturnTypeTool()
+    except TypeError as e:
+        assert str(e) == (
+            "Expected tool `invalid_return_type` to return `ToolReturnType`, "
+            "but got `<class 'str'>`"
+        )
+    else:
+        raise AssertionError("Expected TypeError")
 
     tool_calls = [
         ToolCall(
@@ -150,6 +200,13 @@ def test_simple_toolset():
                 arguments=None,
             ),
         ),
+        ToolCall(
+            id="6",
+            function=ToolCall.FunctionBody(
+                name="error",
+                arguments=None,
+            ),
+        ),
     ]
 
     async def run() -> list[ToolResult]:
@@ -166,8 +223,10 @@ def test_simple_toolset():
 
     results = asyncio.run(run())
     assert results[0].tool_call_id == "1"
-    assert results[0].result == "3"
+    assert results[0].result == ToolOk("3")
     assert isinstance(results[1].result, ToolParseError)
     assert isinstance(results[2].result, ToolValidateError)
     assert isinstance(results[3].result, ToolRuntimeError)
     assert isinstance(results[4].result, ToolNotFoundError)
+    assert isinstance(results[5].result, ToolError)
+    assert results[5].result.message == "test error"
