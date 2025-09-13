@@ -37,8 +37,7 @@ async def step(
             try:
                 result = future.result()
                 on_tool_result(result)
-            except Exception:
-                # ignore any exception, especially CancelledError
+            except asyncio.CancelledError:
                 return
 
     async def on_tool_call(tool_call: ToolCall):

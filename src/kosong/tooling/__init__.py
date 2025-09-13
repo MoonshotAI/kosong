@@ -74,6 +74,8 @@ class Toolset(Protocol):
 
         This method MUST NOT do any blocking operations because it will be called during
         consuming the chat response stream.
+        This method MUST NOT raise any exception except for asyncio.CancelledError. Any other
+        error should be returned as a `ToolError`.
         """
         ...
 
