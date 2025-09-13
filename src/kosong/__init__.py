@@ -37,10 +37,16 @@ async def step(
                 on_tool_result(result.result())
 
         tool_calls.append(tool_call)
-        future = ToolResultFuture()
-        future.add_done_callback(future_done_callback)
-        tool_result_futures[tool_call.id] = future
-        context.toolset.handle(tool_call, future)
+        result = context.toolset.handle(tool_call)
+
+        if isinstance(result, ToolResult):
+            future = ToolResultFuture()
+            future.add_done_callback(future_done_callback)
+            future.set_result(result)
+            tool_result_futures[tool_call.id] = future
+        else:
+            result.add_done_callback(future_done_callback)
+            tool_result_futures[tool_call.id] = result
 
     message, usage = await generate(
         chat_provider,

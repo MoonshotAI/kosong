@@ -155,9 +155,13 @@ def test_simple_toolset():
     async def run() -> list[ToolResult]:
         futures: list[ToolResultFuture] = []
         for tool_call in tool_calls:
-            future = asyncio.Future()
-            futures.append(future)
-            toolset.handle(tool_call, future)
+            result = toolset.handle(tool_call)
+            if isinstance(result, ToolResult):
+                future = ToolResultFuture()
+                future.set_result(result)
+                futures.append(future)
+            else:
+                futures.append(result)
         return await asyncio.gather(*futures)
 
     results = asyncio.run(run())

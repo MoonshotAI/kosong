@@ -7,7 +7,7 @@ import jsonschema
 
 from kosong.base.message import ToolCall
 from kosong.base.tool import Tool
-from kosong.tooling import CallableTool, ToolResult, ToolResultFuture
+from kosong.tooling import CallableTool, HandleResult, ToolResult
 from kosong.tooling.error import (
     ToolNotFoundError,
     ToolParseError,
@@ -42,10 +42,9 @@ class SimpleToolset:
     def tools(self) -> list[Tool]:
         return list(self._tool_dict.values())
 
-    def handle(self, tool_call: ToolCall, future: ToolResultFuture):
+    def handle(self, tool_call: ToolCall) -> HandleResult:
         if tool_call.function.name not in self._tool_dict:
-            future.set_result(ToolResult(tool_call.id, ToolNotFoundError(tool_call.function.name)))
-            return
+            return ToolResult(tool_call.id, ToolNotFoundError(tool_call.function.name))
 
         tool = self._tool_dict[tool_call.function.name]
 
@@ -53,17 +52,15 @@ class SimpleToolset:
             arguments: JsonType = json.loads(tool_call.function.arguments or "{}")
             jsonschema.validate(arguments, tool.parameters)
         except json.JSONDecodeError as e:
-            future.set_result(ToolResult(tool_call.id, ToolParseError(str(e))))
-            return
+            return ToolResult(tool_call.id, ToolParseError(str(e)))
         except jsonschema.ValidationError as e:
-            future.set_result(ToolResult(tool_call.id, ToolValidateError(str(e))))
-            return
+            return ToolResult(tool_call.id, ToolValidateError(str(e)))
 
         async def _call():
             try:
                 ret = await tool.call(arguments)
-                future.set_result(ToolResult(tool_call.id, ret))
+                return ToolResult(tool_call.id, ret)
             except Exception as e:
-                future.set_result(ToolResult(tool_call.id, ToolRuntimeError(str(e))))
+                return ToolResult(tool_call.id, ToolRuntimeError(str(e)))
 
-        asyncio.create_task(_call())
+        return asyncio.create_task(_call())

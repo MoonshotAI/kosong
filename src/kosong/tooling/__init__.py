@@ -13,6 +13,7 @@ __all__ = [
     "CallableTool",
     "ToolResult",
     "ToolResultFuture",
+    "HandleResult",
     "Toolset",
     "EmptyToolset",
     "SimpleToolset",
@@ -53,6 +54,7 @@ class ToolResult(NamedTuple):
 
 
 ToolResultFuture = Future[ToolResult]
+type HandleResult = ToolResultFuture | ToolResult
 
 
 @runtime_checkable
@@ -64,10 +66,10 @@ class Toolset(Protocol):
     @property
     def tools(self) -> list[Tool]: ...
 
-    def handle(self, tool_call: ToolCall, future: ToolResultFuture):
+    def handle(self, tool_call: ToolCall) -> HandleResult:
         """
         Handle a tool call.
-        The result of the tool call should be set to the future asynchronously.
+        The result of the tool call, or the async future of the result, should be returned.
         The result can be either a `ToolReturnType` or a `ToolError`.
 
         This method MUST NOT do any blocking operations because it will be called during
