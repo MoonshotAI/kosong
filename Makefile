@@ -11,4 +11,4 @@ lint:
 	$(RUFF) format --check
 
 test:
-	uv run pytest --doctest-modules
+	uv run pytest --doctest-modules -vv

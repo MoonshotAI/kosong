@@ -1,7 +1,8 @@
 from abc import ABC
-from typing import Any, Literal, override
+from typing import Any, ClassVar, Literal, get_args, get_origin, override
 
-from pydantic import BaseModel, field_serializer
+from pydantic import BaseModel, GetCoreSchemaHandler, field_serializer
+from pydantic_core import core_schema
 
 
 class MergableMixin:
@@ -13,8 +14,57 @@ class MergableMixin:
 class ContentPart(BaseModel, ABC, MergableMixin):
     """A part of a message content."""
 
+    __content_part_registry: ClassVar[dict[str, type["ContentPart"]]] = {}
+
     type: str
     ...  # to be added by subclasses
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+
+        invalid_subclass_error_msg = (
+            f"ContentPart subclass {cls.__name__} must have a `type` field of type `Literal[str]`"
+        )
+
+        if not hasattr(cls, "__annotations__") or "type" not in cls.__annotations__:
+            raise ValueError(invalid_subclass_error_msg)
+
+        type_annotation = cls.__annotations__["type"]
+        if get_origin(type_annotation) is not Literal:
+            raise ValueError(invalid_subclass_error_msg)
+
+        type_value = get_args(type_annotation)[0]
+        if not isinstance(type_value, str):
+            raise ValueError(invalid_subclass_error_msg)
+
+        cls.__content_part_registry[type_value] = cls
+
+    @classmethod
+    def __get_pydantic_core_schema__(
+        cls, source_type: Any, handler: GetCoreSchemaHandler
+    ) -> core_schema.CoreSchema:
+        # If we're dealing with the base ContentPart class, use custom validation
+        if cls.__name__ == "ContentPart":
+
+            def validate_content_part(value: Any) -> Any:
+                # if it's already an instance of a ContentPart subclass, return it
+                if hasattr(value, "__class__") and issubclass(value.__class__, cls):
+                    return value
+
+                # if it's a dict with a type field, dispatch to the appropriate subclass
+                if isinstance(value, dict) and "type" in value:
+                    type_value = value["type"]
+                    if not isinstance(type_value, str):
+                        raise ValueError(f"Cannot validate {value} as ContentPart")
+                    target_class = cls.__content_part_registry[type_value]
+                    return target_class.model_validate(value)
+
+                raise ValueError(f"Cannot validate {value} as ContentPart")
+
+            return core_schema.no_info_plain_validator_function(validate_content_part)
+
+        # for subclasses, use the default schema
+        return handler(source_type)
 
 
 class TextPart(ContentPart):
@@ -32,6 +82,55 @@ class TextPart(ContentPart):
             return False
         self.text += other.text
         return True
+
+
+class ThinkPart(ContentPart):
+    """
+    >>> ThinkPart(think="I think I need to think about this.").model_dump()
+    {'type': 'think', 'think': 'I think I need to think about this.'}
+    """
+
+    type: Literal["think"] = "think"
+    think: str
+
+    @override
+    def merge_in_place(self, other) -> bool:
+        if not isinstance(other, ThinkPart):
+            return False
+        self.think += other.think
+        return True
+
+
+class ImageURLPart(ContentPart):
+    """
+    >>> ImageURLPart(image_url=ImageURLPart.ImageURL(url="https://example.com/image.png")).model_dump()
+    {'type': 'image_url', 'image_url': {'url': 'https://example.com/image.png', 'id': None}}
+    """
+
+    class ImageURL(BaseModel):
+        url: str
+        """The URL of the image, can be data URI scheme like `data:image/png;base64,...`."""
+        id: str | None = None
+        """The ID of the image, to allow LLMs to distinguish different images."""
+
+    type: Literal["image_url"] = "image_url"
+    image_url: ImageURL
+
+
+class AudioURLPart(ContentPart):
+    """
+    >>> AudioURLPart(audio_url=AudioURLPart.AudioURL(url="https://example.com/audio.mp3")).model_dump()
+    {'type': 'audio_url', 'audio_url': {'url': 'https://example.com/audio.mp3', 'id': None}}
+    """
+
+    class AudioURL(BaseModel):
+        url: str
+        """The URL of the audio, can be data URI scheme like `data:audio/aac;base64,...`."""
+        id: str | None = None
+        """The ID of the audio, to allow LLMs to distinguish different audios."""
+
+    type: Literal["audio_url"] = "audio_url"
+    audio_url: AudioURL
 
 
 class ToolCall(BaseModel, MergableMixin):
