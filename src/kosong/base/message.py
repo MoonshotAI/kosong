@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Any, ClassVar, Literal, get_args, get_origin, override
+from typing import Any, ClassVar, Literal, override
 
 from pydantic import BaseModel, GetCoreSchemaHandler, field_serializer
 from pydantic_core import core_schema
@@ -23,17 +23,13 @@ class ContentPart(BaseModel, ABC, MergableMixin):
         super().__init_subclass__(**kwargs)
 
         invalid_subclass_error_msg = (
-            f"ContentPart subclass {cls.__name__} must have a `type` field of type `Literal[str]`"
+            f"ContentPart subclass {cls.__name__} must have a `type` field of type `str`"
         )
 
-        if not hasattr(cls, "__annotations__") or "type" not in cls.__annotations__:
+        if not hasattr(cls, "type"):
             raise ValueError(invalid_subclass_error_msg)
 
-        type_annotation = cls.__annotations__["type"]
-        if get_origin(type_annotation) is not Literal:
-            raise ValueError(invalid_subclass_error_msg)
-
-        type_value = get_args(type_annotation)[0]
+        type_value = cls.type
         if not isinstance(type_value, str):
             raise ValueError(invalid_subclass_error_msg)
 
@@ -73,7 +69,7 @@ class TextPart(ContentPart):
     {'type': 'text', 'text': 'Hello, world!'}
     """
 
-    type: Literal["text"] = "text"
+    type: str = "text"
     text: str
 
     @override
@@ -90,7 +86,7 @@ class ThinkPart(ContentPart):
     {'type': 'think', 'think': 'I think I need to think about this.'}
     """
 
-    type: Literal["think"] = "think"
+    type: str = "think"
     think: str
 
     @override
@@ -113,7 +109,7 @@ class ImageURLPart(ContentPart):
         id: str | None = None
         """The ID of the image, to allow LLMs to distinguish different images."""
 
-    type: Literal["image_url"] = "image_url"
+    type: str = "image_url"
     image_url: ImageURL
 
 
@@ -129,7 +125,7 @@ class AudioURLPart(ContentPart):
         id: str | None = None
         """The ID of the audio, to allow LLMs to distinguish different audios."""
 
-    type: Literal["audio_url"] = "audio_url"
+    type: str = "audio_url"
     audio_url: AudioURL
 
 

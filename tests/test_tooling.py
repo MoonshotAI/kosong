@@ -142,7 +142,7 @@ def test_simple_toolset():
         }
 
         @override
-        async def __call__(self) -> str:
+        async def __call__(self) -> str:  # type: ignore[reportIncompatibleMethodOverride]
             return "invalid return type"
 
     toolset = SimpleToolset([PlusTool()])

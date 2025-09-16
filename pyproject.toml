@@ -7,12 +7,12 @@ requires-python = ">=3.13"
 dependencies = [
     "dotenv>=0.9.9",
     "jsonschema>=4.25.1",
-    "openai>=1.107.2",
+    "openai>=1.107.3",
     "pydantic>=2.11.9",
 ]
 
 [dependency-groups]
-dev = ["pytest>=8.4.2", "ruff>=0.12.12"]
+dev = ["pyright>=1.1.405", "pytest>=8.4.2", "ruff>=0.13.0"]
 
 [build-system]
 requires = ["uv_build>=0.8.5,<0.9.0"]

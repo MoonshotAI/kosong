@@ -8,7 +8,6 @@ from openai.types.chat import (
     ChatCompletionMessageParam,
     ChatCompletionToolParam,
 )
-from openai.types.chat.chat_completion_tool_param import FunctionDefinition
 from openai.types.completion_usage import CompletionUsage
 
 from kosong.base.chat_provider import StreamedMessagePart, TokenUsage
@@ -84,7 +83,11 @@ def tool_to_openai(tool: Tool) -> ChatCompletionToolParam:
     # simply `model_dump` because the `Tool` type is OpenAI-compatible
     return {
         "type": "function",
-        "function": cast(FunctionDefinition, tool.model_dump(exclude_none=True)),
+        "function": {
+            "name": tool.name,
+            "description": tool.description,
+            "parameters": tool.parameters,
+        },
     }
 
 
