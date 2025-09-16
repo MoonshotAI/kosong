@@ -1,10 +1,10 @@
 import copy
 import os
 from collections.abc import Sequence
-from typing import TypedDict, Unpack, override
+from typing import TypedDict, Unpack, cast, override
 
 from openai import OpenAIError
-from openai.types.chat import ChatCompletionMessageParam
+from openai.types.chat import ChatCompletionMessageParam, ChatCompletionToolParam
 
 from kosong.base.message import Message
 from kosong.base.tool import Tool
@@ -77,7 +77,7 @@ class Kimi(OpenAILegacy):
             response = await self._client.chat.completions.create(
                 model=self._model,
                 messages=messages,
-                tools=(tool_to_openai(tool) for tool in tools),
+                tools=(tool_to_kimi(tool) for tool in tools),
                 stream=True,
                 stream_options={"include_usage": True},
                 **generation_kwargs,
@@ -99,6 +99,23 @@ class Kimi(OpenAILegacy):
         new_self = copy.copy(self)
         new_self._generation_kwargs = kwargs
         return new_self
+
+
+def tool_to_kimi(tool: Tool) -> ChatCompletionToolParam:
+    if tool.name.startswith("$"):
+        # Kimi builtin functions start with `$`
+        return cast(
+            ChatCompletionToolParam,
+            {
+                "type": "builtin_function",
+                "function": {
+                    "name": tool.name,
+                    # no need to set description and parameters
+                },
+            },
+        )
+    else:
+        return tool_to_openai(tool)
 
 
 KimiStreamedMessage = OpenAILegacyStreamedMessage
