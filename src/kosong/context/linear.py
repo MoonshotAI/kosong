@@ -32,22 +32,38 @@ class LinearContext:
 
     @property
     def history(self) -> list[Message]:
-        return self._storage.list_messages()
+        return self._storage.messages
+
+    @property
+    def token_count(self) -> int:
+        return self._storage.token_count
 
     async def add_message(self, message: Message):
         await self._storage.append_message(message)
 
+    async def mark_token_count(self, token_count: int):
+        await self._storage.mark_token_count(token_count)
+
 
 @runtime_checkable
 class LinearStorage(Protocol):
-    def list_messages(self) -> list[Message]:
+    @property
+    def messages(self) -> list[Message]:
         """
-        List all messages in the storage.
-        All messages should have a copy in memory so this method should be non-async.
+        All messages in the storage.
+        """
+        ...
+
+    @property
+    def token_count(self) -> int:
+        """
+        The total token count of the messages in the storage.
+        This may not be the precise token count, depending on the caller of `mark_token_count`.
         """
         ...
 
     async def append_message(self, message: Message) -> None: ...
+    async def mark_token_count(self, token_count: int) -> None: ...
 
 
 class MemoryLinearStorage:
@@ -57,12 +73,21 @@ class MemoryLinearStorage:
 
     def __init__(self):
         self._messages: list[Message] = []
+        self._token_count: int | None = None
 
-    def list_messages(self) -> list[Message]:
+    @property
+    def messages(self) -> list[Message]:
         return self._messages
+
+    @property
+    def token_count(self) -> int:
+        return self._token_count or 0
 
     async def append_message(self, message: Message):
         self._messages.append(message)
+
+    async def mark_token_count(self, token_count: int):
+        self._token_count = token_count
 
 
 class JsonlLinearStorage(MemoryLinearStorage):
@@ -85,7 +110,13 @@ class JsonlLinearStorage(MemoryLinearStorage):
         def _restore():
             with open(self._path, encoding="utf-8") as f:
                 for line in f:
-                    message = Message.model_validate(json.loads(line))
+                    if not line.strip():
+                        continue
+                    line_json = json.loads(line)
+                    if "token_count" in line_json:
+                        self._token_count = line_json["token_count"]
+                        continue
+                    message = Message.model_validate(line_json)
                     self._messages.append(message)
 
         await asyncio.to_thread(_restore)
@@ -99,9 +130,6 @@ class JsonlLinearStorage(MemoryLinearStorage):
         if self._file:
             self._file.close()
 
-    def list_messages(self) -> list[Message]:
-        return super().list_messages()
-
     async def append_message(self, message: Message):
         await super().append_message(message)
 
@@ -109,6 +137,21 @@ class JsonlLinearStorage(MemoryLinearStorage):
             file = self._get_file()
             json.dump(
                 message.model_dump(exclude_none=True),
+                file,
+                ensure_ascii=False,
+                separators=(",", ":"),
+            )
+            file.write("\n")
+
+        await asyncio.to_thread(_write)
+
+    async def mark_token_count(self, token_count: int):
+        await super().mark_token_count(token_count)
+
+        def _write():
+            file = self._get_file()
+            json.dump(
+                {"token_count": token_count},
                 file,
                 ensure_ascii=False,
                 separators=(",", ":"),
