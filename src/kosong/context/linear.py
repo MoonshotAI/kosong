@@ -4,7 +4,6 @@ from pathlib import Path
 from typing import IO, Protocol, runtime_checkable
 
 from kosong.base.message import Message
-from kosong.tooling import Toolset
 
 
 class LinearContext:
@@ -12,23 +11,8 @@ class LinearContext:
     A context that contains a linear history of messages.
     """
 
-    def __init__(
-        self,
-        system_prompt: str,
-        toolset: Toolset,
-        storage: "LinearStorage",
-    ):
-        self._system_prompt = system_prompt
-        self._toolset = toolset
+    def __init__(self, storage: "LinearStorage"):
         self._storage = storage
-
-    @property
-    def system_prompt(self) -> str:
-        return self._system_prompt
-
-    @property
-    def toolset(self) -> Toolset:
-        return self._toolset
 
     @property
     def history(self) -> list[Message]:
@@ -151,7 +135,7 @@ class JsonlLinearStorage(MemoryLinearStorage):
         def _write():
             file = self._get_file()
             json.dump(
-                {"token_count": token_count},
+                {"role": "_usage", "token_count": token_count},
                 file,
                 ensure_ascii=False,
                 separators=(",", ":"),

@@ -1,18 +1,19 @@
 import asyncio
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 
 from kosong.base import generate
 from kosong.base.chat_provider import ChatProvider, StreamedMessagePart, TokenUsage
 from kosong.base.message import Message, ToolCall
-from kosong.context import Context
-from kosong.tooling import ToolResult, ToolResultFuture
+from kosong.tooling import ToolResult, ToolResultFuture, Toolset
 from kosong.utils.aio import Callback
 
 
 async def step(
     chat_provider: ChatProvider,
-    context: Context,
+    system_prompt: str,
+    toolset: Toolset,
+    history: Sequence[Message],
     *,
     on_message_part: Callback[[StreamedMessagePart], None] | None = None,
     on_tool_result: Callable[[ToolResult], None] | None = None,
@@ -42,7 +43,7 @@ async def step(
 
     async def on_tool_call(tool_call: ToolCall):
         tool_calls.append(tool_call)
-        result = context.toolset.handle(tool_call)
+        result = toolset.handle(tool_call)
 
         if isinstance(result, ToolResult):
             future = ToolResultFuture()
@@ -56,9 +57,9 @@ async def step(
     try:
         message, usage = await generate(
             chat_provider,
-            context.system_prompt,
-            context.toolset.tools,
-            context.history,
+            system_prompt,
+            toolset.tools,
+            history,
             on_message_part=on_message_part,
             on_tool_call=on_tool_call,
         )

@@ -6,7 +6,6 @@ from kosong.base.chat_provider import StreamedMessagePart
 from kosong.base.message import TextPart, ToolCall
 from kosong.base.tool import ParametersType
 from kosong.chat_provider.mock import MockChatProvider
-from kosong.context.linear import LinearContext, MemoryLinearStorage
 from kosong.tooling import CallableTool, ToolOk, ToolResult, ToolReturnType
 from kosong.tooling.simple import SimpleToolset
 
@@ -37,11 +36,6 @@ def test_step():
     ]
     chat_provider = MockChatProvider(message_parts=input_parts)
     toolset = SimpleToolset([PlusTool()])
-    context = LinearContext(
-        system_prompt="",
-        toolset=toolset,
-        storage=MemoryLinearStorage(),
-    )
 
     output_parts = []
     collected_tool_results = []
@@ -55,7 +49,9 @@ def test_step():
     async def run():
         step_result = await step(
             chat_provider,
-            context,
+            system_prompt="",
+            toolset=toolset,
+            history=[],
             on_message_part=on_message_part,
             on_tool_result=on_tool_result,
         )
