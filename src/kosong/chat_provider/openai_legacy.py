@@ -2,6 +2,7 @@ import uuid
 from collections.abc import AsyncIterator, Sequence
 from typing import cast
 
+import openai
 from openai import AsyncOpenAI, OpenAIError
 from openai.types.chat import (
     ChatCompletionChunk,
@@ -13,7 +14,12 @@ from openai.types.completion_usage import CompletionUsage
 from kosong.base.chat_provider import StreamedMessagePart, TokenUsage
 from kosong.base.message import Message, TextPart, ToolCall, ToolCallPart
 from kosong.base.tool import Tool
-from kosong.chat_provider import ChatProviderError
+from kosong.chat_provider import (
+    APIConnectionError,
+    APIStatusError,
+    APITimeoutError,
+    ChatProviderError,
+)
 
 
 class OpenAILegacy:
@@ -69,7 +75,7 @@ class OpenAILegacy:
             )
             return OpenAILegacyStreamedMessage(response)
         except OpenAIError as e:
-            raise ChatProviderError(f"Error generating message: {e}") from e
+            raise convert_error(e) from e
 
 
 def message_to_openai(message: Message) -> ChatCompletionMessageParam:
@@ -150,7 +156,18 @@ class OpenAILegacyStreamedMessage:
                         # skip empty tool calls
                         pass
         except OpenAIError as e:
-            raise ChatProviderError(f"Error streaming response: {e}") from e
+            raise convert_error(e) from e
+
+
+def convert_error(error: OpenAIError) -> ChatProviderError:
+    if isinstance(error, openai.APIStatusError):
+        return APIStatusError(error.status_code, error.message)
+    elif isinstance(error, openai.APIConnectionError):
+        return APIConnectionError(error.message)
+    elif isinstance(error, openai.APITimeoutError):
+        return APITimeoutError(error.message)
+    else:
+        return ChatProviderError(f"Error: {error}")
 
 
 if __name__ == "__main__":

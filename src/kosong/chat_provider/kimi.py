@@ -12,6 +12,7 @@ from kosong.chat_provider import ChatProviderError
 from kosong.chat_provider.openai_legacy import (
     OpenAILegacy,
     OpenAILegacyStreamedMessage,
+    convert_error,
     message_to_openai,
     tool_to_openai,
 )
@@ -84,7 +85,7 @@ class Kimi(OpenAILegacy):
             )
             return KimiStreamedMessage(response)
         except OpenAIError as e:
-            raise ChatProviderError(f"Error generating message: {e}") from e
+            raise convert_error(e) from e
 
     class GenerationKwargs(TypedDict, total=False):
         max_tokens: int | None
