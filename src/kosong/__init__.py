@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from kosong.base import generate
 from kosong.base.chat_provider import ChatProvider, StreamedMessagePart, TokenUsage
 from kosong.base.message import Message, ToolCall
+from kosong.chat_provider import ChatProviderError
 from kosong.tooling import ToolResult, ToolResultFuture, Toolset
 from kosong.utils.aio import Callback
 
@@ -63,7 +64,7 @@ async def step(
             on_message_part=on_message_part,
             on_tool_call=on_tool_call,
         )
-    except asyncio.CancelledError:
+    except (ChatProviderError, asyncio.CancelledError):
         # cancel all the futures to avoid hanging tasks
         for future in tool_result_futures.values():
             future.remove_done_callback(future_done_callback)
