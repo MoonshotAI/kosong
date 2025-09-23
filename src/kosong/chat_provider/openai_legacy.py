@@ -3,9 +3,11 @@ from collections.abc import AsyncIterator, Sequence
 from typing import cast
 
 import openai
-from openai import AsyncOpenAI, OpenAIError
+from openai import AsyncOpenAI, AsyncStream, OpenAIError
 from openai.types.chat import (
+    ChatCompletion,
     ChatCompletionChunk,
+    ChatCompletionMessageFunctionToolCall,
     ChatCompletionMessageParam,
     ChatCompletionToolParam,
 )
@@ -41,9 +43,11 @@ class OpenAILegacy:
         model: str,
         api_key: str | None = None,
         base_url: str | None = None,
+        stream: bool = True,
         **client_kwargs,
     ):
         self._model = model
+        self._stream = stream
         self._client = AsyncOpenAI(
             api_key=api_key,
             base_url=base_url,
@@ -70,7 +74,7 @@ class OpenAILegacy:
                 model=self._model,
                 messages=messages,
                 tools=(tool_to_openai(tool) for tool in tools),
-                stream=True,
+                stream=self._stream,
                 stream_options={"include_usage": True},
             )
             return OpenAILegacyStreamedMessage(response)
@@ -98,8 +102,11 @@ def tool_to_openai(tool: Tool) -> ChatCompletionToolParam:
 
 
 class OpenAILegacyStreamedMessage:
-    def __init__(self, response: AsyncIterator[ChatCompletionChunk]):
-        self._iter = self._convert_response(response)
+    def __init__(self, response: ChatCompletion | AsyncStream[ChatCompletionChunk]):
+        if isinstance(response, ChatCompletion):
+            self._iter = self._convert_non_stream_response(response)
+        else:
+            self._iter = self._convert_stream_response(response)
         self._usage: CompletionUsage | None = None
 
     def __aiter__(self) -> AsyncIterator[StreamedMessagePart]:
@@ -117,7 +124,25 @@ class OpenAILegacyStreamedMessage:
             )
         return None
 
-    async def _convert_response(
+    async def _convert_non_stream_response(
+        self,
+        response: ChatCompletion,
+    ) -> AsyncIterator[StreamedMessagePart]:
+        if response.choices[0].message.content:
+            yield TextPart(text=response.choices[0].message.content)
+        if response.choices[0].message.tool_calls:
+            for tool_call in response.choices[0].message.tool_calls:
+                if isinstance(tool_call, ChatCompletionMessageFunctionToolCall):
+                    yield ToolCall(
+                        id=tool_call.id or str(uuid.uuid4()),
+                        function=ToolCall.FunctionBody(
+                            name=tool_call.function.name,
+                            arguments=tool_call.function.arguments,
+                        ),
+                    )
+        self._usage = response.usage
+
+    async def _convert_stream_response(
         self,
         response: AsyncIterator[ChatCompletionChunk],
     ) -> AsyncIterator[StreamedMessagePart]:
@@ -173,7 +198,7 @@ def convert_error(error: OpenAIError) -> ChatProviderError:
 if __name__ == "__main__":
 
     async def _dev_main():
-        chat = OpenAILegacy(model="gpt-4o")
+        chat = OpenAILegacy(model="gpt-4o", stream=False)
         system_prompt = "You are a helpful assistant."
         history = [Message(role="user", content="Hello, how are you?")]
         async for part in await chat.generate(system_prompt, [], history):
