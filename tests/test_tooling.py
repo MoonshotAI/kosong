@@ -2,10 +2,13 @@ import asyncio
 import json
 from typing import override
 
+from pydantic import BaseModel, Field
+
 from kosong.base.message import ToolCall
 from kosong.base.tool import ParametersType
 from kosong.tooling import (
     CallableTool,
+    CallableTool2,
     ToolError,
     ToolOk,
     ToolResult,
@@ -233,3 +236,38 @@ def test_simple_toolset():
     assert isinstance(results[5].result, ToolError)
     assert results[5].result.message == "test error"
     assert results[5].result.brief == "Error"
+
+
+def test_callable_tool_2():
+    class TestParams(BaseModel):
+        a: int = Field(description="The first argument")
+        b: int = Field(default=0, description="The second argument")
+        c: str = Field(default="", alias="-c", description="The third argument")
+
+    class TestTool(CallableTool2[TestParams]):
+        name: str = "test"
+        description: str = "This is a test tool"
+        params: type[TestParams] = TestParams
+
+        @override
+        async def __call__(self, params) -> ToolReturnType:
+            return ToolOk(output=f"Test tool called with {params.a} and {params.b}")
+
+    tool = TestTool()
+    assert tool.base.name == "test"
+    assert tool.base.description == "This is a test tool"
+    assert tool.base.parameters == {
+        "type": "object",
+        "properties": {
+            "a": {"type": "integer", "description": "The first argument"},
+            "b": {"type": "integer", "description": "The second argument", "default": 0},
+            "-c": {"type": "string", "description": "The third argument", "default": ""},
+        },
+        "required": ["a"],
+    }
+
+    assert asyncio.run(tool.call({"a": 1, "b": 2})) == ToolOk(
+        output="Test tool called with 1 and 2"
+    )
+    assert asyncio.run(tool.call({"a": 1})) == ToolOk(output="Test tool called with 1 and 0")
+    assert isinstance(asyncio.run(tool.call({"b": 2})), ToolValidateError)

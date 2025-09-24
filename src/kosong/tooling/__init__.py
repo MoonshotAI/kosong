@@ -2,7 +2,12 @@ from abc import ABC, abstractmethod
 from asyncio import Future
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Protocol, final, runtime_checkable
+from typing import Protocol, override, runtime_checkable
+
+import jsonschema
+import pydantic
+from pydantic import BaseModel
+from pydantic.json_schema import GenerateJsonSchema
 
 from kosong.base.message import ContentPart, ToolCall
 from kosong.base.tool import Tool
@@ -57,8 +62,18 @@ class CallableTool(Tool, ABC):
     Otherwise, the arguments will be passed as a single argument.
     """
 
-    @final
+    @property
+    def base(self) -> Tool:
+        return self
+
     async def call(self, arguments: JsonType) -> ToolReturnType:
+        from kosong.tooling.error import ToolValidateError
+
+        try:
+            jsonschema.validate(arguments, self.parameters)
+        except jsonschema.ValidationError as e:
+            return ToolValidateError(str(e))
+
         if isinstance(arguments, list):
             ret = await self.__call__(*arguments)
         elif isinstance(arguments, dict):
@@ -75,6 +90,62 @@ class CallableTool(Tool, ABC):
 
     @abstractmethod
     async def __call__(self, *args, **kwargs) -> ToolReturnType: ...
+
+
+class _GenerateJsonSchemaNoTitles(GenerateJsonSchema):
+    @override
+    def field_title_should_be_set(self, schema) -> bool:
+        return False
+
+    @override
+    def _update_class_schema(self, json_schema, cls, config) -> None:
+        super()._update_class_schema(json_schema, cls, config)
+        json_schema.pop("title", None)
+
+
+class CallableTool2[Params: BaseModel](BaseModel, ABC):
+    """
+    A tool that can be called as a callable object, with type-safe parameters.
+
+    The tool will be called with the arguments provided in the `ToolCall`.
+    The arguments must be a JSON object, and will be validated by Pydantic to the `Params` type.
+    """
+
+    name: str
+    description: str
+    params: type[Params]
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._base = Tool(
+            name=self.name,
+            description=self.description,
+            parameters=self.params.model_json_schema(schema_generator=_GenerateJsonSchemaNoTitles),
+        )
+
+    @property
+    def base(self) -> Tool:
+        return self._base
+
+    async def call(self, arguments: JsonType) -> ToolReturnType:
+        from kosong.tooling.error import ToolValidateError
+
+        try:
+            params = self.params.model_validate(arguments)
+        except pydantic.ValidationError as e:
+            return ToolValidateError(str(e))
+
+        ret = await self.__call__(params)
+        if not isinstance(ret, ToolOk | ToolError):
+            # let's do not trust the return type of the tool
+            ret = ToolError(
+                message=f"Invalid return type: {type(ret)}",
+                brief="Invalid return type",
+            )
+        return ret
+
+    @abstractmethod
+    async def __call__(self, params: Params) -> ToolReturnType: ...
 
 
 @dataclass(frozen=True)
