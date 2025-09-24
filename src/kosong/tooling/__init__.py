@@ -22,18 +22,26 @@ __all__ = [
 ]
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class ToolOk:
-    value: str | ContentPart | Sequence[ContentPart]
+    output: str | ContentPart | Sequence[ContentPart]
+    """The output content returned by the tool."""
+    message: str = ""
+    """An explanatory message to be given to the model."""
     brief: str = ""
+    """A brief message to be shown to the user."""
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class ToolError:
     """The error returned by a tool. This is not an exception."""
 
+    output: str = ""
+    """The output content returned by the tool."""
     message: str
-    brief: str = ""
+    """An error message to be given to the model."""
+    brief: str
+    """A brief message to be shown to the user."""
 
 
 type ToolReturnType = ToolOk | ToolError
@@ -59,7 +67,10 @@ class CallableTool(Tool, ABC):
             ret = await self.__call__(arguments)
         if not isinstance(ret, ToolOk | ToolError):
             # let's do not trust the return type of the tool
-            ret = ToolError(f"Invalid return type: {type(ret)}", "Invalid return type")
+            ret = ToolError(
+                message=f"Invalid return type: {type(ret)}",
+                brief="Invalid return type",
+            )
         return ret
 
     @abstractmethod

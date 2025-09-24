@@ -24,7 +24,7 @@ def test_step():
 
         @override
         async def __call__(self, a: int, b: int) -> ToolReturnType:
-            return ToolOk(str(a + b))
+            return ToolOk(output=str(a + b))
 
     plus_tool_call = ToolCall(
         id="plus#123",
@@ -62,5 +62,5 @@ def test_step():
     assert step_result.message.content == [TextPart(text="Hello, world!")]
     assert step_result.tool_calls == [plus_tool_call]
     assert output_parts == input_parts
-    assert tool_results == [ToolResult(tool_call_id="plus#123", result=ToolOk("3"))]
+    assert tool_results == [ToolResult(tool_call_id="plus#123", result=ToolOk(output="3"))]
     assert collected_tool_results == tool_results
