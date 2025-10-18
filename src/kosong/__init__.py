@@ -29,6 +29,10 @@ async def step(
     The context will NOT be modified in this function.
 
     The token usage will be returned in the `StepResult` if available.
+
+    Raises:
+        ChatProviderError: If the chat provider fails to generate the message.
+        asyncio.CancelledError: If the step is cancelled.
     """
 
     tool_calls: list[ToolCall] = []
@@ -85,16 +89,21 @@ class StepResult:
     tool_calls: list[ToolCall]
     """All the tool calls generated in this step."""
 
-    tool_result_futures: dict[str, ToolResultFuture]
+    _tool_result_futures: dict[str, ToolResultFuture]
     """The futures of the results of the spawned tool calls."""
 
     async def tool_results(self) -> list[ToolResult]:
         """All the tool results returned by corresponding tool calls."""
-        if not self.tool_result_futures:
+        if not self._tool_result_futures:
             return []
 
-        results: list[ToolResult] = []
-        for tool_call in self.tool_calls:
-            result = await self.tool_result_futures[tool_call.id]
-            results.append(result)
-        return results
+        try:
+            results: list[ToolResult] = []
+            for tool_call in self.tool_calls:
+                result = await self._tool_result_futures[tool_call.id]
+                results.append(result)
+            return results
+        finally:
+            # one exception should cancel all the futures to avoid hanging tasks
+            for future in self._tool_result_futures.values():
+                future.cancel()
