@@ -378,6 +378,7 @@ class OpenAIResponsesStreamedMessage:
             self._iter = self._convert_non_stream_response(response)
         else:
             self._iter = self._convert_stream_response(response)
+        self._id: str | None = None
         self._usage: ResponseUsage | None = None
 
     def __aiter__(self) -> AsyncIterator[StreamedMessagePart]:
@@ -385,6 +386,10 @@ class OpenAIResponsesStreamedMessage:
 
     async def __anext__(self) -> StreamedMessagePart:
         return await self._iter.__anext__()
+
+    @property
+    def id(self) -> str | None:
+        return self._id
 
     @property
     def usage(self) -> TokenUsage | None:
@@ -399,6 +404,8 @@ class OpenAIResponsesStreamedMessage:
         self, response: Response
     ) -> AsyncIterator[StreamedMessagePart]:
         """Convert a non-streaming Responses API result into message parts."""
+        self._id = response.id
+        self._usage = response.usage
         for item in response.output:
             if item.type == "message":
                 for content in item.content:
@@ -418,7 +425,6 @@ class OpenAIResponsesStreamedMessage:
                         think=summary.text,
                         encrypted=item.encrypted_content,
                     )
-        self._usage = response.usage
 
     async def _convert_stream_response(
         self, response: AsyncStream[ResponseStreamEvent]
@@ -430,6 +436,7 @@ class OpenAIResponsesStreamedMessage:
                     yield TextPart(text=chunk.delta)
                 elif chunk.type == "response.output_item.added":
                     item = chunk.item
+                    self._id = item.id
                     if item.type == "function_call":
                         yield ToolCall(
                             id=item.call_id or str(uuid.uuid4()),
@@ -440,6 +447,7 @@ class OpenAIResponsesStreamedMessage:
                         )
                 elif chunk.type == "response.output_item.done":
                     item = chunk.item
+                    self._id = item.id
                     if item.type == "reasoning":
                         yield ThinkPart(think="", encrypted=item.encrypted_content)
                 elif chunk.type == "response.function_call_arguments.delta":
@@ -467,7 +475,7 @@ if __name__ == "__main__":
 
     async def _dev_main():
         # Non-streaming example
-        chat = OpenAIResponses(model="gpt-5", stream=False).with_generation_kwargs(
+        chat = OpenAIResponses(model="gpt-5", stream=True).with_generation_kwargs(
             reasoning_effort="medium",
         )
         system_prompt = "You are a helpful assistant."
