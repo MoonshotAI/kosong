@@ -26,7 +26,7 @@ from kosong.chat_provider import (
 
 class OpenAILegacy:
     """
-    A chat provider that uses the OpenAI Chat Completion API.
+    A chat provider that uses the OpenAI Chat Completions API.
 
     >>> chat_provider = OpenAILegacy(model="gpt-5", api_key="sk-1234567890")
     >>> chat_provider.name
@@ -90,7 +90,6 @@ def message_to_openai(message: Message) -> ChatCompletionMessageParam:
 
 def tool_to_openai(tool: Tool) -> ChatCompletionToolParam:
     """Convert a single tool to OpenAI tool format."""
-    # simply `model_dump` because the `Tool` type is OpenAI-compatible
     return {
         "type": "function",
         "function": {

@@ -88,12 +88,17 @@ class ThinkPart(ContentPart):
 
     type: str = "think"
     think: str
+    encrypted: str | None = None
 
     @override
     def merge_in_place(self, other) -> bool:
         if not isinstance(other, ThinkPart):
             return False
+        if self.encrypted:
+            return False
         self.think += other.think
+        if other.encrypted:
+            self.encrypted = other.encrypted
         return True
 
 
