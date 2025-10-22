@@ -1,8 +1,7 @@
 import copy
 import uuid
 from collections.abc import AsyncIterator, Sequence
-from itertools import pairwise
-from typing import Literal, TypedDict, Unpack, cast
+from typing import TypedDict, Unpack, cast
 
 import openai
 from openai import AsyncOpenAI, AsyncStream, OpenAIError
@@ -191,22 +190,70 @@ def message_to_openai(message: Message) -> list[ResponseInputItemParam]:
             }
         )
     elif len(content) > 0:
-        # merge openai input items
-        result = _append_openai_input_items(result, content[0], role)
-        for last, part in pairwise(content):
-            if (
-                isinstance(last, ThinkPart)
-                and isinstance(part, ThinkPart)
-                and last.encrypted == part.encrypted
-            ):
-                result[-1]["summary"].append({"type": "summary_text", "text": part.think or ""})  # type: ignore
-            elif not isinstance(last, ThinkPart) and not isinstance(part, ThinkPart):
-                if role == "assistant":
-                    result[-1]["content"].extend(_content_parts_to_output_items([part]))  # type: ignore
-                else:
-                    result[-1]["content"].extend(_content_parts_to_input_items([part]))  # type: ignore
+        # Split into two kinds of blocks: contiguous non-ThinkPart message blocks, and
+        # contiguous ThinkPart groups (grouped by the same `encrypted` value)
+        pending_parts: list[ContentPart] = []
+
+        def flush_pending_parts() -> None:
+            if not pending_parts:
+                return
+            if role == "assistant":
+                # the "id" key is missing by purpose
+                result.append(
+                    cast(
+                        ResponseOutputMessageParam,
+                        {
+                            "content": _content_parts_to_output_items(pending_parts),
+                            "role": role,
+                            "type": "message",
+                        },
+                    )
+                )
             else:
-                result = _append_openai_input_items(result, part, role)
+                result.append(
+                    {
+                        "content": _content_parts_to_input_items(pending_parts),
+                        "role": role,
+                        "type": "message",
+                    }
+                )
+            pending_parts.clear()
+
+        i = 0
+        n = len(content)
+        while i < n:
+            part = content[i]
+            if isinstance(part, ThinkPart):
+                # Flush accumulated non-reasoning parts first
+                flush_pending_parts()
+                # Aggregate consecutive ThinkPart items with the same `encrypted` value
+                encrypted_value = part.encrypted
+                summaries = [{"type": "summary_text", "text": part.think or ""}]
+                i += 1
+                while i < n:
+                    next_part = content[i]
+                    if not isinstance(next_part, ThinkPart):
+                        break
+                    if next_part.encrypted != encrypted_value:
+                        break
+                    summaries.append({"type": "summary_text", "text": next_part.think or ""})
+                    i += 1
+                result.append(
+                    cast(
+                        ResponseReasoningItemParam,
+                        {
+                            "summary": summaries,
+                            "type": "reasoning",
+                            "encrypted_content": encrypted_value,
+                        },
+                    )
+                )
+            else:
+                pending_parts.append(part)
+                i += 1
+
+        # Handle remaining trailing non-reasoning parts
+        flush_pending_parts()
 
     for tool_call in message.tool_calls or []:
         result.append(
@@ -218,45 +265,6 @@ def message_to_openai(message: Message) -> list[ResponseInputItemParam]:
             }
         )
 
-    return result
-
-
-def _append_openai_input_items(
-    result: list[ResponseInputItemParam],
-    part: ContentPart,
-    role: Literal["user", "system", "developer", "assistant"],
-) -> list[ResponseInputItemParam]:
-    if isinstance(part, ThinkPart):
-        result.append(
-            cast(
-                ResponseReasoningItemParam,
-                {
-                    "summary": [{"type": "summary_text", "text": part.think or ""}],
-                    "type": "reasoning",
-                    "encrypted_content": part.encrypted,
-                },
-            )
-        )
-    elif role == "assistant":
-        # the "id" key is missing by purpose
-        result.append(
-            cast(
-                ResponseOutputMessageParam,
-                {
-                    "content": _content_parts_to_output_items([part]),
-                    "role": role,
-                    "type": "message",
-                },
-            )
-        )
-    else:
-        result.append(
-            {
-                "content": _content_parts_to_input_items([part]),
-                "role": role,
-                "type": "message",
-            }
-        )
     return result
 
 
@@ -460,7 +468,7 @@ if __name__ == "__main__":
     async def _dev_main():
         # Non-streaming example
         chat = OpenAIResponses(model="gpt-5", stream=False).with_generation_kwargs(
-            reasoning_effort="medium"
+            reasoning_effort="medium",
         )
         system_prompt = "You are a helpful assistant."
         history = [Message(role="user", content="Hello, how are you?")]
