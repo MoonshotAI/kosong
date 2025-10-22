@@ -83,7 +83,7 @@ class TextPart(ContentPart):
 class ThinkPart(ContentPart):
     """
     >>> ThinkPart(think="I think I need to think about this.").model_dump()
-    {'type': 'think', 'think': 'I think I need to think about this.'}
+    {'type': 'think', 'think': 'I think I need to think about this.', 'encrypted': None}
     """
 
     type: str = "think"
