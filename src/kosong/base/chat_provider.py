@@ -41,6 +41,11 @@ class StreamedMessage(Protocol):
         ...
 
     @property
+    def id(self) -> str | None:
+        """The ID of the streamed message."""
+        ...
+
+    @property
     def usage(self) -> "TokenUsage | None":
         """The usage of the streamed message."""
         ...

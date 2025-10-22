@@ -107,6 +107,7 @@ class OpenAILegacyStreamedMessage:
             self._iter = self._convert_non_stream_response(response)
         else:
             self._iter = self._convert_stream_response(response)
+        self._id: str | None = None
         self._usage: CompletionUsage | None = None
 
     def __aiter__(self) -> AsyncIterator[StreamedMessagePart]:
@@ -114,6 +115,10 @@ class OpenAILegacyStreamedMessage:
 
     async def __anext__(self) -> StreamedMessagePart:
         return await self._iter.__anext__()
+
+    @property
+    def id(self) -> str | None:
+        return self._id
 
     @property
     def usage(self) -> TokenUsage | None:
@@ -128,6 +133,8 @@ class OpenAILegacyStreamedMessage:
         self,
         response: ChatCompletion,
     ) -> AsyncIterator[StreamedMessagePart]:
+        self._id = response.id
+        self._usage = response.usage
         if response.choices[0].message.content:
             yield TextPart(text=response.choices[0].message.content)
         if response.choices[0].message.tool_calls:
@@ -140,7 +147,6 @@ class OpenAILegacyStreamedMessage:
                             arguments=tool_call.function.arguments,
                         ),
                     )
-        self._usage = response.usage
 
     async def _convert_stream_response(
         self,
@@ -148,6 +154,8 @@ class OpenAILegacyStreamedMessage:
     ) -> AsyncIterator[StreamedMessagePart]:
         try:
             async for chunk in response:
+                if chunk.id:
+                    self._id = chunk.id
                 if chunk.usage:
                     self._usage = chunk.usage
 

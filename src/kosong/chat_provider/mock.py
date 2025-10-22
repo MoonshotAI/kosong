@@ -48,5 +48,9 @@ class MockStreamedMessage:
             yield part
 
     @property
+    def id(self) -> str:
+        return "mock"
+
+    @property
     def usage(self) -> TokenUsage | None:
         return None
