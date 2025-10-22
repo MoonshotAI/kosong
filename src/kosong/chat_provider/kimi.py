@@ -143,7 +143,8 @@ if __name__ == "__main__":
         ).generate(system_prompt, [], history)
         async for part in stream:
             print(part.model_dump(exclude_none=True))
-        print(stream.usage)
+        print("id:", stream.id)
+        print("usage:", stream.usage)
 
     import asyncio
 
