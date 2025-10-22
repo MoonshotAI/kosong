@@ -456,6 +456,8 @@ class OpenAIResponsesStreamedMessage:
                     yield ThinkPart(think="")
                 elif chunk.type == "response.reasoning_summary_text.delta":
                     yield ThinkPart(think=chunk.delta)
+                elif chunk.type == "response.completed":
+                    self._usage = chunk.response.usage
         except OpenAIError as e:
             raise convert_error(e) from e
 
