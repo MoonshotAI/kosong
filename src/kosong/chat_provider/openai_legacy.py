@@ -90,6 +90,7 @@ def message_to_openai(message: Message) -> ChatCompletionMessageParam:
 
 def tool_to_openai(tool: Tool) -> ChatCompletionToolParam:
     """Convert a single tool to OpenAI tool format."""
+    # simply `model_dump` because the `Tool` type is OpenAI-compatible
     return {
         "type": "function",
         "function": {
