@@ -73,6 +73,7 @@ async def step(
         for future in tool_result_futures.values():
             future.remove_done_callback(future_done_callback)
             future.cancel()
+        await asyncio.gather(*tool_result_futures.values(), return_exceptions=True)
         raise
 
     return StepResult(message, usage, tool_calls, tool_result_futures)
@@ -100,10 +101,12 @@ class StepResult:
         try:
             results: list[ToolResult] = []
             for tool_call in self.tool_calls:
-                result = await self._tool_result_futures[tool_call.id]
+                future = self._tool_result_futures.pop(tool_call.id)
+                result = await future
                 results.append(result)
             return results
         finally:
             # one exception should cancel all the futures to avoid hanging tasks
             for future in self._tool_result_futures.values():
                 future.cancel()
+            await asyncio.gather(*self._tool_result_futures.values(), return_exceptions=True)

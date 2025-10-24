@@ -102,6 +102,7 @@ class Kimi(OpenAILegacy):
         presence_penalty: float | None
         frequency_penalty: float | None
         stop: str | list[str] | None
+        prompt_cache_key: str | None
 
     def with_generation_kwargs(self, **kwargs: Unpack[GenerationKwargs]) -> "Kimi":
         new_self = copy.copy(self)
