@@ -56,11 +56,14 @@ class OpenAIResponses:
 
     Similar to `OpenAILegacy`, but uses `client.responses` under the hood.
 
-    >>> chat_provider = OpenAIResponses(model="gpt-5", api_key="sk-1234567890")
+    This provider always enables reasoning when generating responses.
+    If you want to use a non-reasoning model, please use `OpenAILegacy` instead.
+
+    >>> chat_provider = OpenAIResponses(model="gpt-5-codex", api_key="sk-1234567890")
     >>> chat_provider.name
     'openai-responses'
     >>> chat_provider.model_name
-    'gpt-5'
+    'gpt-5-codex'
     """
 
     name = "openai-responses"
@@ -104,12 +107,11 @@ class OpenAIResponses:
 
         generation_kwargs = {}
         generation_kwargs.update(self._generation_kwargs)
-        if reasoning_effort := generation_kwargs.pop("reasoning_effort", None):
-            generation_kwargs["reasoning"] = Reasoning(
-                effort=reasoning_effort,
-                summary="auto",
-            )
-            generation_kwargs["include"] = ["reasoning.encrypted_content"]
+        generation_kwargs["reasoning"] = Reasoning(
+            effort=generation_kwargs.pop("reasoning_effort", None),
+            summary="auto",
+        )
+        generation_kwargs["include"] = ["reasoning.encrypted_content"]
 
         try:
             response = await self._client.responses.create(
@@ -477,9 +479,7 @@ if __name__ == "__main__":
 
     async def _dev_main():
         # Non-streaming example
-        chat = OpenAIResponses(model="gpt-5", stream=True).with_generation_kwargs(
-            reasoning_effort="medium",
-        )
+        chat = OpenAIResponses(model="gpt-5-codex", stream=True)
         system_prompt = "You are a helpful assistant."
         history = [Message(role="user", content="Hello, how are you?")]
 
