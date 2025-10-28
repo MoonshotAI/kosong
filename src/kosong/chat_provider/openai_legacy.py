@@ -26,7 +26,7 @@ from kosong.chat_provider import (
 
 class OpenAILegacy:
     """
-    A chat provider that uses the OpenAI Chat Completion API.
+    A chat provider that uses the OpenAI Chat Completions API.
 
     >>> chat_provider = OpenAILegacy(model="gpt-5", api_key="sk-1234567890")
     >>> chat_provider.name

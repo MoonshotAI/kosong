@@ -4,6 +4,7 @@ from kosong.base.chat_provider import ChatProvider
 
 __all__ = [
     "OpenAILegacy",
+    "OpenAIResponses",
     "Kimi",
     # for testing
     "MockChatProvider",
@@ -15,12 +16,14 @@ if TYPE_CHECKING:
 
     def type_check(
         openai: "OpenAILegacy",
+        openai_responses: "OpenAIResponses",
         kimi: "Kimi",
         mock: "MockChatProvider",
         chaos: "ChaosChatProvider",
     ):
         """Use type checking to ensure the types are correct implemented."""
         _: ChatProvider = openai
+        _: ChatProvider = openai_responses
         _: ChatProvider = mock
         _: ChatProvider = kimi
         _: ChatProvider = chaos
@@ -55,3 +58,4 @@ from .chaos import ChaosChatProvider  # noqa: E402
 from .kimi import Kimi  # noqa: E402
 from .mock import MockChatProvider  # noqa: E402
 from .openai_legacy import OpenAILegacy  # noqa: E402
+from .openai_responses import OpenAIResponses  # noqa: E402
