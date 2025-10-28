@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Any, ClassVar, Literal, override
+from typing import Any, ClassVar, Literal, cast, override
 
 from pydantic import BaseModel, GetCoreSchemaHandler, field_serializer
 from pydantic_core import core_schema
@@ -19,18 +19,15 @@ class ContentPart(BaseModel, ABC, MergableMixin):
     type: str
     ...  # to be added by subclasses
 
-    def __init_subclass__(cls, **kwargs):
+    def __init_subclass__(cls, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
 
         invalid_subclass_error_msg = (
             f"ContentPart subclass {cls.__name__} must have a `type` field of type `str`"
         )
 
-        if not hasattr(cls, "type"):
-            raise ValueError(invalid_subclass_error_msg)
-
-        type_value = cls.type
-        if not isinstance(type_value, str):
+        type_value = getattr(cls, "type", None)
+        if type_value is None or not isinstance(type_value, str):
             raise ValueError(invalid_subclass_error_msg)
 
         cls.__content_part_registry[type_value] = cls
@@ -49,7 +46,7 @@ class ContentPart(BaseModel, ABC, MergableMixin):
 
                 # if it's a dict with a type field, dispatch to the appropriate subclass
                 if isinstance(value, dict) and "type" in value:
-                    type_value = value["type"]
+                    type_value: Any | None = cast(dict[str, Any], value).get("type")
                     if not isinstance(type_value, str):
                         raise ValueError(f"Cannot validate {value} as ContentPart")
                     target_class = cls.__content_part_registry[type_value]
@@ -73,7 +70,7 @@ class TextPart(ContentPart):
     text: str
 
     @override
-    def merge_in_place(self, other) -> bool:
+    def merge_in_place(self, other: Any) -> bool:
         if not isinstance(other, TextPart):
             return False
         self.text += other.text
@@ -91,7 +88,7 @@ class ThinkPart(ContentPart):
     encrypted: str | None = None
 
     @override
-    def merge_in_place(self, other) -> bool:
+    def merge_in_place(self, other: Any) -> bool:
         if not isinstance(other, ThinkPart):
             return False
         if self.encrypted:
@@ -160,7 +157,7 @@ class ToolCall(BaseModel, MergableMixin):
     """The function body of the tool call."""
 
     @override
-    def merge_in_place(self, other) -> bool:
+    def merge_in_place(self, other: Any) -> bool:
         if not isinstance(other, ToolCallPart):
             return False
         if self.function.arguments is None:
@@ -177,7 +174,7 @@ class ToolCallPart(BaseModel, MergableMixin):
     """A part of the arguments of the tool call."""
 
     @override
-    def merge_in_place(self, other) -> bool:
+    def merge_in_place(self, other: Any) -> bool:
         if not isinstance(other, ToolCallPart):
             return False
         if self.arguments_part is None:
@@ -211,7 +208,7 @@ class Message(BaseModel):
     partial: bool | None = None
 
     @field_serializer("content")
-    def serialize_content(self, content: str | list[ContentPart]) -> str | list[dict]:
+    def serialize_content(self, content: str | list[ContentPart]) -> str | list[dict[str, Any]]:
         if isinstance(content, str):
             return content
         return [part.model_dump() for part in content]

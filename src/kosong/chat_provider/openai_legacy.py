@@ -1,6 +1,6 @@
 import uuid
 from collections.abc import AsyncIterator, Sequence
-from typing import cast
+from typing import Any, cast
 
 import openai
 from openai import AsyncOpenAI, AsyncStream, OpenAIError
@@ -44,11 +44,11 @@ class OpenAILegacy:
         api_key: str | None = None,
         base_url: str | None = None,
         stream: bool = True,
-        **client_kwargs,
+        **client_kwargs: Any,
     ):
-        self._model = model
-        self._stream = stream
-        self._client = AsyncOpenAI(
+        self.model = model
+        self.stream = stream
+        self.client = AsyncOpenAI(
             api_key=api_key,
             base_url=base_url,
             **client_kwargs,
@@ -56,7 +56,7 @@ class OpenAILegacy:
 
     @property
     def model_name(self) -> str:
-        return self._model
+        return self.model
 
     async def generate(
         self,
@@ -70,11 +70,11 @@ class OpenAILegacy:
         messages.extend(message_to_openai(message) for message in history)
 
         try:
-            response = await self._client.chat.completions.create(
-                model=self._model,
+            response = await self.client.chat.completions.create(
+                model=self.model,
                 messages=messages,
                 tools=(tool_to_openai(tool) for tool in tools),
-                stream=self._stream,
+                stream=self.stream,
                 stream_options={"include_usage": True},
             )
             return OpenAILegacyStreamedMessage(response)
