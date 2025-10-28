@@ -1,9 +1,19 @@
 {
+    "typeCheckingMode": "standard",
+    "pythonVersion": "3.13",
     "include": [
         "src/**/*.py",
         "tests/**/*.py"
     ],
     "exclude": [
         "**/__pycache__/**/*.py",
+    ],
+    "strict": [
+        "src/kosong/base",
+        "src/kosong/chat_provider",
+        "src/kosong/context",
+        "src/kosong/tooling",
+        "src/kosong/utils",
+        "src/kosong/*.py"
     ]
 }

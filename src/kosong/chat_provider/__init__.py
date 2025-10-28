@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 from kosong.base.chat_provider import ChatProvider
 
 __all__ = [
@@ -9,17 +11,19 @@ __all__ = [
 ]
 
 
-def __static_check_types(
-    openai: "OpenAILegacy",
-    kimi: "Kimi",
-    mock: "MockChatProvider",
-    chaos: "ChaosChatProvider",
-):
-    """Use type checking to ensure the types are correct implemented."""
-    _: ChatProvider = openai
-    _: ChatProvider = mock
-    _: ChatProvider = kimi
-    _: ChatProvider = chaos
+if TYPE_CHECKING:
+
+    def type_check(
+        openai: "OpenAILegacy",
+        kimi: "Kimi",
+        mock: "MockChatProvider",
+        chaos: "ChaosChatProvider",
+    ):
+        """Use type checking to ensure the types are correct implemented."""
+        _: ChatProvider = openai
+        _: ChatProvider = mock
+        _: ChatProvider = kimi
+        _: ChatProvider = chaos
 
 
 class ChatProviderError(Exception):

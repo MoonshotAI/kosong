@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from asyncio import Future
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Protocol, override, runtime_checkable
+from typing import TYPE_CHECKING, Any, Protocol, override, runtime_checkable
 
 import jsonschema
 import pydantic
@@ -80,7 +80,7 @@ class CallableTool(Tool, ABC):
             ret = await self.__call__(**arguments)
         else:
             ret = await self.__call__(arguments)
-        if not isinstance(ret, ToolOk | ToolError):
+        if not isinstance(ret, ToolOk | ToolError):  # pyright: ignore[reportUnnecessaryIsInstance]
             # let's do not trust the return type of the tool
             ret = ToolError(
                 message=f"Invalid return type: {type(ret)}",
@@ -89,16 +89,18 @@ class CallableTool(Tool, ABC):
         return ret
 
     @abstractmethod
-    async def __call__(self, *args, **kwargs) -> ToolReturnType: ...
+    async def __call__(self, *args: Any, **kwargs: Any) -> ToolReturnType: ...
 
 
 class _GenerateJsonSchemaNoTitles(GenerateJsonSchema):
+    """Custom JSON schema generator that omits titles."""
+
     @override
-    def field_title_should_be_set(self, schema) -> bool:
+    def field_title_should_be_set(self, schema) -> bool:  # pyright: ignore[reportMissingParameterType]
         return False
 
     @override
-    def _update_class_schema(self, json_schema, cls, config) -> None:
+    def _update_class_schema(self, json_schema, cls, config) -> None:  # pyright: ignore[reportMissingParameterType]
         super()._update_class_schema(json_schema, cls, config)
         json_schema.pop("title", None)
 
@@ -115,7 +117,7 @@ class CallableTool2[Params: BaseModel](BaseModel, ABC):
     description: str
     params: type[Params]
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self._base = Tool(
             name=self.name,
@@ -136,7 +138,7 @@ class CallableTool2[Params: BaseModel](BaseModel, ABC):
             return ToolValidateError(str(e))
 
         ret = await self.__call__(params)
-        if not isinstance(ret, ToolOk | ToolError):
+        if not isinstance(ret, ToolOk | ToolError):  # pyright: ignore[reportUnnecessaryIsInstance]
             # let's do not trust the return type of the tool
             ret = ToolError(
                 message=f"Invalid return type: {type(ret)}",
@@ -184,10 +186,11 @@ class Toolset(Protocol):
 from .empty import EmptyToolset  # noqa: E402
 from .simple import SimpleToolset  # noqa: E402
 
+if TYPE_CHECKING:
 
-def __static_check_types(
-    empty: "EmptyToolset",
-    simple: "SimpleToolset",
-):
-    _: Toolset = empty
-    _: Toolset = simple
+    def type_check(
+        empty: "EmptyToolset",
+        simple: "SimpleToolset",
+    ):
+        _: Toolset = empty
+        _: Toolset = simple

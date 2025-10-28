@@ -2,7 +2,7 @@ import asyncio
 import inspect
 import json
 from collections.abc import Iterable
-from typing import Self
+from typing import Any, Self
 
 from kosong.base.message import ToolCall
 from kosong.base.tool import Tool
@@ -14,7 +14,7 @@ from kosong.tooling.error import (
 )
 from kosong.utils.typing import JsonType
 
-type ToolType = CallableTool | CallableTool2
+type ToolType = CallableTool | CallableTool2[Any]
 
 
 class SimpleToolset:

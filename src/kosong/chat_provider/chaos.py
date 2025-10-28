@@ -1,6 +1,7 @@
 import json
 import os
 import random
+from typing import Any
 
 import httpx
 from pydantic import BaseModel
@@ -87,7 +88,7 @@ class ChaosChatProvider(OpenAILegacy):
         api_key: str | None = None,
         base_url: str | None = None,
         chaos_config: ChaosConfig | None = None,
-        **client_kwargs,
+        **client_kwargs: Any,
     ):
         super().__init__(model=model, api_key=api_key, base_url=base_url, **client_kwargs)
         self._chaos_config = chaos_config or ChaosConfig.from_env()
@@ -95,9 +96,9 @@ class ChaosChatProvider(OpenAILegacy):
 
     def _monkey_patch_client(self):
         """Inject chaos transport into the client."""
-        original_transport = self._client._client._transport
+        original_transport = self.client._client._transport  # pyright: ignore[reportPrivateUsage]
         chaos_transport = ChaosTransport(original_transport, self._chaos_config)
-        self._client._client._transport = chaos_transport
+        self.client._client._transport = chaos_transport  # pyright: ignore[reportPrivateUsage]
 
     @property
     def model_name(self) -> str:

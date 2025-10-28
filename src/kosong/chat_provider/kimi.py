@@ -1,7 +1,7 @@
 import copy
 import os
-from collections.abc import Sequence
-from typing import TypedDict, Unpack, cast, override
+from collections.abc import Mapping, Sequence
+from typing import Any, TypedDict, Unpack, cast, override
 
 from openai import OpenAIError
 from openai.types.chat import ChatCompletionMessageParam, ChatCompletionToolParam
@@ -42,7 +42,7 @@ class Kimi(OpenAILegacy):
         api_key: str | None = None,
         base_url: str | None = None,
         stream: bool = True,
-        **client_kwargs,
+        **client_kwargs: Any,
     ):
         if api_key is None:
             api_key = os.getenv("KIMI_API_KEY")
@@ -60,7 +60,7 @@ class Kimi(OpenAILegacy):
             **client_kwargs,
         )
 
-        self._generation_kwargs = {}
+        self._generation_kwargs: Mapping[str, Any] = {}
 
     @override
     async def generate(
@@ -74,7 +74,7 @@ class Kimi(OpenAILegacy):
             messages.append({"role": "system", "content": system_prompt})
         messages.extend(message_to_openai(message) for message in history)
 
-        generation_kwargs = {
+        generation_kwargs: dict[str, Any] = {
             # default kimi generation kwargs
             "max_tokens": 32000,
             "temperature": 0.6,
@@ -82,11 +82,11 @@ class Kimi(OpenAILegacy):
         generation_kwargs.update(self._generation_kwargs)
 
         try:
-            response = await self._client.chat.completions.create(
-                model=self._model,
+            response = await self.client.chat.completions.create(
+                model=self.model,
                 messages=messages,
                 tools=(tool_to_kimi(tool) for tool in tools),
-                stream=self._stream,
+                stream=self.stream,
                 stream_options={"include_usage": True},
                 **generation_kwargs,
             )
