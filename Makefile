@@ -1,16 +1,13 @@
 .PHONY: format check test
 
-RUFF := $(shell command -v ruff 2> /dev/null || echo "uv run ruff")
-PYRIGHT := $(shell command -v pyright 2> /dev/null || echo "uv run pyright")
-
 format:
-	$(RUFF) check --fix
-	$(RUFF) format
+	uv run ruff check --fix
+	uv run ruff format
 
 check:
-	$(RUFF) check
-	$(RUFF) format --check
-	$(PYRIGHT)
+	uv run ruff check
+	uv run ruff format --check
+	uv run pyright
 
 test:
 	uv run pytest --doctest-modules -vv
