@@ -1,7 +1,7 @@
 import copy
 import uuid
-from collections.abc import AsyncIterator, Sequence
-from typing import TypedDict, Unpack, cast
+from collections.abc import AsyncIterator, Mapping, Sequence
+from typing import Any, TypedDict, Unpack, cast
 
 import openai
 from openai import AsyncOpenAI, AsyncStream, OpenAIError
@@ -75,7 +75,7 @@ class OpenAIResponses:
         api_key: str | None = None,
         base_url: str | None = None,
         stream: bool = True,
-        **client_kwargs,
+        **client_kwargs: Any,
     ):
         self._model = model
         self._stream = stream
@@ -85,7 +85,7 @@ class OpenAIResponses:
             **client_kwargs,
         )
 
-        self._generation_kwargs = {}
+        self._generation_kwargs: Mapping[str, Any] = {}
 
     @property
     def model_name(self) -> str:
@@ -105,7 +105,7 @@ class OpenAIResponses:
         for m in history:
             inputs.extend(message_to_openai(m))
 
-        generation_kwargs = {}
+        generation_kwargs: Mapping[str, Any] = {}
         generation_kwargs.update(self._generation_kwargs)
         generation_kwargs["reasoning"] = Reasoning(
             effort=generation_kwargs.pop("reasoning_effort", None),
