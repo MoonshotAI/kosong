@@ -250,7 +250,7 @@ def test_callable_tool_2():
         params: type[TestParams] = TestParams
 
         @override
-        async def __call__(self, params) -> ToolReturnType:
+        async def __call__(self, params: TestParams) -> ToolReturnType:
             return ToolOk(output=f"Test tool called with {params.a} and {params.b}")
 
     tool = TestTool()

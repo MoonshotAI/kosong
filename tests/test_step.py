@@ -30,15 +30,15 @@ def test_step():
         id="plus#123",
         function=ToolCall.FunctionBody(name="plus", arguments='{"a": 1, "b": 2}'),
     )
-    input_parts = [
+    input_parts: list[StreamedMessagePart] = [
         TextPart(text="Hello, world!"),
         plus_tool_call,
     ]
     chat_provider = MockChatProvider(message_parts=input_parts)
     toolset = SimpleToolset([PlusTool()])
 
-    output_parts = []
-    collected_tool_results = []
+    output_parts: list[StreamedMessagePart] = []
+    collected_tool_results: list[ToolResult] = []
 
     def on_message_part(part: StreamedMessagePart):
         output_parts.append(part)

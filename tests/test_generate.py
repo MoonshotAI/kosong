@@ -61,8 +61,8 @@ def test_generate_with_callbacks():
     ]
     chat_provider = MockChatProvider(message_parts=deepcopy(input_parts))
 
-    output_parts = []
-    output_tool_calls = []
+    output_parts: list[StreamedMessagePart] = []
+    output_tool_calls: list[ToolCall] = []
 
     async def on_message_part(part: StreamedMessagePart):
         output_parts.append(part)

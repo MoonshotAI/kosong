@@ -16,7 +16,7 @@ def test_mock_chat_provider():
 
     async def generate() -> list[StreamedMessagePart]:
         chat_provider = MockChatProvider(message_parts=input_parts)
-        parts = []
+        parts: list[StreamedMessagePart] = []
         async for part in await chat_provider.generate(system_prompt="", tools=[], history=[]):
             parts.append(part)
         return parts
@@ -32,7 +32,7 @@ async def test_chaos_chat_provider():
     )
     for _ in range(3):
         try:
-            parts = []
+            parts: list[StreamedMessagePart] = []
             async for part in await chat_provider.generate(
                 system_prompt="",
                 tools=[],
