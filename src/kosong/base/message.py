@@ -196,7 +196,7 @@ class Message(BaseModel):
     ]
     name: str | None = None
 
-    content: str | list[ContentPart]
+    content: str | list[ContentPart] | None = None
     """The content of the message."""
 
     tool_calls: list[ToolCall] | None = None

@@ -40,6 +40,31 @@ def test_message_with_tool_calls():
     }
 
 
+def test_message_with_tool_calls_no_content():
+    message = Message(
+        role="assistant",
+        tool_calls=[
+            ToolCall(
+                id="123",
+                function=ToolCall.FunctionBody(name="function", arguments="{}"),
+            )
+        ],
+    )
+    assert message.model_dump(exclude_none=True) == {
+        "role": "assistant",
+        "tool_calls": [
+            {
+                "type": "function",
+                "id": "123",
+                "function": {
+                    "name": "function",
+                    "arguments": "{}",
+                },
+            }
+        ],
+    }
+
+
 def test_message_deserialization():
     message = Message(
         role="user",
