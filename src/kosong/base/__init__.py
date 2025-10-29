@@ -54,6 +54,8 @@ async def generate(
 def _message_append(message: Message, part: StreamedMessagePart) -> None:
     match part:
         case ContentPart():
+            if message.content is None:
+                message.content = []
             if isinstance(message.content, str):
                 message.content = [TextPart(text=message.content)]
             message.content.append(part)

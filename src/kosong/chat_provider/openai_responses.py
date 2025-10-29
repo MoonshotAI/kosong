@@ -169,8 +169,11 @@ def message_to_openai(message: Message) -> list[ResponseInputItemParam]:
         call_id = message.tool_call_id or ""
         if isinstance(content, str):
             output: str | ResponseFunctionCallOutputItemListParam = content
+        elif isinstance(content, list):
+            parts: list[ContentPart] = content
+            output = _content_parts_to_function_output_items(parts)
         else:
-            output = _content_parts_to_function_output_items(content)
+            output = ""
 
         return [
             {
@@ -191,7 +194,7 @@ def message_to_openai(message: Message) -> list[ResponseInputItemParam]:
                 "content": content,
             }
         )
-    elif len(content) > 0:
+    elif isinstance(content, list) and len(content) > 0:
         # Split into two kinds of blocks: contiguous non-ThinkPart message blocks, and
         # contiguous ThinkPart groups (grouped by the same `encrypted` value)
         pending_parts: list[ContentPart] = []
