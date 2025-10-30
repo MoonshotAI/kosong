@@ -164,6 +164,9 @@ class OpenAILegacyStreamedMessage:
 
                 delta = chunk.choices[0].delta
 
+                if not delta:
+                    continue
+
                 # convert text content
                 if delta.content:
                     yield TextPart(text=delta.content)
