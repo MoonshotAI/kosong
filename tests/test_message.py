@@ -1,3 +1,5 @@
+from inline_snapshot import snapshot
+
 from kosong.base.message import AudioURLPart, ImageURLPart, Message, TextPart, ThinkPart, ToolCall
 
 
@@ -38,6 +40,30 @@ def test_message_with_tool_calls():
             }
         ],
     }
+
+
+def test_message_with_no_content():
+    message = Message(
+        role="assistant",
+        content="",
+        tool_calls=[
+            ToolCall(id="123", function=ToolCall.FunctionBody(name="function", arguments="{}"))
+        ],
+    )
+
+    assert message.model_dump(exclude_none=True) == snapshot(
+        {
+            "role": "assistant",
+            "content": None,
+            "tool_calls": [
+                {
+                    "type": "function",
+                    "id": "123",
+                    "function": {"name": "function", "arguments": "{}"},
+                }
+            ],
+        }
+    )
 
 
 def test_message_deserialization():

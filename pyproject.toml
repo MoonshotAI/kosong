@@ -17,6 +17,7 @@ dev = [
     "pytest>=8.4.2",
     "pytest-asyncio>=1.2.0",
     "ruff>=0.14.2",
+    "inline-snapshot[black]>=0.31.0",
 ]
 
 [build-system]

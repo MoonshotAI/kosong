@@ -208,7 +208,11 @@ class Message(BaseModel):
     partial: bool | None = None
 
     @field_serializer("content")
-    def serialize_content(self, content: str | list[ContentPart]) -> str | list[dict[str, Any]]:
+    def serialize_content(
+        self, content: str | list[ContentPart]
+    ) -> str | list[dict[str, Any]] | None:
+        if not content:
+            return None
         if isinstance(content, str):
             return content
         return [part.model_dump() for part in content]
