@@ -86,6 +86,7 @@ class ThinkPart(ContentPart):
     type: str = "think"
     think: str
     encrypted: str | None = None
+    """Encrypted thinking content, or signature."""
 
     @override
     def merge_in_place(self, other: Any) -> bool:
