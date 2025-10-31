@@ -85,6 +85,8 @@ class OpenAILegacy:
 def message_to_openai(message: Message) -> ChatCompletionMessageParam:
     """Convert a single message to OpenAI message format."""
     # simply `model_dump` because the `Message` type is OpenAI-compatible
+    # FIXME: for openai, we should use `developer` role, although `system` is still accepted
+    # See https://cdn.openai.com/spec/model-spec-2024-05-08.html#definitions
     return cast(ChatCompletionMessageParam, message.model_dump(exclude_none=True))
 
 
