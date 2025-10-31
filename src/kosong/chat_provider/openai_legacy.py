@@ -136,7 +136,7 @@ class OpenAILegacyStreamedMessage:
         self._id = response.id
         self._usage = response.usage
         if hasattr(response.choices[0].message, "reasoning_content"):
-            yield ThinkPart(think=getattr(response.choices[0].message, "reasoning_content") or "")
+            yield ThinkPart(think=response.choices[0].message.reasoning_content or "")  # type: ignore
         if response.choices[0].message.content:
             yield TextPart(text=response.choices[0].message.content)
         if response.choices[0].message.tool_calls:
@@ -168,7 +168,7 @@ class OpenAILegacyStreamedMessage:
 
                 # convert thinking content
                 if hasattr(delta, "reasoning_content"):
-                    yield ThinkPart(think=getattr(delta, "reasoning_content") or "")
+                    yield ThinkPart(think=delta.reasoning_content or "")  # type: ignore
 
                 # convert text content
                 if delta.content:

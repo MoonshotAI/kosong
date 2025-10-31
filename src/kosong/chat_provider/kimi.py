@@ -81,7 +81,7 @@ class Kimi(OpenAILegacy):
             "extra_body": {
                 # This will be ignored if the model doesn't support thinking.
                 "think_mode": "on",
-            }
+            },
         }
         generation_kwargs.update(self._generation_kwargs)
 
