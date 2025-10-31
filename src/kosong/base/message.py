@@ -1,7 +1,7 @@
 from abc import ABC
 from typing import Any, ClassVar, Literal, cast, override
 
-from pydantic import BaseModel, GetCoreSchemaHandler, field_serializer
+from pydantic import BaseModel, GetCoreSchemaHandler, field_serializer, field_validator
 from pydantic_core import core_schema
 
 
@@ -216,3 +216,10 @@ class Message(BaseModel):
         if isinstance(content, str):
             return content
         return [part.model_dump() for part in content]
+
+    @field_validator("content", mode="before")
+    @classmethod
+    def _coerce_none_content(cls, v: Any | None) -> Any:
+        if v is None:
+            return ""
+        return v

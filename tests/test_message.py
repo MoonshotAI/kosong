@@ -101,3 +101,55 @@ def test_message_deserialization():
     }
 
     assert Message.model_validate(dumped_message) == message
+
+
+def test_deserialize_from_json_with_content_and_tool_calls():
+    data = {
+        "role": "assistant",
+        "content": [
+            {
+                "type": "text",
+                "text": "Hello, world!",
+            }
+        ],
+        "tool_calls": [
+            {
+                "type": "function",
+                "id": "tc_123",
+                "function": {"name": "do_something", "arguments": '{"x":1}'},
+            }
+        ],
+    }
+    message = Message.model_validate(data)
+    assert message.model_dump(exclude_none=True) == data
+
+
+def test_deserialize_from_json_none_content_with_tool_calls():
+    data = {
+        "role": "assistant",
+        "content": None,
+        "tool_calls": [
+            {
+                "type": "function",
+                "id": "tc_456",
+                "function": {"name": "do_other", "arguments": "{}"},
+            }
+        ],
+    }
+    message = Message.model_validate(data)
+    # Round-trip back to dict (exclude_none to keep content=None as in input)
+    assert message.model_dump(exclude_none=True) == data
+
+
+def test_deserialize_from_json_with_content_but_no_tool_calls():
+    data = {
+        "role": "user",
+        "content": [
+            {
+                "type": "text",
+                "text": "Only content, no tools.",
+            }
+        ],
+    }
+    message = Message.model_validate(data)
+    assert message.model_dump(exclude_none=True) == data
