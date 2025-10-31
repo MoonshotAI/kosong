@@ -188,8 +188,7 @@ class Message(BaseModel):
     """A message in a conversation."""
 
     role: Literal[
-        "system",
-        "developer",
+        "system",  # for OpenAI API, this should be converted to `developer`
         "user",
         "assistant",
         "tool",

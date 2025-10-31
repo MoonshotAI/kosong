@@ -99,7 +99,7 @@ class OpenAIResponses:
     ) -> "OpenAIResponsesStreamedMessage":
         inputs: ResponseInputParam = []
         if system_prompt:
-            inputs.append({"role": "system", "content": system_prompt})
+            inputs.append({"role": "developer", "content": system_prompt})
         # The `Message` type is OpenAI-compatible for Responses API `input` messages.
 
         for m in history:

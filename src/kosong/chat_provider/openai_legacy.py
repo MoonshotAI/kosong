@@ -66,7 +66,7 @@ class OpenAILegacy:
     ) -> "OpenAILegacyStreamedMessage":
         messages: list[ChatCompletionMessageParam] = []
         if system_prompt:
-            messages.append({"role": "system", "content": system_prompt})
+            messages.append({"role": "developer", "content": system_prompt})
         messages.extend(message_to_openai(message) for message in history)
 
         try:
