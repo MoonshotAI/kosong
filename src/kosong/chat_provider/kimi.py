@@ -78,6 +78,10 @@ class Kimi(OpenAILegacy):
             # default kimi generation kwargs
             "max_tokens": 32000,
             "temperature": 0.6,
+            "extra_body": {
+                # This will be ignored if the model doesn't support thinking.
+                "think_mode": "on",
+            }
         }
         generation_kwargs.update(self._generation_kwargs)
 
