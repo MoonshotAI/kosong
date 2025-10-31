@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 from kosong.base.chat_provider import ChatProvider
 
 __all__ = [
+    "Anthropic",
     "OpenAILegacy",
     "OpenAIResponses",
     "Kimi",
@@ -18,6 +19,7 @@ if TYPE_CHECKING:
         openai: "OpenAILegacy",
         openai_responses: "OpenAIResponses",
         kimi: "Kimi",
+        anthropic: "Anthropic",
         mock: "MockChatProvider",
         chaos: "ChaosChatProvider",
     ):
@@ -26,6 +28,7 @@ if TYPE_CHECKING:
         _: ChatProvider = openai_responses
         _: ChatProvider = mock
         _: ChatProvider = kimi
+        _: ChatProvider = anthropic
         _: ChatProvider = chaos
 
 
@@ -54,6 +57,7 @@ class APIStatusError(ChatProviderError):
         self.status_code = status_code
 
 
+from .anthropic import Anthropic  # noqa: E402
 from .chaos import ChaosChatProvider  # noqa: E402
 from .kimi import Kimi  # noqa: E402
 from .mock import MockChatProvider  # noqa: E402
