@@ -8,7 +8,6 @@ from openai import AsyncOpenAI, AsyncStream, OpenAIError
 from openai.types.chat import (
     ChatCompletion,
     ChatCompletionChunk,
-    ChatCompletionContentPartTextParam,
     ChatCompletionMessageFunctionToolCall,
     ChatCompletionMessageParam,
     ChatCompletionToolParam,
@@ -16,10 +15,10 @@ from openai.types.chat import (
 from openai.types.completion_usage import CompletionUsage
 
 from kosong.base.chat_provider import StreamedMessagePart, TokenUsage
-from kosong.base.message import Message, TextPart, ThinkPart, ToolCall, ToolCallPart
+from kosong.base.message import ContentPart, Message, TextPart, ThinkPart, ToolCall, ToolCallPart
 from kosong.base.tool import Tool
 from kosong.chat_provider import ChatProviderError
-from kosong.chat_provider.openai_legacy import convert_error, message_to_openai, tool_to_openai
+from kosong.chat_provider.openai_legacy import convert_error, tool_to_openai
 
 
 class Kimi:
@@ -122,23 +121,19 @@ class Kimi:
 
 
 def message_to_kimi(message: Message) -> ChatCompletionMessageParam:
+    reasoning_content: str = ""
     if isinstance(message.content, list):
-        new_contents: list[ChatCompletionContentPartTextParam] = []
-        reasoning_content: str = ""
+        content: list[ContentPart] = []
         for part in message.content:
             if isinstance(part, ThinkPart):
                 reasoning_content += part.think
             else:
-                new_contents.append(ChatCompletionContentPartTextParam(**part.model_dump()))
-        new_message = message.model_dump(exclude_none=True)
-        new_message["content"] = new_contents
-
-        if reasoning_content:
-            new_message["reasoning_content"] = reasoning_content
-
-        return cast(ChatCompletionMessageParam, new_message)
-    else:
-        return message_to_openai(message)
+                content.append(part)
+        message.content = content
+    dumped_message = message.model_dump(exclude_none=True)
+    if reasoning_content:
+        dumped_message["reasoning_content"] = reasoning_content
+    return cast(ChatCompletionMessageParam, dumped_message)
 
 
 def tool_to_kimi(tool: Tool) -> ChatCompletionToolParam:
