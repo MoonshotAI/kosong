@@ -188,8 +188,12 @@ class Message(BaseModel):
     """A message in a conversation."""
 
     role: Literal[
+        # for OpenAI API, this should be converted to `developer`
+        # OpenAI & Kimi support system messages in the middle of the conversation.
+        # Anthropic only support system messages at the beginning https://docs.claude.com/en/api/messages#body-messages
+        # In this case, we map `system` message to a `user` message wrapped in `<system></system>`
+        # tags.
         "system",
-        "developer",
         "user",
         "assistant",
         "tool",

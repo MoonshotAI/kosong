@@ -99,7 +99,7 @@ class OpenAIResponses:
     ) -> "OpenAIResponsesStreamedMessage":
         inputs: ResponseInputParam = []
         if system_prompt:
-            inputs.append({"role": "system", "content": system_prompt})
+            inputs.append({"role": "developer", "content": system_prompt})
         # The `Message` type is OpenAI-compatible for Responses API `input` messages.
 
         for m in history:
@@ -156,7 +156,7 @@ def message_to_openai(message: Message) -> list[ResponseInputItemParam]:
     """Convert a single message to OpenAI Responses input format.
 
     Rules:
-    - role in {user, system, developer, assistant}: map to EasyInputMessageParam
+    - role in {user, developer, assistant}: map to EasyInputMessageParam
       content: str kept; list[ContentPart] mapped to ResponseInputMessageContentListParam
     - role == tool: map to FunctionCallOutput with call_id and output
     """
@@ -182,11 +182,13 @@ def message_to_openai(message: Message) -> list[ResponseInputItemParam]:
 
     result: list[ResponseInputItemParam] = []
 
-    # user/system/developer/assistant → message input item
+    # user/system/assistant → message input item
     if isinstance(content, str):
         result.append(
             {
-                "role": role,
+                # for openai, we should use `developer` role, although `system` is still accepted
+                # See https://cdn.openai.com/spec/model-spec-2024-05-08.html#definitions
+                "role": role if role != "system" else "developer",
                 "type": "message",
                 "content": content,
             }
