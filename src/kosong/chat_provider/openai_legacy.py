@@ -7,6 +7,7 @@ from openai import AsyncOpenAI, AsyncStream, OpenAIError
 from openai.types.chat import (
     ChatCompletion,
     ChatCompletionChunk,
+    ChatCompletionContentPartTextParam,
     ChatCompletionMessageFunctionToolCall,
     ChatCompletionMessageParam,
     ChatCompletionToolParam,
@@ -85,6 +86,20 @@ class OpenAILegacy:
 def message_to_openai(message: Message) -> ChatCompletionMessageParam:
     """Convert a single message to OpenAI message format."""
     # simply `model_dump` because the `Message` type is OpenAI-compatible
+    if isinstance(message.content, list):
+        new_contents: list[ChatCompletionContentPartTextParam] = []
+        for part in message.content:
+            if isinstance(part, ThinkPart):
+                new_contents.append(
+                    ChatCompletionContentPartTextParam(text=part.think, type="text")
+                )
+            else:
+                new_contents.append(ChatCompletionContentPartTextParam(**part.model_dump()))
+        new_message = message.model_dump(exclude_none=True)
+        new_message["content"] = new_contents
+
+        return cast(ChatCompletionMessageParam, new_message)
+
     return cast(ChatCompletionMessageParam, message.model_dump(exclude_none=True))
 
 
