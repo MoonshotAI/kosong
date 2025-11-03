@@ -134,7 +134,7 @@ class Anthropic:
             if isinstance(last_content, list) and last_content:
                 content_blocks = cast(list[ContentBlockParam], last_content)
                 last_block = content_blocks[-1]
-                if "cache_control" in last_block:  # noqa: SIM102
+                if last_block["type"] == "text":
                     last_block["cache_control"] = CacheControlEphemeralParam(type="ephemeral")
         generation_kwargs: dict[str, Any] = {
             "max_tokens": self._default_max_tokens,

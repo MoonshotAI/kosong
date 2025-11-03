@@ -1,5 +1,7 @@
 from collections.abc import Sequence
 
+from loguru import logger
+
 from kosong.base.chat_provider import ChatProvider, StreamedMessagePart, TokenUsage
 from kosong.base.message import ContentPart, Message, TextPart, ToolCall
 from kosong.base.tool import Tool
@@ -28,8 +30,10 @@ async def generate(
     message = Message(role="assistant", content=[])
     pending_part: StreamedMessagePart | None = None  # message part that is currently incomplete
 
+    logger.trace("chat_provider.generate history={history}", history=history)
     stream = await chat_provider.generate(system_prompt, tools, history)
     async for part in stream:
+        logger.trace("Received part: {part}", part=part)
         if on_message_part:
             await callback(on_message_part, part.model_copy(deep=True))
 
