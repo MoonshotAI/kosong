@@ -30,7 +30,7 @@ async def generate(
     message = Message(role="assistant", content=[])
     pending_part: StreamedMessagePart | None = None  # message part that is currently incomplete
 
-    logger.trace("chat_provider.generate history={history}", history=history)
+    logger.trace("Generating with history: {history}", history=history)
     stream = await chat_provider.generate(system_prompt, tools, history)
     async for part in stream:
         logger.trace("Received part: {part}", part=part)
