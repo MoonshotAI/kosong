@@ -137,12 +137,13 @@ class OpenAILegacyStreamedMessage:
     ) -> AsyncIterator[StreamedMessagePart]:
         self._id = response.id
         self._usage = response.usage
-        if hasattr(response.choices[0].message, "reasoning_content") and response.choices[0].message.reasoning_content: # type: ignore
-            yield ThinkPart(think=response.choices[0].message.reasoning_content)  # type: ignore
-        if response.choices[0].message.content:
-            yield TextPart(text=response.choices[0].message.content)
-        if response.choices[0].message.tool_calls:
-            for tool_call in response.choices[0].message.tool_calls:
+        message = response.choices[0].message
+        if hasattr(message, "reasoning_content") and message.reasoning_content:  # type: ignore
+            yield ThinkPart(think=message.reasoning_content)  # type: ignore
+        if message.content:
+            yield TextPart(text=message.content)
+        if message.tool_calls:
+            for tool_call in message.tool_calls:
                 if isinstance(tool_call, ChatCompletionMessageFunctionToolCall):
                     yield ToolCall(
                         id=tool_call.id or str(uuid.uuid4()),
@@ -169,7 +170,7 @@ class OpenAILegacyStreamedMessage:
                 delta = chunk.choices[0].delta
 
                 # convert thinking content
-                if hasattr(delta, "reasoning_content") and delta.reasoning_content: # type: ignore
+                if hasattr(delta, "reasoning_content") and delta.reasoning_content:  # type: ignore
                     yield ThinkPart(think=delta.reasoning_content)  # type: ignore
 
                 # convert text content
