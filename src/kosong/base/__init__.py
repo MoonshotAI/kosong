@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 
 from kosong.base.chat_provider import ChatProvider, StreamedMessagePart, TokenUsage
-from kosong.base.message import ContentPart, Message, TextPart, ThinkPart, ToolCall
+from kosong.base.message import ContentPart, Message, TextPart, ToolCall
 from kosong.base.tool import Tool
 from kosong.utils.aio import Callback, callback
 
