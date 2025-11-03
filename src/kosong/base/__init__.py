@@ -55,10 +55,7 @@ def _message_append(message: Message, part: StreamedMessagePart) -> None:
     match part:
         case ContentPart():
             if isinstance(message.content, str):
-                if isinstance(part, ThinkPart):
-                    message.content = [ThinkPart(think=message.content)]
-                else:
-                    message.content = [TextPart(text=message.content)]
+                message.content = [TextPart(text=message.content)]
             message.content.append(part)
         case ToolCall():
             if message.tool_calls is None:
