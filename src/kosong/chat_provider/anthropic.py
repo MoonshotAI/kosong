@@ -29,6 +29,7 @@ from anthropic import (
 )
 from anthropic.lib.streaming import MessageStopEvent
 from anthropic.types import (
+    Base64ImageSourceParam,
     CacheControlEphemeralParam,
     ContentBlockParam,
     ImageBlockParam,
@@ -158,7 +159,7 @@ class Anthropic:
             )
             return AnthropicStreamedMessage(response)
         except AnthropicError as e:
-            raise convert_error(e) from e
+            raise _convert_error(e) from e
 
     class GenerationKwargs(TypedDict, total=False):
         max_tokens: int | None
@@ -273,7 +274,7 @@ class AnthropicStreamedMessage:
                     elif isinstance(event, MessageStopEvent):
                         continue
         except AnthropicError as exc:
-            raise convert_error(exc) from exc
+            raise _convert_error(exc) from exc
 
 
 def tool_to_anthropic(tool: Tool) -> ToolParam:
@@ -309,12 +310,8 @@ def message_to_anthropic(message: Message) -> MessageParam:
             if isinstance(part, TextPart):
                 blocks.append(TextBlockParam(type="text", text=part.text))
             elif isinstance(part, ImageURLPart):
-                blocks.append(
-                    ImageBlockParam(
-                        type="image",
-                        source=URLImageSourceParam(type="url", url=part.image_url.url),
-                    )
-                )
+                blocks.append(_image_url_part_to_anthropic(part))
+
             elif isinstance(part, ThinkPart):
                 if part.encrypted is None:
                     # missing signature, strip this thinking block.
@@ -363,12 +360,7 @@ def _tool_result_message_to_block(message: Message) -> ToolResultBlockParam:
                 if part.text:
                     content_blocks.append(TextBlockParam(type="text", text=part.text))
             elif isinstance(part, ImageURLPart):
-                content_blocks.append(
-                    ImageBlockParam(
-                        type="image",
-                        source=URLImageSourceParam(type="url", url=part.image_url.url),
-                    )
-                )
+                content_blocks.append(_image_url_part_to_anthropic(part))
             else:
                 # https://docs.claude.com/en/docs/build-with-claude/files#file-types-and-content-blocks
                 # Anthropic API supports very limited file types
@@ -384,7 +376,34 @@ def _tool_result_message_to_block(message: Message) -> ToolResultBlockParam:
     )
 
 
-def convert_error(error: AnthropicError) -> ChatProviderError:
+def _image_url_part_to_anthropic(part: ImageURLPart) -> ImageBlockParam:
+    url = part.image_url.url
+    # data:[<media-type>][;base64],<data>
+    if url.startswith("data:"):
+        res = url[5:].split(";base64,", 1)
+        if len(res) != 2:
+            raise ChatProviderError(f"Invalid data URL for image: {url}")
+        media_type, data = res
+        if media_type not in ("image/png", "image/jpeg", "image/gif", "image/webp"):
+            raise ChatProviderError(
+                f"Unsupported media type for base64 image: {media_type}, url: {url}"
+            )
+        return ImageBlockParam(
+            type="image",
+            source=Base64ImageSourceParam(
+                type="base64",
+                data=data,
+                media_type=media_type,
+            ),
+        )
+    else:
+        return ImageBlockParam(
+            type="image",
+            source=URLImageSourceParam(type="url", url=url),
+        )
+
+
+def _convert_error(error: AnthropicError) -> ChatProviderError:
     if isinstance(error, AnthropicAPIStatusError):
         return APIStatusError(error.status_code, str(error))
     if isinstance(error, AnthropicAuthenticationError):
