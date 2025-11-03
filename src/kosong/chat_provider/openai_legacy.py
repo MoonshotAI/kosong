@@ -14,7 +14,7 @@ from openai.types.chat import (
 from openai.types.completion_usage import CompletionUsage
 
 from kosong.base.chat_provider import StreamedMessagePart, TokenUsage
-from kosong.base.message import Message, TextPart, ThinkPart, ToolCall, ToolCallPart
+from kosong.base.message import Message, TextPart, ToolCall, ToolCallPart
 from kosong.base.tool import Tool
 from kosong.chat_provider import (
     APIConnectionError,
@@ -84,9 +84,9 @@ class OpenAILegacy:
 
 def message_to_openai(message: Message) -> ChatCompletionMessageParam:
     """Convert a single message to OpenAI message format."""
+    # simply `model_dump` because the `Message` type is OpenAI-compatible
     # FIXME: for openai, we should use `developer` role, although `system` is still accepted
     # See https://cdn.openai.com/spec/model-spec-2024-05-08.html#definitions
-    # simply `model_dump` because the `Message` type is OpenAI-compatible
     return cast(ChatCompletionMessageParam, message.model_dump(exclude_none=True))
 
 
@@ -137,13 +137,10 @@ class OpenAILegacyStreamedMessage:
     ) -> AsyncIterator[StreamedMessagePart]:
         self._id = response.id
         self._usage = response.usage
-        message = response.choices[0].message
-        if hasattr(message, "reasoning_content") and message.reasoning_content:  # type: ignore
-            yield ThinkPart(think=message.reasoning_content)  # type: ignore
-        if message.content:
-            yield TextPart(text=message.content)
-        if message.tool_calls:
-            for tool_call in message.tool_calls:
+        if response.choices[0].message.content:
+            yield TextPart(text=response.choices[0].message.content)
+        if response.choices[0].message.tool_calls:
+            for tool_call in response.choices[0].message.tool_calls:
                 if isinstance(tool_call, ChatCompletionMessageFunctionToolCall):
                     yield ToolCall(
                         id=tool_call.id or str(uuid.uuid4()),
@@ -168,10 +165,6 @@ class OpenAILegacyStreamedMessage:
                     continue
 
                 delta = chunk.choices[0].delta
-
-                # convert thinking content
-                if hasattr(delta, "reasoning_content") and delta.reasoning_content:  # type: ignore
-                    yield ThinkPart(think=delta.reasoning_content)  # type: ignore
 
                 # convert text content
                 if delta.content:

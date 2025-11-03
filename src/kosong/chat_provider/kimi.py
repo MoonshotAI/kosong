@@ -1,28 +1,28 @@
 import copy
 import os
-from collections.abc import Mapping, Sequence
-from typing import Any, TypedDict, Unpack, cast, override
+import uuid
+from collections.abc import AsyncIterator, Mapping, Sequence
+from typing import Any, TypedDict, Unpack, cast
 
-from openai import OpenAIError
+from openai import AsyncOpenAI, AsyncStream, OpenAIError
 from openai.types.chat import (
+    ChatCompletion,
+    ChatCompletionChunk,
     ChatCompletionContentPartTextParam,
+    ChatCompletionMessageFunctionToolCall,
     ChatCompletionMessageParam,
     ChatCompletionToolParam,
 )
+from openai.types.completion_usage import CompletionUsage
 
-from kosong.base.message import Message, ThinkPart
+from kosong.base.chat_provider import StreamedMessagePart, TokenUsage
+from kosong.base.message import Message, TextPart, ThinkPart, ToolCall, ToolCallPart
 from kosong.base.tool import Tool
 from kosong.chat_provider import ChatProviderError
-from kosong.chat_provider.openai_legacy import (
-    OpenAILegacy,
-    OpenAILegacyStreamedMessage,
-    convert_error,
-    message_to_openai,
-    tool_to_openai,
-)
+from kosong.chat_provider.openai_legacy import convert_error, message_to_openai, tool_to_openai
 
 
-class Kimi(OpenAILegacy):
+class Kimi:
     """
     A chat provider that uses the Kimi API.
 
@@ -56,17 +56,20 @@ class Kimi(OpenAILegacy):
             )
         if base_url is None:
             base_url = os.getenv("KIMI_BASE_URL", "https://api.moonshot.cn/v1")
-        super().__init__(
-            model=model,
+
+        self.model = model
+        self.stream = stream
+        self.client = AsyncOpenAI(
             api_key=api_key,
             base_url=base_url,
-            stream=stream,
             **client_kwargs,
         )
-
         self._generation_kwargs: Mapping[str, Any] = {}
 
-    @override
+    @property
+    def model_name(self) -> str:
+        return self.model
+
     async def generate(
         self,
         system_prompt: str,
@@ -118,23 +121,6 @@ class Kimi(OpenAILegacy):
         return new_self
 
 
-def tool_to_kimi(tool: Tool) -> ChatCompletionToolParam:
-    if tool.name.startswith("$"):
-        # Kimi builtin functions start with `$`
-        return cast(
-            ChatCompletionToolParam,
-            {
-                "type": "builtin_function",
-                "function": {
-                    "name": tool.name,
-                    # no need to set description and parameters
-                },
-            },
-        )
-    else:
-        return tool_to_openai(tool)
-
-
 def message_to_kimi(message: Message) -> ChatCompletionMessageParam:
     if isinstance(message.content, list):
         new_contents: list[ChatCompletionContentPartTextParam] = []
@@ -155,7 +141,121 @@ def message_to_kimi(message: Message) -> ChatCompletionMessageParam:
         return message_to_openai(message)
 
 
-KimiStreamedMessage = OpenAILegacyStreamedMessage
+def tool_to_kimi(tool: Tool) -> ChatCompletionToolParam:
+    if tool.name.startswith("$"):
+        # Kimi builtin functions start with `$`
+        return cast(
+            ChatCompletionToolParam,
+            {
+                "type": "builtin_function",
+                "function": {
+                    "name": tool.name,
+                    # no need to set description and parameters
+                },
+            },
+        )
+    else:
+        return tool_to_openai(tool)
+
+
+class KimiStreamedMessage:
+    def __init__(self, response: ChatCompletion | AsyncStream[ChatCompletionChunk]):
+        if isinstance(response, ChatCompletion):
+            self._iter = self._convert_non_stream_response(response)
+        else:
+            self._iter = self._convert_stream_response(response)
+        self._id: str | None = None
+        self._usage: CompletionUsage | None = None
+
+    def __aiter__(self) -> AsyncIterator[StreamedMessagePart]:
+        return self
+
+    async def __anext__(self) -> StreamedMessagePart:
+        return await self._iter.__anext__()
+
+    @property
+    def id(self) -> str | None:
+        return self._id
+
+    @property
+    def usage(self) -> TokenUsage | None:
+        if self._usage:
+            return TokenUsage(
+                input=self._usage.prompt_tokens,
+                output=self._usage.completion_tokens,
+            )
+        return None
+
+    async def _convert_non_stream_response(
+        self,
+        response: ChatCompletion,
+    ) -> AsyncIterator[StreamedMessagePart]:
+        self._id = response.id
+        self._usage = response.usage
+        message = response.choices[0].message
+        if reasoning_content := getattr(message, "reasoning_content", None):
+            assert isinstance(reasoning_content, str)
+            yield ThinkPart(think=reasoning_content)
+        if message.content:
+            yield TextPart(text=message.content)
+        if message.tool_calls:
+            for tool_call in message.tool_calls:
+                if isinstance(tool_call, ChatCompletionMessageFunctionToolCall):
+                    yield ToolCall(
+                        id=tool_call.id or str(uuid.uuid4()),
+                        function=ToolCall.FunctionBody(
+                            name=tool_call.function.name,
+                            arguments=tool_call.function.arguments,
+                        ),
+                    )
+
+    async def _convert_stream_response(
+        self,
+        response: AsyncIterator[ChatCompletionChunk],
+    ) -> AsyncIterator[StreamedMessagePart]:
+        try:
+            async for chunk in response:
+                if chunk.id:
+                    self._id = chunk.id
+                if chunk.usage:
+                    self._usage = chunk.usage
+
+                if not chunk.choices:
+                    continue
+
+                delta = chunk.choices[0].delta
+
+                # convert thinking content
+                if reasoning_content := getattr(delta, "reasoning_content", None):
+                    assert isinstance(reasoning_content, str)
+                    yield ThinkPart(think=reasoning_content)
+
+                # convert text content
+                if delta.content:
+                    yield TextPart(text=delta.content)
+
+                # convert tool calls
+                for tool_call in delta.tool_calls or []:
+                    if not tool_call.function:
+                        continue
+
+                    if tool_call.function.name:
+                        yield ToolCall(
+                            id=tool_call.id or str(uuid.uuid4()),
+                            function=ToolCall.FunctionBody(
+                                name=tool_call.function.name,
+                                arguments=tool_call.function.arguments,
+                            ),
+                        )
+                    elif tool_call.function.arguments:
+                        yield ToolCallPart(
+                            arguments_part=tool_call.function.arguments,
+                        )
+                    else:
+                        # skip empty tool calls
+                        pass
+        except OpenAIError as e:
+            raise convert_error(e) from e
 
 
 if __name__ == "__main__":
