@@ -1,8 +1,14 @@
 from collections.abc import AsyncIterator, Sequence
+from typing import TYPE_CHECKING
 
-from kosong.base.chat_provider import StreamedMessagePart, TokenUsage
+from kosong.base.chat_provider import ChatProvider, StreamedMessagePart, TokenUsage
 from kosong.base.message import Message
 from kosong.base.tool import Tool
+
+if TYPE_CHECKING:
+
+    def type_check(mock: "MockChatProvider"):
+        _: ChatProvider = mock
 
 
 class MockChatProvider:

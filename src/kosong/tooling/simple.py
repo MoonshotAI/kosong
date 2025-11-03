@@ -2,17 +2,32 @@ import asyncio
 import inspect
 import json
 from collections.abc import Iterable
-from typing import Any, Self
+from typing import TYPE_CHECKING, Any, Self
 
 from kosong.base.message import ToolCall
 from kosong.base.tool import Tool
-from kosong.tooling import CallableTool, CallableTool2, HandleResult, ToolResult, ToolReturnType
+from kosong.tooling import (
+    CallableTool,
+    CallableTool2,
+    HandleResult,
+    ToolResult,
+    ToolReturnType,
+    Toolset,
+)
 from kosong.tooling.error import (
     ToolNotFoundError,
     ToolParseError,
     ToolRuntimeError,
 )
 from kosong.utils.typing import JsonType
+
+if TYPE_CHECKING:
+
+    def type_check(
+        simple: "SimpleToolset",
+    ):
+        _: Toolset = simple
+
 
 type ToolType = CallableTool | CallableTool2[Any]
 

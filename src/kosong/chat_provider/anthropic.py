@@ -1,7 +1,7 @@
 import copy
 import json
 from collections.abc import AsyncIterator, Mapping, Sequence
-from typing import Any, Literal, TypedDict, Unpack, cast
+from typing import TYPE_CHECKING, Any, Literal, TypedDict, Unpack, cast
 
 from anthropic import (
     AnthropicError,
@@ -54,7 +54,7 @@ from anthropic.types import (
 )
 from anthropic.types.tool_result_block_param import Content as ToolResultContent
 
-from kosong.base.chat_provider import StreamedMessagePart, TokenUsage
+from kosong.base.chat_provider import ChatProvider, StreamedMessagePart, TokenUsage
 from kosong.base.message import (
     ImageURLPart,
     Message,
@@ -70,6 +70,12 @@ from kosong.chat_provider import (
     APITimeoutError,
     ChatProviderError,
 )
+
+if TYPE_CHECKING:
+
+    def type_check(anthropic: "Anthropic"):
+        _: ChatProvider = anthropic
+
 
 type MessagePayload = tuple[str | None, list[MessageParam]]
 

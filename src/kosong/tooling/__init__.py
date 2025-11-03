@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from asyncio import Future
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Protocol, override, runtime_checkable
+from typing import Any, Protocol, override, runtime_checkable
 
 import jsonschema
 import pydantic
@@ -22,8 +22,6 @@ __all__ = [
     "ToolResultFuture",
     "HandleResult",
     "Toolset",
-    "EmptyToolset",
-    "SimpleToolset",
 ]
 
 
@@ -181,16 +179,3 @@ class Toolset(Protocol):
         error should be returned as a `ToolError`.
         """
         ...
-
-
-from .empty import EmptyToolset  # noqa: E402
-from .simple import SimpleToolset  # noqa: E402
-
-if TYPE_CHECKING:
-
-    def type_check(
-        empty: "EmptyToolset",
-        simple: "SimpleToolset",
-    ):
-        _: Toolset = empty
-        _: Toolset = simple

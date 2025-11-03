@@ -1,12 +1,18 @@
 import json
 import os
 import random
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import httpx
 from pydantic import BaseModel
 
+from kosong.base.chat_provider import ChatProvider
 from kosong.chat_provider.openai_legacy import OpenAILegacy
+
+if TYPE_CHECKING:
+
+    def type_check(chaos: "ChaosChatProvider"):
+        _: ChatProvider = chaos
 
 
 class ChaosConfig(BaseModel):

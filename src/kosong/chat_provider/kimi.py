@@ -2,7 +2,7 @@ import copy
 import os
 import uuid
 from collections.abc import AsyncIterator, Mapping, Sequence
-from typing import Any, TypedDict, Unpack, cast
+from typing import TYPE_CHECKING, Any, TypedDict, Unpack, cast
 
 from openai import AsyncOpenAI, AsyncStream, OpenAIError
 from openai.types.chat import (
@@ -14,11 +14,16 @@ from openai.types.chat import (
 )
 from openai.types.completion_usage import CompletionUsage
 
-from kosong.base.chat_provider import StreamedMessagePart, TokenUsage
+from kosong.base.chat_provider import ChatProvider, StreamedMessagePart, TokenUsage
 from kosong.base.message import ContentPart, Message, TextPart, ThinkPart, ToolCall, ToolCallPart
 from kosong.base.tool import Tool
 from kosong.chat_provider import ChatProviderError
 from kosong.chat_provider.openai_legacy import convert_error, tool_to_openai
+
+if TYPE_CHECKING:
+
+    def type_check(kimi: "Kimi"):
+        _: ChatProvider = kimi
 
 
 class Kimi:

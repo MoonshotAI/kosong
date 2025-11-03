@@ -1,7 +1,7 @@
 import copy
 import uuid
 from collections.abc import AsyncIterator, Mapping, Sequence
-from typing import Any, TypedDict, Unpack, cast
+from typing import TYPE_CHECKING, Any, TypedDict, Unpack, cast
 
 import openai
 from openai import AsyncOpenAI, AsyncStream, OpenAIError
@@ -30,7 +30,7 @@ from openai.types.responses.response_input_message_content_list_param import (
 from openai.types.shared.reasoning import Reasoning
 from openai.types.shared.reasoning_effort import ReasoningEffort
 
-from kosong.base.chat_provider import StreamedMessagePart, TokenUsage
+from kosong.base.chat_provider import ChatProvider, StreamedMessagePart, TokenUsage
 from kosong.base.message import (
     AudioURLPart,
     ContentPart,
@@ -48,6 +48,11 @@ from kosong.chat_provider import (
     APITimeoutError,
     ChatProviderError,
 )
+
+if TYPE_CHECKING:
+
+    def type_check(openai_responses: "OpenAIResponses"):
+        _: ChatProvider = openai_responses
 
 
 class OpenAIResponses:

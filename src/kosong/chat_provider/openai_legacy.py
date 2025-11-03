@@ -1,6 +1,6 @@
 import uuid
 from collections.abc import AsyncIterator, Sequence
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import openai
 from openai import AsyncOpenAI, AsyncStream, OpenAIError
@@ -13,7 +13,7 @@ from openai.types.chat import (
 )
 from openai.types.completion_usage import CompletionUsage
 
-from kosong.base.chat_provider import StreamedMessagePart, TokenUsage
+from kosong.base.chat_provider import ChatProvider, StreamedMessagePart, TokenUsage
 from kosong.base.message import Message, TextPart, ToolCall, ToolCallPart
 from kosong.base.tool import Tool
 from kosong.chat_provider import (
@@ -22,6 +22,11 @@ from kosong.chat_provider import (
     APITimeoutError,
     ChatProviderError,
 )
+
+if TYPE_CHECKING:
+
+    def type_check(openai_legacy: "OpenAILegacy"):
+        _: ChatProvider = openai_legacy
 
 
 class OpenAILegacy:
