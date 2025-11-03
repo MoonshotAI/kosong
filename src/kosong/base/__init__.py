@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 
 from kosong.base.chat_provider import ChatProvider, StreamedMessagePart, TokenUsage
-from kosong.base.message import ContentPart, Message, TextPart, ToolCall
+from kosong.base.message import ContentPart, Message, TextPart, ThinkPart, ToolCall
 from kosong.base.tool import Tool
 from kosong.utils.aio import Callback, callback
 
@@ -55,7 +55,10 @@ def _message_append(message: Message, part: StreamedMessagePart) -> None:
     match part:
         case ContentPart():
             if isinstance(message.content, str):
-                message.content = [TextPart(text=message.content)]
+                if isinstance(part, ThinkPart):
+                    message.content = [ThinkPart(think=message.content)]
+                else:
+                    message.content = [TextPart(text=message.content)]
             message.content.append(part)
         case ToolCall():
             if message.tool_calls is None:

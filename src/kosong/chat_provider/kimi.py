@@ -4,9 +4,13 @@ from collections.abc import Mapping, Sequence
 from typing import Any, TypedDict, Unpack, cast, override
 
 from openai import OpenAIError
-from openai.types.chat import ChatCompletionMessageParam, ChatCompletionToolParam
+from openai.types.chat import (
+    ChatCompletionContentPartTextParam,
+    ChatCompletionMessageParam,
+    ChatCompletionToolParam,
+)
 
-from kosong.base.message import Message
+from kosong.base.message import Message, ThinkPart
 from kosong.base.tool import Tool
 from kosong.chat_provider import ChatProviderError
 from kosong.chat_provider.openai_legacy import (
@@ -72,7 +76,7 @@ class Kimi(OpenAILegacy):
         messages: list[ChatCompletionMessageParam] = []
         if system_prompt:
             messages.append({"role": "system", "content": system_prompt})
-        messages.extend(message_to_openai(message) for message in history)
+        messages.extend(message_to_kimi(message) for message in history)
 
         generation_kwargs: dict[str, Any] = {
             # default kimi generation kwargs
@@ -129,6 +133,26 @@ def tool_to_kimi(tool: Tool) -> ChatCompletionToolParam:
         )
     else:
         return tool_to_openai(tool)
+
+
+def message_to_kimi(message: Message) -> ChatCompletionMessageParam:
+    if isinstance(message.content, list):
+        new_contents: list[ChatCompletionContentPartTextParam] = []
+        reasoning_content: str = ""
+        for part in message.content:
+            if isinstance(part, ThinkPart):
+                reasoning_content += part.think
+            else:
+                new_contents.append(ChatCompletionContentPartTextParam(**part.model_dump()))
+        new_message = message.model_dump(exclude_none=True)
+        new_message["content"] = new_contents
+
+        if reasoning_content:
+            new_message["reasoning_content"] = reasoning_content
+
+        return cast(ChatCompletionMessageParam, new_message)
+    else:
+        return message_to_openai(message)
 
 
 KimiStreamedMessage = OpenAILegacyStreamedMessage
