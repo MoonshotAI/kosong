@@ -308,10 +308,10 @@ def message_to_anthropic(message: Message) -> MessageParam:
         return MessageParam(role="user", content=[block])
 
     assert role in ("user", "assistant")
+    blocks: list[ContentBlockParam] = []
     if isinstance(content, str):
-        return MessageParam(role=role, content=content)
+        blocks.append(TextBlockParam(type="text", text=content))
     else:
-        blocks: list[ContentBlockParam] = []
         for part in content:
             if isinstance(part, TextPart):
                 blocks.append(TextBlockParam(type="text", text=part.text))
@@ -330,26 +330,26 @@ def message_to_anthropic(message: Message) -> MessageParam:
                     )
             else:
                 continue
-        for tool_call in message.tool_calls or []:
-            if tool_call.function.arguments:
-                try:
-                    parsed_arguments = json.loads(tool_call.function.arguments)
-                except json.JSONDecodeError as exc:  # pragma: no cover - defensive guard
-                    raise ChatProviderError("Tool call arguments must be valid JSON.") from exc
-                if not isinstance(parsed_arguments, dict):
-                    raise ChatProviderError("Tool call arguments must be a JSON object.")
-                tool_input = cast(dict[str, object], parsed_arguments)
-            else:
-                tool_input = {}
-            blocks.append(
-                ToolUseBlockParam(
-                    type="tool_use",
-                    id=tool_call.id,
-                    name=tool_call.function.name,
-                    input=tool_input,
-                )
+    for tool_call in message.tool_calls or []:
+        if tool_call.function.arguments:
+            try:
+                parsed_arguments = json.loads(tool_call.function.arguments)
+            except json.JSONDecodeError as exc:  # pragma: no cover - defensive guard
+                raise ChatProviderError("Tool call arguments must be valid JSON.") from exc
+            if not isinstance(parsed_arguments, dict):
+                raise ChatProviderError("Tool call arguments must be a JSON object.")
+            tool_input = cast(dict[str, object], parsed_arguments)
+        else:
+            tool_input = {}
+        blocks.append(
+            ToolUseBlockParam(
+                type="tool_use",
+                id=tool_call.id,
+                name=tool_call.function.name,
+                input=tool_input,
             )
-        return MessageParam(role=role, content=blocks)
+        )
+    return MessageParam(role=role, content=blocks)
 
 
 def _tool_result_message_to_block(message: Message) -> ToolResultBlockParam:
