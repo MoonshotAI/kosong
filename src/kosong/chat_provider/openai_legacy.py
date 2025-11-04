@@ -71,7 +71,8 @@ class OpenAILegacy:
     ) -> "OpenAILegacyStreamedMessage":
         messages: list[ChatCompletionMessageParam] = []
         if system_prompt:
-            messages.append({"role": "developer", "content": system_prompt})
+            # `system` vs `developer`: see `message_to_openai` comments
+            messages.append({"role": "system", "content": system_prompt})
         messages.extend(message_to_openai(message) for message in history)
 
         try:
@@ -90,7 +91,9 @@ class OpenAILegacy:
 def message_to_openai(message: Message) -> ChatCompletionMessageParam:
     """Convert a single message to OpenAI message format."""
     # simply `model_dump` because the `Message` type is OpenAI-compatible
-    # FIXME: for openai, we should use `developer` role, although `system` is still accepted
+    # Note: for openai, `developer` role is more standard, but `system` is still accepted.
+    # And many openai-compatible models do not accept `developer` role.
+    # So we use `system` role here. OpenAIResponses will use `developer` role.
     # See https://cdn.openai.com/spec/model-spec-2024-05-08.html#definitions
     return cast(ChatCompletionMessageParam, message.model_dump(exclude_none=True))
 
