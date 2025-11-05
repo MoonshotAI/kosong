@@ -133,9 +133,18 @@ class OpenAILegacyStreamedMessage:
     @property
     def usage(self) -> TokenUsage | None:
         if self._usage:
+            cached = 0
+            other_input = self._usage.prompt_tokens
+            if (
+                self._usage.prompt_tokens_details
+                and self._usage.prompt_tokens_details.cached_tokens
+            ):
+                cached = self._usage.prompt_tokens_details.cached_tokens
+                other_input -= cached
             return TokenUsage(
-                input=self._usage.prompt_tokens,
+                input_other=other_input,
                 output=self._usage.completion_tokens,
+                input_cache_read=cached,
             )
         return None
 

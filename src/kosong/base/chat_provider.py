@@ -52,10 +52,17 @@ class StreamedMessage(Protocol):
 
 
 class TokenUsage(NamedTuple):
-    input: int
+    input_other: int
     output: int
-    # TODO: support `cached`
+    input_cache_read: int = 0
+    input_cache_creation: int = 0
+    """For now, only Anthropic API supports this."""
 
     @property
     def total(self) -> int:
         return self.input + self.output
+
+    @property
+    def input(self) -> int:
+        """Total input tokens, including cached and uncached tokens"""
+        return self.input_other + self.input_cache_read + self.input_cache_creation
