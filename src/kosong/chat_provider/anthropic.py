@@ -137,12 +137,24 @@ class Anthropic:
             last_content = last_message["content"]
 
             # inject cache control in the last content.
-            # A maximum of 4 blocks with cache_control may be provided.
+            # https://docs.claude.com/en/docs/build-with-claude/prompt-caching
             if isinstance(last_content, list) and last_content:
                 content_blocks = cast(list[ContentBlockParam], last_content)
                 last_block = content_blocks[-1]
-                if last_block["type"] == "text":
-                    last_block["cache_control"] = CacheControlEphemeralParam(type="ephemeral")
+                match last_block["type"]:
+                    case (
+                        "text"
+                        | "image"
+                        | "document"
+                        | "search_result"
+                        | "tool_use"
+                        | "tool_result"
+                        | "server_tool_use"
+                        | "web_search_tool_result"
+                    ):
+                        last_block["cache_control"] = CacheControlEphemeralParam(type="ephemeral")
+                    case "thinking" | "redacted_thinking":
+                        pass
         generation_kwargs: dict[str, Any] = {
             "max_tokens": self._default_max_tokens,
         }
@@ -153,12 +165,15 @@ class Anthropic:
             **(generation_kwargs.pop("extra_headers", {})),
         }
 
+        tools_ = [tool_to_anthropic(tool) for tool in tools]
+        if tools:
+            tools_[-1]["cache_control"] = CacheControlEphemeralParam(type="ephemeral")
         try:
             response = await self._client.messages.create(
                 model=self._model,
                 messages=messages,
                 system=system,
-                tools=[tool_to_anthropic(tool) for tool in tools],
+                tools=tools_,
                 stream=self._stream,
                 extra_headers=extra_headers,
                 **generation_kwargs,
