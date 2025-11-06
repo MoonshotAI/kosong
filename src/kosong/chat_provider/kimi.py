@@ -89,10 +89,6 @@ class Kimi:
             # default kimi generation kwargs
             "max_tokens": 32000,
             "temperature": 0.6,
-            "extra_body": {
-                # This will be ignored if the model doesn't support thinking.
-                "think_mode": "on",
-            },
         }
         generation_kwargs.update(self._generation_kwargs)
 
@@ -118,6 +114,7 @@ class Kimi:
         frequency_penalty: float | None
         stop: str | list[str] | None
         prompt_cache_key: str | None
+        reasoning_effort: str | None
 
     def with_generation_kwargs(self, **kwargs: Unpack[GenerationKwargs]) -> "Kimi":
         new_self = copy.copy(self)
