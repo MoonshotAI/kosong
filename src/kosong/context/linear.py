@@ -1,7 +1,7 @@
 import asyncio
 import json
 from pathlib import Path
-from typing import IO, Protocol, runtime_checkable
+from typing import IO, Protocol, Any, runtime_checkable
 
 from kosong.base.message import Message
 
@@ -21,6 +21,44 @@ class LinearContext:
     @property
     def token_count(self) -> int:
         return self._storage.token_count
+
+    @property
+    def statistics(self) -> dict[str, Any]:
+        user_count = 0
+        assistant_count = 0
+        tool_count = 0
+        system_count = 0
+        for message in self.history:
+            match message.role:
+                case "user":
+                    user_count += 1
+                case "assistant":
+                    assistant_count += 1
+                case "tool":
+                    tool_count += 1
+                case "system":
+                    system_count += 1
+        return {
+            "token_count": self.token_count,
+            "message_count": len(self.history),
+            "user_message_count": user_count,
+            "assistant_message_count": assistant_count,
+            "tool_message_count": tool_count,
+            "system_message_count": system_count,
+        }
+
+    def extract_texts(self, include_think: bool = False) -> list[str]:
+        """
+        Extract plain text from all messages in the context.
+
+        Args:
+            include_think: If True, includes ThinkPart content from messages.
+                          If False, ThinkPart content is ignored.
+
+        Returns:
+            List of extracted text strings, one for each message in the context.
+        """
+        return [message.extract_text(include_think=include_think) for message in self.history]
 
     async def add_message(self, message: Message):
         await self._storage.append_message(message)
