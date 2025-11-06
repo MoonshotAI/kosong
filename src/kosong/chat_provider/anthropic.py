@@ -137,12 +137,24 @@ class Anthropic:
             last_content = last_message["content"]
 
             # inject cache control in the last content.
-            # A maximum of 4 blocks with cache_control may be provided.
+            # https://docs.claude.com/en/docs/build-with-claude/prompt-caching
             if isinstance(last_content, list) and last_content:
                 content_blocks = cast(list[ContentBlockParam], last_content)
                 last_block = content_blocks[-1]
-                if last_block["type"] == "text":
-                    last_block["cache_control"] = CacheControlEphemeralParam(type="ephemeral")
+                match last_block["type"]:
+                    case (
+                        "text"
+                        | "image"
+                        | "document"
+                        | "search_result"
+                        | "tool_use"
+                        | "tool_result"
+                        | "server_tool_use"
+                        | "web_search_tool_result"
+                    ):
+                        last_block["cache_control"] = CacheControlEphemeralParam(type="ephemeral")
+                    case "thinking" | "redacted_thinking":
+                        pass
         generation_kwargs: dict[str, Any] = {
             "max_tokens": self._default_max_tokens,
         }
@@ -153,12 +165,15 @@ class Anthropic:
             **(generation_kwargs.pop("extra_headers", {})),
         }
 
+        tools_ = [tool_to_anthropic(tool) for tool in tools]
+        if tools:
+            tools_[-1]["cache_control"] = CacheControlEphemeralParam(type="ephemeral")
         try:
             response = await self._client.messages.create(
                 model=self._model,
                 messages=messages,
                 system=system,
-                tools=[tool_to_anthropic(tool) for tool in tools],
+                tools=tools_,
                 stream=self._stream,
                 extra_headers=extra_headers,
                 **generation_kwargs,
@@ -209,7 +224,13 @@ class AnthropicStreamedMessage:
     def usage(self) -> TokenUsage | None:
         if self._usage is None:
             return None
-        return TokenUsage(input=self._usage.input_tokens, output=self._usage.output_tokens)
+        # https://docs.claude.com/en/docs/build-with-claude/prompt-caching#tracking-cache-performance
+        return TokenUsage(
+            input_other=self._usage.input_tokens,
+            output=self._usage.output_tokens,
+            input_cache_read=self._usage.cache_read_input_tokens or 0,
+            input_cache_creation=self._usage.cache_creation_input_tokens or 0,
+        )
 
     async def _convert_non_stream_response(
         self,
@@ -308,10 +329,10 @@ def message_to_anthropic(message: Message) -> MessageParam:
         return MessageParam(role="user", content=[block])
 
     assert role in ("user", "assistant")
+    blocks: list[ContentBlockParam] = []
     if isinstance(content, str):
-        return MessageParam(role=role, content=content)
+        blocks.append(TextBlockParam(type="text", text=content))
     else:
-        blocks: list[ContentBlockParam] = []
         for part in content:
             if isinstance(part, TextPart):
                 blocks.append(TextBlockParam(type="text", text=part.text))
@@ -330,26 +351,26 @@ def message_to_anthropic(message: Message) -> MessageParam:
                     )
             else:
                 continue
-        for tool_call in message.tool_calls or []:
-            if tool_call.function.arguments:
-                try:
-                    parsed_arguments = json.loads(tool_call.function.arguments)
-                except json.JSONDecodeError as exc:  # pragma: no cover - defensive guard
-                    raise ChatProviderError("Tool call arguments must be valid JSON.") from exc
-                if not isinstance(parsed_arguments, dict):
-                    raise ChatProviderError("Tool call arguments must be a JSON object.")
-                tool_input = cast(dict[str, object], parsed_arguments)
-            else:
-                tool_input = {}
-            blocks.append(
-                ToolUseBlockParam(
-                    type="tool_use",
-                    id=tool_call.id,
-                    name=tool_call.function.name,
-                    input=tool_input,
-                )
+    for tool_call in message.tool_calls or []:
+        if tool_call.function.arguments:
+            try:
+                parsed_arguments = json.loads(tool_call.function.arguments)
+            except json.JSONDecodeError as exc:  # pragma: no cover - defensive guard
+                raise ChatProviderError("Tool call arguments must be valid JSON.") from exc
+            if not isinstance(parsed_arguments, dict):
+                raise ChatProviderError("Tool call arguments must be a JSON object.")
+            tool_input = cast(dict[str, object], parsed_arguments)
+        else:
+            tool_input = {}
+        blocks.append(
+            ToolUseBlockParam(
+                type="tool_use",
+                id=tool_call.id,
+                name=tool_call.function.name,
+                input=tool_input,
             )
-        return MessageParam(role=role, content=blocks)
+        )
+    return MessageParam(role=role, content=blocks)
 
 
 def _tool_result_message_to_block(message: Message) -> ToolResultBlockParam:

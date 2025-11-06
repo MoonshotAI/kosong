@@ -403,9 +403,15 @@ class OpenAIResponsesStreamedMessage:
     @property
     def usage(self) -> TokenUsage | None:
         if self._usage:
+            cached = 0
+            other_input = self._usage.input_tokens
+            if self._usage.input_tokens_details and self._usage.input_tokens_details.cached_tokens:
+                cached = self._usage.input_tokens_details.cached_tokens
+                other_input -= cached
             return TokenUsage(
-                input=self._usage.input_tokens,
+                input_other=other_input,
                 output=self._usage.output_tokens,
+                input_cache_read=cached,
             )
         return None
 
