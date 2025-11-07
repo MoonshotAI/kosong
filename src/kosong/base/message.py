@@ -212,6 +212,33 @@ class Message(BaseModel):
 
     partial: bool | None = None
 
+    def extract_text(self, include_think: bool = False) -> str:
+        """
+        Extract plain text from the message content.
+
+        For string content, returns the string as-is.
+        For ContentPart list, extracts text from TextPart and optionally ThinkPart.
+        Other content types (ImageURLPart, AudioURLPart) are ignored.
+
+        Args:
+            include_think: If True, includes ThinkPart content (only when encrypted is None).
+                          If False, ThinkPart content is ignored.
+
+        Returns:
+            Extracted plain text string.
+        """
+                    
+        if isinstance(self.content, str):
+            return self.content
+        
+        text_parts: list[str] = []
+        for part in self.content:
+            if isinstance(part, TextPart):
+                text_parts.append(part.text)
+            elif isinstance(part, ThinkPart) and include_think and part.encrypted is None:
+                text_parts.append(part.think)
+        return "".join(text_parts)
+
     @field_serializer("content")
     def serialize_content(
         self, content: str | list[ContentPart]

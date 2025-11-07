@@ -153,3 +153,83 @@ def test_deserialize_from_json_with_content_but_no_tool_calls():
     }
     message = Message.model_validate(data)
     assert message.model_dump(exclude_none=True) == data
+
+
+def test_extract_text_from_string_content():
+    message = Message(role="user", content="Hello, world!")
+    assert message.extract_text() == "Hello, world!"
+
+
+def test_extract_text_from_text_part():
+    message = Message(role="user", content=[TextPart(text="Hello, world!")])
+    assert message.extract_text() == "Hello, world!"
+
+
+def test_extract_text_ignores_non_text_parts():
+    message = Message(
+        role="user",
+        content=[
+            TextPart(text="Hello"),
+            ImageURLPart(image_url=ImageURLPart.ImageURL(url="https://example.com/image.png")),
+            TextPart(text="World"),
+            AudioURLPart(audio_url=AudioURLPart.AudioURL(url="https://example.com/audio.mp3")),
+        ],
+    )
+    assert message.extract_text() == "HelloWorld"
+
+
+def test_extract_text_with_think_part_excluded():
+    message = Message(
+        role="assistant",
+        content=[
+            TextPart(text="Hello"),
+            ThinkPart(think="I'm thinking..."),
+            TextPart(text="World"),
+        ],
+    )
+    assert message.extract_text(include_think=False) == "HelloWorld"
+
+
+def test_extract_text_with_think_part_included():
+    message = Message(
+        role="assistant",
+        content=[
+            TextPart(text="Hello"),
+            ThinkPart(think="I'm thinking..."),
+            TextPart(text="World"),
+        ],
+    )
+    assert message.extract_text(include_think=True) == "HelloI'm thinking...World"
+
+
+def test_extract_text_excludes_encrypted_think_part():
+    message = Message(
+        role="assistant",
+        content=[
+            TextPart(text="Hello"),
+            ThinkPart(think="I'm thinking...", encrypted="signature"),
+            TextPart(text="World"),
+        ],
+    )
+    # Even with include_think=True, encrypted ThinkPart should be excluded
+    assert message.extract_text(include_think=True) == "HelloWorld"
+
+
+def test_extract_text_from_empty_content():
+    message = Message(role="user", content="")
+    assert message.extract_text() == ""
+
+    message2 = Message(role="user", content=[])
+    assert message2.extract_text() == ""
+
+
+def test_extract_text_multiple_text_parts():
+    message = Message(
+        role="user",
+        content=[
+            TextPart(text="First"),
+            TextPart(text="Second"),
+            TextPart(text="Third"),
+        ],
+    )
+    assert message.extract_text() == "FirstSecondThird"
