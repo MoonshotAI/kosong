@@ -80,7 +80,7 @@ class Kimi(ChatProvider):
                 "The api_key client option or the KIMI_API_KEY environment variable is not set"
             )
         if base_url is None:
-            base_url = os.getenv("KIMI_BASE_URL", "https://api.moonshot.cn/v1")
+            base_url = os.getenv("KIMI_BASE_URL", "https://api.moonshot.ai/v1")
 
         self.model: str = model
         """The name of the model to use."""
