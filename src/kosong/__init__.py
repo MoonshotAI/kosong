@@ -17,25 +17,28 @@ Example:
 ```python
 import asyncio
 
+from pydantic import BaseModel
+
 import kosong
 from kosong import StepResult
 from kosong.chat_provider.kimi import Kimi
 from kosong.message import Message
-from kosong.tooling import CallableTool, ParametersType, ToolOk, ToolReturnType
+from kosong.tooling import CallableTool2, ToolOk, ToolReturnType
 from kosong.tooling.simple import SimpleToolset
 
 
-class AddTool(CallableTool):
+class AddToolParams(BaseModel):
+    a: int
+    b: int
+
+
+class AddTool(CallableTool2[AddToolParams]):
     name: str = "add"
     description: str = "Add two integers."
-    parameters: ParametersType = {
-        "type": "object",
-        "properties": {"a": {"type": "integer"}, "b": {"type": "integer"}},
-        "required": ["a", "b"],
-    }
+    params: type[AddToolParams] = AddToolParams
 
-    async def __call__(self, a: int, b: int) -> ToolReturnType:
-        return ToolOk(output=str(a + b))
+    async def __call__(self, params: AddToolParams) -> ToolReturnType:
+        return ToolOk(output=str(params.a + params.b))
 
 
 async def main() -> None:
