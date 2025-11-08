@@ -2,6 +2,8 @@
 
 Kosong is a streaming-first LLM-abstraction layer designed for modern agentic applications. It unifies message structures, asynchronous tool orchestration, and pluggable chat providers so you can build agents with ease and avoid vendor lock-in.
 
+> Kosong means "empty" in Malay and Indonesian.
+
 ## Installation
 
 Kosong requires Python 3.13 or higher. We recommend using uv as the package manager.
