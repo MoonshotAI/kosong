@@ -1,8 +1,8 @@
 from collections.abc import AsyncIterator, Sequence
 from typing import Literal, NamedTuple, Protocol, Self, runtime_checkable
 
-from kosong.base.message import ContentPart, Message, ToolCall, ToolCallPart
 from kosong.base.tool import Tool
+from kosong.message import ContentPart, Message, ToolCall, ToolCallPart
 
 
 @runtime_checkable

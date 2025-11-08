@@ -1,7 +1,7 @@
 from inline_snapshot import snapshot
 
-from kosong.base.message import Message, ToolCall
 from kosong.contrib.chat_provider.anthropic import message_to_anthropic
+from kosong.message import Message, ToolCall
 
 
 def test_message_to_anthropic_includes_tool_use_block_for_string_content() -> None:

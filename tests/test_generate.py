@@ -3,8 +3,8 @@ from copy import deepcopy
 
 from kosong.base import generate
 from kosong.base.chat_provider import StreamedMessagePart
-from kosong.base.message import ImageURLPart, TextPart, ToolCall, ToolCallPart
 from kosong.chat_provider.mock import MockChatProvider
+from kosong.message import ImageURLPart, TextPart, ToolCall, ToolCallPart
 
 
 def test_generate():

@@ -15,7 +15,6 @@ from openai.types.chat import (
 )
 
 from kosong.base.chat_provider import ChatProvider, StreamedMessagePart, ThinkingEffort, TokenUsage
-from kosong.base.message import Message, TextPart, ToolCall, ToolCallPart
 from kosong.base.tool import Tool
 from kosong.chat_provider import (
     APIConnectionError,
@@ -23,6 +22,7 @@ from kosong.chat_provider import (
     APITimeoutError,
     ChatProviderError,
 )
+from kosong.message import Message, TextPart, ToolCall, ToolCallPart
 
 if TYPE_CHECKING:
 

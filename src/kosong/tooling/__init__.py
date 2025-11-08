@@ -9,8 +9,8 @@ import pydantic
 from pydantic import BaseModel
 from pydantic.json_schema import GenerateJsonSchema
 
-from kosong.base.message import ContentPart, ToolCall
 from kosong.base.tool import Tool
+from kosong.message import ContentPart, ToolCall
 from kosong.utils.typing import JsonType
 
 __all__ = [

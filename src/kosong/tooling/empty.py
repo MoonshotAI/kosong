@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
-from kosong.base.message import ToolCall
 from kosong.base.tool import Tool
+from kosong.message import ToolCall
 from kosong.tooling import HandleResult, ToolResult, Toolset
 from kosong.tooling.error import ToolNotFoundError
 

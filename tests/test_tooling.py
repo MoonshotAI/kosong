@@ -4,8 +4,8 @@ from typing import override
 
 from pydantic import BaseModel, Field
 
-from kosong.base.message import ToolCall
 from kosong.base.tool import ParametersType
+from kosong.message import ToolCall
 from kosong.tooling import (
     CallableTool,
     CallableTool2,
