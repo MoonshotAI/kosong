@@ -148,3 +148,14 @@ async def main() -> None:
 
 asyncio.run(main())
 ```
+
+## Builtin Demo
+
+Kosong comes with a builtin demo agent that you can run locally. To start the demo, run:
+
+```sh
+export KIMI_BASE_URL="https://api.moonshot.ai/v1"
+export KIMI_API_KEY="your_kimi_api_key"
+
+uv run python -m kosong kimi --with-bash
+```
