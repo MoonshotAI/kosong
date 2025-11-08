@@ -1,7 +1,7 @@
 """
-Kosong is an LLM-abstraction layer that packages streaming-friendly building blocks for LLM agents.
+Kosong is a streaming-first LLM-abstraction layer designed for modern agentic applications.
 It unifies message structures, asynchronous tool orchestration, and pluggable chat providers so you
-can build agentic applications with ease and avoid vendor lock-in.
+can build agents with ease and avoid vendor lock-in.
 
 Key features:
 
@@ -42,7 +42,7 @@ class AddTool(CallableTool2[AddToolParams]):
 
 
 async def main() -> None:
-    chat = Kimi(
+    kimi = Kimi(
         base_url="https://api.moonshot.ai/v1",
         api_key="your_kimi_api_key_here",
         model="kimi-k2-turbo-preview",
@@ -56,7 +56,7 @@ async def main() -> None:
     ]
 
     result: StepResult = await kosong.step(
-        chat_provider=chat,
+        chat_provider=kimi,
         system_prompt="You are a precise math tutor.",
         toolset=toolset,
         history=history,
