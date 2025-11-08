@@ -11,6 +11,8 @@ if TYPE_CHECKING:
 
 
 class EmptyToolset:
+    """A toolset implementation that always contains no tools."""
+
     @property
     def tools(self) -> list[Tool]:
         return []

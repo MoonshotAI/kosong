@@ -17,6 +17,7 @@ from openai.types.completion_usage import CompletionUsage
 from kosong.chat_provider import (
     ChatProvider,
     ChatProviderError,
+    StreamedMessage,
     StreamedMessagePart,
     ThinkingEffort,
     TokenUsage,
@@ -49,6 +50,10 @@ class Kimi(ChatProvider):
     name = "kimi"
 
     class GenerationKwargs(TypedDict, total=False):
+        """
+        See https://platform.moonshot.ai/docs/api/chat#request-body.
+        """
+
         max_tokens: int | None
         temperature: float | None
         top_p: float | None
@@ -77,13 +82,16 @@ class Kimi(ChatProvider):
         if base_url is None:
             base_url = os.getenv("KIMI_BASE_URL", "https://api.moonshot.cn/v1")
 
-        self.model = model
-        self.stream = stream
-        self.client = AsyncOpenAI(
+        self.model: str = model
+        """The name of the model to use."""
+        self.stream: bool = stream
+        """Whether to generate responses as a stream."""
+        self.client: AsyncOpenAI = AsyncOpenAI(
             api_key=api_key,
             base_url=base_url,
             **client_kwargs,
         )
+        """The underlying `AsyncOpenAI` client."""
         self._generation_kwargs: Kimi.GenerationKwargs = {}
 
     @property
@@ -179,7 +187,9 @@ def tool_to_kimi(tool: Tool) -> ChatCompletionToolParam:
         return tool_to_openai(tool)
 
 
-class KimiStreamedMessage:
+class KimiStreamedMessage(StreamedMessage):
+    """The streamed message of the Kimi chat provider."""
+
     def __init__(self, response: ChatCompletion | AsyncStream[ChatCompletionChunk]):
         if isinstance(response, ChatCompletion):
             self._iter = self._convert_non_stream_response(response)

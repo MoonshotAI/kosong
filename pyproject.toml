@@ -20,6 +20,7 @@ dev = [
     "pytest-asyncio>=1.2.0",
     "ruff>=0.14.4",
     "inline-snapshot[black]>=0.31.1",
+    "pdoc>=16.0.0",
 ]
 
 [build-system]

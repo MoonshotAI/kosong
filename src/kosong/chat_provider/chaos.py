@@ -86,7 +86,7 @@ class ChaosTransport(httpx.AsyncBaseTransport):
 
 
 class ChaosChatProvider(Kimi):
-    """OpenAI Legacy provider with chaos error injection."""
+    """Kimi chat provider with chaos error injection."""
 
     def __init__(
         self,

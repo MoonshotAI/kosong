@@ -2,7 +2,13 @@ import copy
 from collections.abc import AsyncIterator, Sequence
 from typing import TYPE_CHECKING, Self
 
-from kosong.chat_provider import ChatProvider, StreamedMessagePart, ThinkingEffort, TokenUsage
+from kosong.chat_provider import (
+    ChatProvider,
+    StreamedMessage,
+    StreamedMessagePart,
+    ThinkingEffort,
+    TokenUsage,
+)
 from kosong.message import Message
 from kosong.tooling import Tool
 
@@ -23,6 +29,7 @@ class MockChatProvider(ChatProvider):
         self,
         message_parts: list[StreamedMessagePart],
     ):
+        """Initialize the mock chat provider with predefined message parts."""
         self._message_parts = message_parts
 
     @property
@@ -35,13 +42,16 @@ class MockChatProvider(ChatProvider):
         tools: Sequence[Tool],
         history: Sequence[Message],
     ) -> "MockStreamedMessage":
+        """Always return the predefined message parts."""
         return MockStreamedMessage(self._message_parts)
 
     def with_thinking(self, effort: ThinkingEffort) -> Self:
         return copy.copy(self)
 
 
-class MockStreamedMessage:
+class MockStreamedMessage(StreamedMessage):
+    """The streamed message of the mock chat provider."""
+
     def __init__(self, message_parts: list[StreamedMessagePart]):
         self._iter = self._to_stream(message_parts)
 

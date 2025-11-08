@@ -18,14 +18,26 @@ async def generate(
     on_tool_call: Callback[[ToolCall], None] | None = None,
 ) -> tuple[Message, TokenUsage | None]:
     """
-    Generate one message based on the given context. The given context will remain untouched.
+    Generate one message based on the given context.
+    Parts of the message will be streamed to the specified callbacks if provided.
 
-    Parts of the message will be streamed to the given handlers:
-    - `on_message_part` will be called for each raw part which may be incomplete.
-    - `on_tool_call` will be called for each complete tool call.
+    Args:
+        chat_provider: The chat provider to use for generation.
+        system_prompt: The system prompt to use for generation.
+        tools: The tools available for the model to call.
+        history: The message history to use for generation.
+        on_message_part: An optional callback to be called for each raw message part.
+        on_tool_call: An optional callback to be called for each complete tool call.
 
-    The generated message and the token usage will be returned. All parts in the message are
-    guaranteed to be complete and merged as much as possible.
+    Returns:
+        A tuple of the generated message and the token usage (if available).
+        All parts in the message are guaranteed to be complete and merged as much as possible.
+
+    Raises:
+        APIConnectionError: If the API connection fails.
+        APITimeoutError: If the API request times out.
+        APIStatusError: If the API returns a status code of 4xx or 5xx.
+        ChatProviderError: If any other recognized chat provider error occurs.
     """
     message = Message(role="assistant", content=[])
     pending_part: StreamedMessagePart | None = None  # message part that is currently incomplete

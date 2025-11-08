@@ -107,6 +107,8 @@ class ImageURLPart(ContentPart):
     """
 
     class ImageURL(BaseModel):
+        """Image URL payload."""
+
         url: str
         """The URL of the image, can be data URI scheme like `data:image/png;base64,...`."""
         id: str | None = None
@@ -123,6 +125,8 @@ class AudioURLPart(ContentPart):
     """
 
     class AudioURL(BaseModel):
+        """Audio URL payload."""
+
         url: str
         """The URL of the audio, can be data URI scheme like `data:audio/aac;base64,...`."""
         id: str | None = None
@@ -147,8 +151,12 @@ class ToolCall(BaseModel, MergableMixin):
     """
 
     class FunctionBody(BaseModel):
+        """Tool call function body."""
+
         name: str
+        """The name of the tool to be called."""
         arguments: str | None
+        """Arguments of the tool call in JSON string format."""
 
     type: Literal["function"] = "function"
 
@@ -205,15 +213,15 @@ class Message(BaseModel):
     """The content of the message."""
 
     tool_calls: list[ToolCall] | None = None
-    """In assistant messages, there can be tool calls."""
+    """Tool calls requested by the assistant in this message."""
 
     tool_call_id: str | None = None
-    """In tool messages, there can be a tool call ID."""
+    """The ID of the tool call if this message is a tool response."""
 
     partial: bool | None = None
 
     @field_serializer("content")
-    def serialize_content(
+    def _serialize_content(
         self, content: str | list[ContentPart]
     ) -> str | list[dict[str, Any]] | None:
         if not content:
