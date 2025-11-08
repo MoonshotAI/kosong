@@ -118,6 +118,7 @@ class Anthropic(ChatProvider):
         self._client = AsyncAnthropic(api_key=api_key, base_url=base_url, **client_kwargs)
         self._generation_kwargs: Anthropic.GenerationKwargs = {
             "max_tokens": default_max_tokens,
+            "beta_features": ["interleaved-thinking-2025-05-14"],
         }
 
     @property
