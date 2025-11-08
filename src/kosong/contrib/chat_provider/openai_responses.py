@@ -48,7 +48,7 @@ from kosong.chat_provider import (
     APITimeoutError,
     ChatProviderError,
 )
-from kosong.chat_provider.openai_legacy import thinking_effort_to_reasoning_effort
+from kosong.contrib.chat_provider.openai_legacy import thinking_effort_to_reasoning_effort
 
 if TYPE_CHECKING:
 

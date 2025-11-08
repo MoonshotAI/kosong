@@ -7,7 +7,7 @@ import httpx
 from pydantic import BaseModel
 
 from kosong.base.chat_provider import ChatProvider
-from kosong.chat_provider.openai_legacy import OpenAILegacy
+from kosong.chat_provider.kimi import Kimi
 
 if TYPE_CHECKING:
 
@@ -85,7 +85,7 @@ class ChaosTransport(httpx.AsyncBaseTransport):
         )
 
 
-class ChaosChatProvider(OpenAILegacy):
+class ChaosChatProvider(Kimi):
     """OpenAI Legacy provider with chaos error injection."""
 
     def __init__(

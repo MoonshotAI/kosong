@@ -18,7 +18,7 @@ from kosong.base.chat_provider import ChatProvider, StreamedMessagePart, Thinkin
 from kosong.base.message import ContentPart, Message, TextPart, ThinkPart, ToolCall, ToolCallPart
 from kosong.base.tool import Tool
 from kosong.chat_provider import ChatProviderError
-from kosong.chat_provider.openai_legacy import convert_error, tool_to_openai
+from kosong.contrib.chat_provider.openai_legacy import convert_error, tool_to_openai
 
 if TYPE_CHECKING:
 
