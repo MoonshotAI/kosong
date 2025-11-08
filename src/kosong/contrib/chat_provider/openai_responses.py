@@ -30,12 +30,15 @@ from openai.types.responses.response_input_message_content_list_param import (
 from openai.types.shared.reasoning import Reasoning
 from openai.types.shared.reasoning_effort import ReasoningEffort
 
-from kosong.base.chat_provider import ChatProvider, StreamedMessagePart, ThinkingEffort, TokenUsage
 from kosong.chat_provider import (
     APIConnectionError,
     APIStatusError,
     APITimeoutError,
+    ChatProvider,
     ChatProviderError,
+    StreamedMessagePart,
+    ThinkingEffort,
+    TokenUsage,
 )
 from kosong.contrib.chat_provider.openai_legacy import thinking_effort_to_reasoning_effort
 from kosong.message import (

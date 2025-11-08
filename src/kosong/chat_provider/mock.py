@@ -2,7 +2,7 @@ import copy
 from collections.abc import AsyncIterator, Sequence
 from typing import TYPE_CHECKING, Self
 
-from kosong.base.chat_provider import ChatProvider, StreamedMessagePart, ThinkingEffort, TokenUsage
+from kosong.chat_provider import ChatProvider, StreamedMessagePart, ThinkingEffort, TokenUsage
 from kosong.message import Message
 from kosong.tooling import Tool
 

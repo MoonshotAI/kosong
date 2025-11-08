@@ -2,7 +2,7 @@ import asyncio
 from typing import override
 
 from kosong import step
-from kosong.base.chat_provider import StreamedMessagePart
+from kosong.chat_provider import StreamedMessagePart
 from kosong.chat_provider.mock import MockChatProvider
 from kosong.message import TextPart, ToolCall
 from kosong.tooling import CallableTool, ParametersType, ToolOk, ToolResult, ToolReturnType

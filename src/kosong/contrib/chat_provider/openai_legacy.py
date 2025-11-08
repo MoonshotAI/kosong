@@ -14,12 +14,15 @@ from openai.types.chat import (
     ChatCompletionToolParam,
 )
 
-from kosong.base.chat_provider import ChatProvider, StreamedMessagePart, ThinkingEffort, TokenUsage
 from kosong.chat_provider import (
     APIConnectionError,
     APIStatusError,
     APITimeoutError,
+    ChatProvider,
     ChatProviderError,
+    StreamedMessagePart,
+    ThinkingEffort,
+    TokenUsage,
 )
 from kosong.message import Message, TextPart, ToolCall, ToolCallPart
 from kosong.tooling import Tool
