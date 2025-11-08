@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 from loguru import logger
 
-from kosong.base import generate
+from kosong._generate import generate
 from kosong.base.chat_provider import ChatProvider, StreamedMessagePart, TokenUsage
 from kosong.chat_provider import ChatProviderError
 from kosong.message import Message, ToolCall
@@ -12,6 +12,8 @@ from kosong.tooling import ToolResult, ToolResultFuture, Toolset
 from kosong.utils.aio import Callback
 
 logger.disable("kosong")
+
+__all__ = ["generate", "step", "StepResult"]
 
 
 async def step(

@@ -507,7 +507,7 @@ if __name__ == "__main__":
         system_prompt = "You are a helpful assistant."
         history = [Message(role="user", content="Hello, how are you?")]
 
-        from kosong.base import generate
+        from kosong import generate
 
         message, usage = await generate(chat, system_prompt, [], history)
         print(message)
