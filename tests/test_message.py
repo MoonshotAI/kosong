@@ -1,6 +1,6 @@
 from inline_snapshot import snapshot
 
-from kosong.base.message import AudioURLPart, ImageURLPart, Message, TextPart, ThinkPart, ToolCall
+from kosong.message import AudioURLPart, ImageURLPart, Message, TextPart, ThinkPart, ToolCall
 
 
 def test_plain_text_message():

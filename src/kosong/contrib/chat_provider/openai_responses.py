@@ -30,8 +30,18 @@ from openai.types.responses.response_input_message_content_list_param import (
 from openai.types.shared.reasoning import Reasoning
 from openai.types.shared.reasoning_effort import ReasoningEffort
 
-from kosong.base.chat_provider import ChatProvider, StreamedMessagePart, ThinkingEffort, TokenUsage
-from kosong.base.message import (
+from kosong.chat_provider import (
+    APIConnectionError,
+    APIStatusError,
+    APITimeoutError,
+    ChatProvider,
+    ChatProviderError,
+    StreamedMessagePart,
+    ThinkingEffort,
+    TokenUsage,
+)
+from kosong.contrib.chat_provider.openai_legacy import thinking_effort_to_reasoning_effort
+from kosong.message import (
     AudioURLPart,
     ContentPart,
     ImageURLPart,
@@ -41,14 +51,7 @@ from kosong.base.message import (
     ToolCall,
     ToolCallPart,
 )
-from kosong.base.tool import Tool
-from kosong.chat_provider import (
-    APIConnectionError,
-    APIStatusError,
-    APITimeoutError,
-    ChatProviderError,
-)
-from kosong.contrib.chat_provider.openai_legacy import thinking_effort_to_reasoning_effort
+from kosong.tooling import Tool
 
 if TYPE_CHECKING:
 
@@ -507,7 +510,7 @@ if __name__ == "__main__":
         system_prompt = "You are a helpful assistant."
         history = [Message(role="user", content="Hello, how are you?")]
 
-        from kosong.base import generate
+        from kosong import generate
 
         message, usage = await generate(chat, system_prompt, [], history)
         print(message)

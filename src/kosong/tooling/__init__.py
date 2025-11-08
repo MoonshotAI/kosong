@@ -2,27 +2,33 @@ from abc import ABC, abstractmethod
 from asyncio import Future
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Any, Protocol, override, runtime_checkable
+from typing import Any, Protocol, Self, override, runtime_checkable
 
 import jsonschema
 import pydantic
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 from pydantic.json_schema import GenerateJsonSchema
 
-from kosong.base.message import ContentPart, ToolCall
-from kosong.base.tool import Tool
+from kosong.message import ContentPart, ToolCall
 from kosong.utils.typing import JsonType
 
-__all__ = [
-    "ToolOk",
-    "ToolError",
-    "ToolReturnType",
-    "CallableTool",
-    "ToolResult",
-    "ToolResultFuture",
-    "HandleResult",
-    "Toolset",
-]
+type ParametersType = dict[str, Any]
+
+
+class Tool(BaseModel):
+    name: str
+    """The name of the tool."""
+
+    description: str
+    """The description of the tool."""
+
+    parameters: ParametersType
+    """The parameters of the tool, in JSON Schema format."""
+
+    @model_validator(mode="after")
+    def validate_parameters(self) -> Self:
+        jsonschema.validate(self.parameters, jsonschema.Draft202012Validator.META_SCHEMA)
+        return self
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -105,7 +111,7 @@ class _GenerateJsonSchemaNoTitles(GenerateJsonSchema):
 
 class CallableTool2[Params: BaseModel](BaseModel, ABC):
     """
-    A tool that can be called as a callable object, with type-safe parameters.
+    A tool that can be called as a callable object, with typed parameters.
 
     The tool will be called with the arguments provided in the `ToolCall`.
     The arguments must be a JSON object, and will be validated by Pydantic to the `Params` type.

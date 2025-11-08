@@ -2,11 +2,10 @@ import asyncio
 
 import pytest
 
-from kosong.base.chat_provider import StreamedMessagePart
-from kosong.base.message import Message, TextPart
-from kosong.chat_provider import APIStatusError
+from kosong.chat_provider import APIStatusError, StreamedMessagePart
 from kosong.chat_provider.chaos import ChaosChatProvider, ChaosConfig
 from kosong.chat_provider.mock import MockChatProvider
+from kosong.message import Message, TextPart
 
 
 def test_mock_chat_provider():

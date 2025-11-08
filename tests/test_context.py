@@ -1,8 +1,8 @@
 import asyncio
 from pathlib import Path
 
-from kosong.base.message import Message
 from kosong.contrib.context.linear import JsonlLinearStorage, LinearContext, MemoryLinearStorage
+from kosong.message import Message
 
 
 def test_linear_context():

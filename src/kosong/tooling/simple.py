@@ -4,12 +4,12 @@ import json
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any, Self
 
-from kosong.base.message import ToolCall
-from kosong.base.tool import Tool
+from kosong.message import ToolCall
 from kosong.tooling import (
     CallableTool,
     CallableTool2,
     HandleResult,
+    Tool,
     ToolResult,
     ToolReturnType,
     Toolset,

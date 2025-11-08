@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 from typing import IO, Protocol, runtime_checkable
 
-from kosong.base.message import Message
+from kosong.message import Message
 
 
 class LinearContext:

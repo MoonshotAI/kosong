@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any
 import httpx
 from pydantic import BaseModel
 
-from kosong.base.chat_provider import ChatProvider
+from kosong.chat_provider import ChatProvider
 from kosong.chat_provider.kimi import Kimi
 
 if TYPE_CHECKING:
