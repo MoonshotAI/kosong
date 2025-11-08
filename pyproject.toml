@@ -9,8 +9,8 @@ dependencies = [
     "dotenv>=0.9.9",
     "jsonschema>=4.25.1",
     "loguru>=0.7.3",
-    "openai>=2.6.1",
-    "pydantic>=2.12.3",
+    "openai>=2.6.1,<2.7.0",
+    "pydantic>=2.12.4",
 ]
 
 [dependency-groups]
@@ -18,8 +18,8 @@ dev = [
     "pyright>=1.1.407",
     "pytest>=8.4.2",
     "pytest-asyncio>=1.2.0",
-    "ruff>=0.14.3",
-    "inline-snapshot[black]>=0.31.0",
+    "ruff>=0.14.4",
+    "inline-snapshot[black]>=0.31.1",
 ]
 
 [build-system]
