@@ -3,8 +3,8 @@ from collections.abc import AsyncIterator, Sequence
 from typing import TYPE_CHECKING, Self
 
 from kosong.base.chat_provider import ChatProvider, StreamedMessagePart, ThinkingEffort, TokenUsage
-from kosong.base.tool import Tool
 from kosong.message import Message
+from kosong.tooling import Tool
 
 if TYPE_CHECKING:
 

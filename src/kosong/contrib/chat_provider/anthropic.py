@@ -55,7 +55,6 @@ from anthropic.types import (
 from anthropic.types.tool_result_block_param import Content as ToolResultContent
 
 from kosong.base.chat_provider import ChatProvider, StreamedMessagePart, ThinkingEffort, TokenUsage
-from kosong.base.tool import Tool
 from kosong.chat_provider import (
     APIConnectionError,
     APIStatusError,
@@ -70,6 +69,7 @@ from kosong.message import (
     ToolCall,
     ToolCallPart,
 )
+from kosong.tooling import Tool
 
 if TYPE_CHECKING:
 

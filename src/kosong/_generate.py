@@ -3,8 +3,8 @@ from collections.abc import Sequence
 from loguru import logger
 
 from kosong.base.chat_provider import ChatProvider, StreamedMessagePart, TokenUsage
-from kosong.base.tool import Tool
 from kosong.message import ContentPart, Message, TextPart, ToolCall
+from kosong.tooling import Tool
 from kosong.utils.aio import Callback, callback
 
 

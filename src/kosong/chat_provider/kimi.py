@@ -15,10 +15,10 @@ from openai.types.chat import (
 from openai.types.completion_usage import CompletionUsage
 
 from kosong.base.chat_provider import ChatProvider, StreamedMessagePart, ThinkingEffort, TokenUsage
-from kosong.base.tool import Tool
 from kosong.chat_provider import ChatProviderError
 from kosong.contrib.chat_provider.openai_legacy import convert_error, tool_to_openai
 from kosong.message import ContentPart, Message, TextPart, ThinkPart, ToolCall, ToolCallPart
+from kosong.tooling import Tool
 
 if TYPE_CHECKING:
 

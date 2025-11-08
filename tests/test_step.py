@@ -3,10 +3,9 @@ from typing import override
 
 from kosong import step
 from kosong.base.chat_provider import StreamedMessagePart
-from kosong.base.tool import ParametersType
 from kosong.chat_provider.mock import MockChatProvider
 from kosong.message import TextPart, ToolCall
-from kosong.tooling import CallableTool, ToolOk, ToolResult, ToolReturnType
+from kosong.tooling import CallableTool, ParametersType, ToolOk, ToolResult, ToolReturnType
 from kosong.tooling.simple import SimpleToolset
 
 
