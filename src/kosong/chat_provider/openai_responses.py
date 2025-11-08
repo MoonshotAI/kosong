@@ -1,7 +1,7 @@
 import copy
 import uuid
-from collections.abc import AsyncIterator, Mapping, Sequence
-from typing import TYPE_CHECKING, Any, TypedDict, Unpack, cast
+from collections.abc import AsyncIterator, Sequence
+from typing import TYPE_CHECKING, Any, Self, TypedDict, Unpack, cast
 
 import openai
 from openai import AsyncOpenAI, AsyncStream, OpenAIError
@@ -30,7 +30,7 @@ from openai.types.responses.response_input_message_content_list_param import (
 from openai.types.shared.reasoning import Reasoning
 from openai.types.shared.reasoning_effort import ReasoningEffort
 
-from kosong.base.chat_provider import ChatProvider, StreamedMessagePart, TokenUsage
+from kosong.base.chat_provider import ChatProvider, StreamedMessagePart, ThinkingEffort, TokenUsage
 from kosong.base.message import (
     AudioURLPart,
     ContentPart,
@@ -48,6 +48,7 @@ from kosong.chat_provider import (
     APITimeoutError,
     ChatProviderError,
 )
+from kosong.chat_provider.openai_legacy import thinking_effort_to_reasoning_effort
 
 if TYPE_CHECKING:
 
@@ -55,7 +56,7 @@ if TYPE_CHECKING:
         _: ChatProvider = openai_responses
 
 
-class OpenAIResponses:
+class OpenAIResponses(ChatProvider):
     """
     A chat provider that uses the OpenAI Responses API.
 
@@ -73,6 +74,15 @@ class OpenAIResponses:
 
     name = "openai-responses"
 
+    class GenerationKwargs(TypedDict, total=False):
+        max_output_tokens: int | None
+        max_tool_calls: int | None
+        reasoning_effort: ReasoningEffort | None
+        temperature: float | None
+        top_logprobs: float | None
+        top_p: float | None
+        user: str | None
+
     def __init__(
         self,
         *,
@@ -89,8 +99,7 @@ class OpenAIResponses:
             base_url=base_url,
             **client_kwargs,
         )
-
-        self._generation_kwargs: Mapping[str, Any] = {}
+        self._generation_kwargs: OpenAIResponses.GenerationKwargs = {}
 
     @property
     def model_name(self) -> str:
@@ -110,7 +119,7 @@ class OpenAIResponses:
         for m in history:
             inputs.extend(message_to_openai(m))
 
-        generation_kwargs: Mapping[str, Any] = {}
+        generation_kwargs: dict[str, Any] = {}
         generation_kwargs.update(self._generation_kwargs)
         generation_kwargs["reasoning"] = Reasoning(
             effort=generation_kwargs.pop("reasoning_effort", None),
@@ -131,18 +140,20 @@ class OpenAIResponses:
         except OpenAIError as e:
             raise convert_error(e) from e
 
-    class GenerationKwargs(TypedDict, total=False):
-        max_output_tokens: int | None
-        max_tool_calls: int | None
-        reasoning_effort: ReasoningEffort | None
-        temperature: float | None
-        top_logprobs: float | None
-        top_p: float | None
-        user: str | None
+    def with_thinking(self, effort: ThinkingEffort) -> Self:
+        reasoning_effort = thinking_effort_to_reasoning_effort(effort)
+        return self.with_generation_kwargs(reasoning_effort=reasoning_effort)
 
-    def with_generation_kwargs(self, **kwargs: Unpack[GenerationKwargs]) -> "OpenAIResponses":
+    def with_generation_kwargs(self, **kwargs: Unpack[GenerationKwargs]) -> Self:
+        """
+        Copy the chat provider, updating the generation kwargs with the given values.
+
+        Returns:
+            Self: A new instance of the chat provider with updated generation kwargs.
+        """
         new_self = copy.copy(self)
-        new_self._generation_kwargs = kwargs
+        new_self._generation_kwargs = copy.deepcopy(self._generation_kwargs)
+        new_self._generation_kwargs.update(kwargs)
         return new_self
 
 

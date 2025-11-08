@@ -1,7 +1,8 @@
+import copy
 from collections.abc import AsyncIterator, Sequence
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Self
 
-from kosong.base.chat_provider import ChatProvider, StreamedMessagePart, TokenUsage
+from kosong.base.chat_provider import ChatProvider, StreamedMessagePart, ThinkingEffort, TokenUsage
 from kosong.base.message import Message
 from kosong.base.tool import Tool
 
@@ -11,7 +12,7 @@ if TYPE_CHECKING:
         _: ChatProvider = mock
 
 
-class MockChatProvider:
+class MockChatProvider(ChatProvider):
     """
     A mock chat provider.
     """
@@ -35,6 +36,9 @@ class MockChatProvider:
         history: Sequence[Message],
     ) -> "MockStreamedMessage":
         return MockStreamedMessage(self._message_parts)
+
+    def with_thinking(self, effort: ThinkingEffort) -> Self:
+        return copy.copy(self)
 
 
 class MockStreamedMessage:

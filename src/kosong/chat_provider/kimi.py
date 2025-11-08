@@ -1,8 +1,8 @@
 import copy
 import os
 import uuid
-from collections.abc import AsyncIterator, Mapping, Sequence
-from typing import TYPE_CHECKING, Any, TypedDict, Unpack, cast
+from collections.abc import AsyncIterator, Sequence
+from typing import TYPE_CHECKING, Any, Self, TypedDict, Unpack, cast
 
 from openai import AsyncOpenAI, AsyncStream, OpenAIError
 from openai.types.chat import (
@@ -14,7 +14,7 @@ from openai.types.chat import (
 )
 from openai.types.completion_usage import CompletionUsage
 
-from kosong.base.chat_provider import ChatProvider, StreamedMessagePart, TokenUsage
+from kosong.base.chat_provider import ChatProvider, StreamedMessagePart, ThinkingEffort, TokenUsage
 from kosong.base.message import ContentPart, Message, TextPart, ThinkPart, ToolCall, ToolCallPart
 from kosong.base.tool import Tool
 from kosong.chat_provider import ChatProviderError
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
         _: ChatProvider = kimi
 
 
-class Kimi:
+class Kimi(ChatProvider):
     """
     A chat provider that uses the Kimi API.
 
@@ -42,6 +42,17 @@ class Kimi:
     """
 
     name = "kimi"
+
+    class GenerationKwargs(TypedDict, total=False):
+        max_tokens: int | None
+        temperature: float | None
+        top_p: float | None
+        n: int | None
+        presence_penalty: float | None
+        frequency_penalty: float | None
+        stop: str | list[str] | None
+        prompt_cache_key: str | None
+        reasoning_effort: str | None
 
     def __init__(
         self,
@@ -68,7 +79,7 @@ class Kimi:
             base_url=base_url,
             **client_kwargs,
         )
-        self._generation_kwargs: Mapping[str, Any] = {}
+        self._generation_kwargs: Kimi.GenerationKwargs = {}
 
     @property
     def model_name(self) -> str:
@@ -105,20 +116,28 @@ class Kimi:
         except OpenAIError as e:
             raise convert_error(e) from e
 
-    class GenerationKwargs(TypedDict, total=False):
-        max_tokens: int | None
-        temperature: float | None
-        top_p: float | None
-        n: int | None
-        presence_penalty: float | None
-        frequency_penalty: float | None
-        stop: str | list[str] | None
-        prompt_cache_key: str | None
-        reasoning_effort: str | None
+    def with_thinking(self, effort: ThinkingEffort) -> Self:
+        match effort:
+            case "off":
+                reasoning_effort = None
+            case "low":
+                reasoning_effort = "low"
+            case "medium":
+                reasoning_effort = "medium"
+            case "high":
+                reasoning_effort = "high"
+        return self.with_generation_kwargs(reasoning_effort=reasoning_effort)
 
-    def with_generation_kwargs(self, **kwargs: Unpack[GenerationKwargs]) -> "Kimi":
+    def with_generation_kwargs(self, **kwargs: Unpack[GenerationKwargs]) -> Self:
+        """
+        Copy the chat provider, updating the generation kwargs with the given values.
+
+        Returns:
+            Self: A new instance of the chat provider with updated generation kwargs.
+        """
         new_self = copy.copy(self)
-        new_self._generation_kwargs = kwargs
+        new_self._generation_kwargs = copy.deepcopy(self._generation_kwargs)
+        new_self._generation_kwargs.update(kwargs)
         return new_self
 
 

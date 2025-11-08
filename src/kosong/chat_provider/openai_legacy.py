@@ -1,9 +1,11 @@
+import copy
 import uuid
 from collections.abc import AsyncIterator, Sequence
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, Self, cast
 
 import openai
-from openai import AsyncOpenAI, AsyncStream, OpenAIError
+from openai import AsyncOpenAI, AsyncStream, Omit, OpenAIError, omit
+from openai.types import CompletionUsage, ReasoningEffort
 from openai.types.chat import (
     ChatCompletion,
     ChatCompletionChunk,
@@ -11,9 +13,8 @@ from openai.types.chat import (
     ChatCompletionMessageParam,
     ChatCompletionToolParam,
 )
-from openai.types.completion_usage import CompletionUsage
 
-from kosong.base.chat_provider import ChatProvider, StreamedMessagePart, TokenUsage
+from kosong.base.chat_provider import ChatProvider, StreamedMessagePart, ThinkingEffort, TokenUsage
 from kosong.base.message import Message, TextPart, ToolCall, ToolCallPart
 from kosong.base.tool import Tool
 from kosong.chat_provider import (
@@ -29,7 +30,7 @@ if TYPE_CHECKING:
         _: ChatProvider = openai_legacy
 
 
-class OpenAILegacy:
+class OpenAILegacy(ChatProvider):
     """
     A chat provider that uses the OpenAI Chat Completions API.
 
@@ -58,6 +59,7 @@ class OpenAILegacy:
             base_url=base_url,
             **client_kwargs,
         )
+        self._reasoning_effort: ReasoningEffort | Omit = omit
 
     @property
     def model_name(self) -> str:
@@ -82,10 +84,16 @@ class OpenAILegacy:
                 tools=(tool_to_openai(tool) for tool in tools),
                 stream=self.stream,
                 stream_options={"include_usage": True},
+                reasoning_effort=self._reasoning_effort,
             )
             return OpenAILegacyStreamedMessage(response)
         except OpenAIError as e:
             raise convert_error(e) from e
+
+    def with_thinking(self, effort: ThinkingEffort) -> Self:
+        new_self = copy.copy(self)
+        new_self._reasoning_effort = thinking_effort_to_reasoning_effort(effort)
+        return new_self
 
 
 def message_to_openai(message: Message) -> ChatCompletionMessageParam:
@@ -220,6 +228,18 @@ def convert_error(error: OpenAIError) -> ChatProviderError:
         return APITimeoutError(error.message)
     else:
         return ChatProviderError(f"Error: {error}")
+
+
+def thinking_effort_to_reasoning_effort(effort: ThinkingEffort) -> ReasoningEffort:
+    match effort:
+        case "off":
+            return None
+        case "low":
+            return "low"
+        case "medium":
+            return "medium"
+        case "high":
+            return "high"
 
 
 if __name__ == "__main__":
