@@ -1,7 +1,7 @@
 import copy
 import json
 from collections.abc import AsyncIterator, Mapping, Sequence
-from typing import TYPE_CHECKING, Any, Literal, TypedDict, Unpack, cast
+from typing import TYPE_CHECKING, Any, Literal, Self, TypedDict, Unpack, cast
 
 from anthropic import (
     AnthropicError,
@@ -54,7 +54,7 @@ from anthropic.types import (
 )
 from anthropic.types.tool_result_block_param import Content as ToolResultContent
 
-from kosong.base.chat_provider import ChatProvider, StreamedMessagePart, TokenUsage
+from kosong.base.chat_provider import ChatProvider, StreamedMessagePart, ThinkingEffort, TokenUsage
 from kosong.base.message import (
     ImageURLPart,
     Message,
@@ -82,12 +82,25 @@ type MessagePayload = tuple[str | None, list[MessageParam]]
 type BetaFeatures = Literal["interleaved-thinking-2025-05-14"]
 
 
-class Anthropic:
+class Anthropic(ChatProvider):
     """
     Chat provider backed by Anthropic's Messages API.
     """
 
     name = "anthropic"
+
+    class GenerationKwargs(TypedDict, total=False):
+        max_tokens: int | None
+        temperature: float | None
+        top_k: int | None
+        top_p: float | None
+        # e.g., {"type": "enabled", "budget_tokens": 1024}
+        thinking: ThinkingConfigParam | None
+        # e.g., {"type": "auto", "disable_parallel_tool_use": True}
+        tool_choice: ToolChoiceParam | None
+
+        beta_features: list[BetaFeatures] | None
+        extra_headers: Mapping[str, str] | None
 
     def __init__(
         self,
@@ -103,8 +116,9 @@ class Anthropic:
         self._model = model
         self._stream = stream
         self._client = AsyncAnthropic(api_key=api_key, base_url=base_url, **client_kwargs)
-        self._default_max_tokens = default_max_tokens
-        self._generation_kwargs: Mapping[str, Any] = {}
+        self._generation_kwargs: Anthropic.GenerationKwargs = {
+            "max_tokens": default_max_tokens,
+        }
 
     @property
     def model_name(self) -> str:
@@ -155,9 +169,7 @@ class Anthropic:
                         last_block["cache_control"] = CacheControlEphemeralParam(type="ephemeral")
                     case "thinking" | "redacted_thinking":
                         pass
-        generation_kwargs: dict[str, Any] = {
-            "max_tokens": self._default_max_tokens,
-        }
+        generation_kwargs: dict[str, Any] = {}
         generation_kwargs.update(self._generation_kwargs)
         betas = generation_kwargs.pop("beta_features", [])
         extra_headers = {
@@ -182,22 +194,30 @@ class Anthropic:
         except AnthropicError as e:
             raise _convert_error(e) from e
 
-    class GenerationKwargs(TypedDict, total=False):
-        max_tokens: int | None
-        temperature: float | None
-        top_k: int | None
-        top_p: float | None
-        # e.g., {"type": "enabled", "budget_tokens": 1024}
-        thinking: ThinkingConfigParam | None
-        # e.g., {"type": "auto", "disable_parallel_tool_use": True}
-        tool_choice: ToolChoiceParam | None
+    def with_thinking(self, effort: "ThinkingEffort") -> Self:
+        # XXX: this is a heuristic mapping based on suggestions given by Claude
+        thinking_config: ThinkingConfigParam
+        match effort:
+            case "off":
+                thinking_config = {"type": "disabled"}
+            case "low":
+                thinking_config = {"type": "enabled", "budget_tokens": 1024}
+            case "medium":
+                thinking_config = {"type": "enabled", "budget_tokens": 4096}
+            case "high":
+                thinking_config = {"type": "enabled", "budget_tokens": 32_000}
+        return self.with_generation_kwargs(thinking=thinking_config)
 
-        beta_features: list[BetaFeatures] | None
-        extra_headers: Mapping[str, str] | None
+    def with_generation_kwargs(self, **kwargs: Unpack[GenerationKwargs]) -> Self:
+        """
+        Copy the chat provider, updating the generation kwargs with the given values.
 
-    def with_generation_kwargs(self, **kwargs: Unpack[GenerationKwargs]) -> "Anthropic":
+        Returns:
+            Self: A new instance of the chat provider with updated generation kwargs.
+        """
         new_self = copy.copy(self)
-        new_self._generation_kwargs = kwargs
+        new_self._generation_kwargs = copy.deepcopy(self._generation_kwargs)
+        new_self._generation_kwargs.update(kwargs)
         return new_self
 
 

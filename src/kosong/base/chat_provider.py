@@ -1,5 +1,5 @@
 from collections.abc import AsyncIterator, Sequence
-from typing import NamedTuple, Protocol, runtime_checkable
+from typing import Literal, NamedTuple, Protocol, Self, runtime_checkable
 
 from kosong.base.message import ContentPart, Message, ToolCall, ToolCallPart
 from kosong.base.tool import Tool
@@ -27,6 +27,13 @@ class ChatProvider(Protocol):
     ) -> "StreamedMessage":
         """
         Generate a new message based on the given system prompt, tools, and history.
+        """
+        ...
+
+    def with_thinking(self, effort: "ThinkingEffort") -> Self:
+        """
+        Return a copy of self configured with the given thinking effort.
+        If the chat provider does not support thinking, simply return a copy of self.
         """
         ...
 
@@ -66,3 +73,6 @@ class TokenUsage(NamedTuple):
     def input(self) -> int:
         """Total input tokens, including cached and uncached tokens"""
         return self.input_other + self.input_cache_read + self.input_cache_creation
+
+
+type ThinkingEffort = Literal["off", "low", "medium", "high"]
