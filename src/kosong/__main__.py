@@ -19,7 +19,7 @@ class BashToolParams(BaseModel):
 
 
 class BashTool(CallableTool2[BashToolParams]):
-    name: str = "bash"
+    name: str = "Bash"
     description: str = "Execute a bash command."
     params: type[BashToolParams] = BashToolParams
 
