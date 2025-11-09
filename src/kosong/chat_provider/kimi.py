@@ -213,7 +213,12 @@ class KimiStreamedMessage(StreamedMessage):
         if self._usage:
             cached = 0
             other_input = self._usage.prompt_tokens
-            if (
+            if hasattr(self._usage, "cached_tokens"):
+                # https://platform.moonshot.cn/docs/api/chat#%E8%BF%94%E5%9B%9E%E5%86%85%E5%AE%B9
+                # TODO: delete this when Moonshot API becomes compatible with OpenAI API
+                cached = getattr(self._usage, "cached_tokens") or 0  # noqa: B009
+                other_input -= cached
+            elif (
                 self._usage.prompt_tokens_details
                 and self._usage.prompt_tokens_details.cached_tokens
             ):
