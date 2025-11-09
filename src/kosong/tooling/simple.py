@@ -30,20 +30,26 @@ if TYPE_CHECKING:
 
 
 type ToolType = CallableTool | CallableTool2[Any]
+"""The tool type that can be added to the `SimpleToolset`."""
 
 
-class SimpleToolset:
+class SimpleToolset(Toolset):
     """A simple toolset that can handle tool calls concurrently."""
 
     _tool_dict: dict[str, ToolType]
 
     def __init__(self, tools: Iterable[ToolType] | None = None):
+        """Initialize the simple toolset with an optional iterable of tools."""
         self._tool_dict = {}
         if tools:
             for tool in tools:
                 self += tool
 
     def __iadd__(self, tool: ToolType) -> Self:
+        """
+        @public
+        Add a tool to the toolset.
+        """
         return_annotation = inspect.signature(tool.__call__).return_annotation
         if return_annotation is not ToolReturnType:
             raise TypeError(
@@ -54,6 +60,10 @@ class SimpleToolset:
         return self
 
     def __add__(self, tool: ToolType) -> "SimpleToolset":
+        """
+        @public
+        Return a new toolset with the given tool added.
+        """
         new_toolset = SimpleToolset()
         new_toolset._tool_dict = self._tool_dict.copy()
         new_toolset += tool

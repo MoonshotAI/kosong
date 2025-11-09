@@ -1,5 +1,6 @@
 from collections.abc import AsyncIterator, Sequence
-from typing import Literal, NamedTuple, Protocol, Self, runtime_checkable
+from dataclasses import dataclass
+from typing import Literal, Protocol, Self, runtime_checkable
 
 from kosong.message import ContentPart, Message, ToolCall, ToolCallPart
 from kosong.tooling import Tool
@@ -7,6 +8,8 @@ from kosong.tooling import Tool
 
 @runtime_checkable
 class ChatProvider(Protocol):
+    """The interface of chat providers."""
+
     name: str
     """
     The name of the chat provider.
@@ -15,7 +18,7 @@ class ChatProvider(Protocol):
     @property
     def model_name(self) -> str:
         """
-        The model name to use for the chat provider.
+        The name of the model to use.
         """
         ...
 
@@ -32,7 +35,7 @@ class ChatProvider(Protocol):
             APIConnectionError: If the API connection fails.
             APITimeoutError: If the API request times out.
             APIStatusError: If the API returns a status code of 4xx or 5xx.
-            ChatProviderError: If any other recognized error occurs.
+            ChatProviderError: If any other recognized chat provider error occurs.
         """
         ...
 
@@ -49,6 +52,8 @@ type StreamedMessagePart = ContentPart | ToolCall | ToolCallPart
 
 @runtime_checkable
 class StreamedMessage(Protocol):
+    """The interface of streamed messages."""
+
     def __aiter__(self) -> AsyncIterator[StreamedMessagePart]:
         """Create an async iterator from the stream."""
         ...
@@ -60,28 +65,36 @@ class StreamedMessage(Protocol):
 
     @property
     def usage(self) -> "TokenUsage | None":
-        """The usage of the streamed message."""
+        """The token usage of the streamed message."""
         ...
 
 
-class TokenUsage(NamedTuple):
+@dataclass(frozen=True, kw_only=True, slots=True)
+class TokenUsage:
+    """Token usage statistics."""
+
     input_other: int
+    """Input tokens excluding `input_cache_read` and `input_cache_creation`."""
     output: int
+    """Total output tokens."""
     input_cache_read: int = 0
+    """Cached input tokens."""
     input_cache_creation: int = 0
-    """For now, only Anthropic API supports this."""
+    """Input tokens used for cache creation. For now, only Anthropic API supports this."""
 
     @property
     def total(self) -> int:
+        """Total tokens used, including input and output tokens."""
         return self.input + self.output
 
     @property
     def input(self) -> int:
-        """Total input tokens, including cached and uncached tokens"""
+        """Total input tokens, including cached and uncached tokens."""
         return self.input_other + self.input_cache_read + self.input_cache_creation
 
 
 type ThinkingEffort = Literal["off", "low", "medium", "high"]
+"""The effort level for thinking."""
 
 
 class ChatProviderError(Exception):
