@@ -5,13 +5,13 @@ from pydantic import BaseModel, GetCoreSchemaHandler, field_serializer, field_va
 from pydantic_core import core_schema
 
 
-class MergableMixin:
+class MergeableMixin:
     def merge_in_place(self, other: Any) -> bool:
         """Merge the other part into the current part. Return True if the merge is successful."""
         return False
 
 
-class ContentPart(BaseModel, ABC, MergableMixin):
+class ContentPart(BaseModel, ABC, MergeableMixin):
     """A part of a message content."""
 
     __content_part_registry: ClassVar[dict[str, type["ContentPart"]]] = {}
@@ -132,7 +132,7 @@ class AudioURLPart(ContentPart):
     audio_url: AudioURL
 
 
-class ToolCall(BaseModel, MergableMixin):
+class ToolCall(BaseModel, MergeableMixin):
     """
     A tool call requested by the assistant.
 
@@ -168,7 +168,7 @@ class ToolCall(BaseModel, MergableMixin):
         return True
 
 
-class ToolCallPart(BaseModel, MergableMixin):
+class ToolCallPart(BaseModel, MergeableMixin):
     """A part of the tool call."""
 
     arguments_part: str | None = None
