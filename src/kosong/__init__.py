@@ -1,5 +1,5 @@
 """
-Kosong is an LLM-abstraction layer designed for modern agentic applications.
+Kosong is an LLM-abstraction layer designed for modern AI agent applications.
 It unifies message structures, asynchronous tool orchestration, and pluggable chat providers so you
 can build agents with ease and avoid vendor lock-in.
 
@@ -110,7 +110,7 @@ async def step(
     on_tool_result: Callable[[ToolResult], None] | None = None,
 ) -> "StepResult":
     """
-    Run one agentic "step". In one step, the function generates LLM response based on the given
+    Run one agent "step". In one step, the function generates LLM response based on the given
     context for exactly one time. All new message parts will be streamed to `on_message_part` in
     real-time if provided. Tool calls will be handled by `toolset`. The generated message will be
     returned in a `StepResult`. Depending on the toolset implementation, the tool calls may be
