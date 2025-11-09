@@ -102,7 +102,9 @@ class ThinkPart(ContentPart):
 
 class ImageURLPart(ContentPart):
     """
-    >>> ImageURLPart(image_url=ImageURLPart.ImageURL(url="https://example.com/image.png")).model_dump()
+    >>> ImageURLPart(
+    ...     image_url=ImageURLPart.ImageURL(url="https://example.com/image.png")
+    ... ).model_dump()
     {'type': 'image_url', 'image_url': {'url': 'https://example.com/image.png', 'id': None}}
     """
 
@@ -120,7 +122,9 @@ class ImageURLPart(ContentPart):
 
 class AudioURLPart(ContentPart):
     """
-    >>> AudioURLPart(audio_url=AudioURLPart.AudioURL(url="https://example.com/audio.mp3")).model_dump()
+    >>> AudioURLPart(
+    ...     audio_url=AudioURLPart.AudioURL(url="https://example.com/audio.mp3")
+    ... ).model_dump()
     {'type': 'audio_url', 'audio_url': {'url': 'https://example.com/audio.mp3', 'id': None}}
     """
 
@@ -142,10 +146,7 @@ class ToolCall(BaseModel, MergableMixin):
 
     >>> ToolCall(
     ...     id="123",
-    ...     function=ToolCall.FunctionBody(
-    ...         name="function",
-    ...         arguments="{}"
-    ...     ),
+    ...     function=ToolCall.FunctionBody(name="function", arguments="{}"),
     ... ).model_dump()
     {'type': 'function', 'id': '123', 'function': {'name': 'function', 'arguments': '{}'}}
     """
