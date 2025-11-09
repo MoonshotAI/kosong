@@ -1,7 +1,7 @@
 [project]
 name = "kosong"
 version = "0.21.0"
-description = "The LLM-abstraction layer for modern AI agent applications."
+description = "The LLM abstraction layer for modern AI agent applications."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [

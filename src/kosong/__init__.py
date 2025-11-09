@@ -1,5 +1,5 @@
 """
-Kosong is an LLM-abstraction layer designed for modern AI agent applications.
+Kosong is an LLM abstraction layer designed for modern AI agent applications.
 It unifies message structures, asynchronous tool orchestration, and pluggable chat providers so you
 can build agents with ease and avoid vendor lock-in.
 
