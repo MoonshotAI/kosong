@@ -45,11 +45,12 @@ class ToolOk:
     """A brief message to be shown to the user."""
 
 
+# TODO: merge with ToolOk
 @dataclass(frozen=True, kw_only=True, slots=True)
 class ToolError:
     """The error returned by a tool. This is not an exception."""
 
-    output: str = ""
+    output: str | ContentPart | Sequence[ContentPart] = ""
     """The output content returned by the tool."""
     message: str
     """An error message to be given to the model."""
