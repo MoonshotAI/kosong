@@ -98,6 +98,19 @@ class OpenAILegacy(ChatProvider):
         new_self._reasoning_effort = thinking_effort_to_reasoning_effort(effort)
         return new_self
 
+    @property
+    def model_parameters(self) -> dict[str, Any]:
+        """
+        The parameters of the model to use.
+
+        For tracing/logging purposes.
+        """
+
+        model_parameters: dict[str, Any] = {"base_url": str(self.client.base_url)}
+        if self._reasoning_effort is not omit:
+            model_parameters["reasoning_effort"] = self._reasoning_effort
+        return model_parameters
+
 
 def message_to_openai(message: Message) -> ChatCompletionMessageParam:
     """Convert a single message to OpenAI message format."""

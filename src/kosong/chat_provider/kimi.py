@@ -153,6 +153,18 @@ class Kimi(ChatProvider):
         new_self._generation_kwargs.update(kwargs)
         return new_self
 
+    @property
+    def model_parameters(self) -> dict[str, Any]:
+        """
+        The parameters of the model to use.
+
+        For tracing/logging purposes.
+        """
+
+        model_parameters: dict[str, Any] = {"base_url": str(self.client.base_url)}
+        model_parameters.update(self._generation_kwargs)
+        return model_parameters
+
 
 def message_to_kimi(message: Message) -> ChatCompletionMessageParam:
     reasoning_content: str = ""
