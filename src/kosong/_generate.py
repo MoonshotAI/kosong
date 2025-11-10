@@ -2,7 +2,12 @@ from collections.abc import Sequence
 
 from loguru import logger
 
-from kosong.chat_provider import ChatProvider, StreamedMessagePart, TokenUsage
+from kosong.chat_provider import (
+    APIEmptyResponseError,
+    ChatProvider,
+    StreamedMessagePart,
+    TokenUsage,
+)
 from kosong.message import ContentPart, Message, TextPart, ToolCall
 from kosong.tooling import Tool
 from kosong.utils.aio import Callback, callback
@@ -37,6 +42,7 @@ async def generate(
         APIConnectionError: If the API connection fails.
         APITimeoutError: If the API request times out.
         APIStatusError: If the API returns a status code of 4xx or 5xx.
+        APIEmptyResponseError: If the API returns an empty response.
         ChatProviderError: If any other recognized chat provider error occurs.
     """
     message = Message(role="assistant", content=[])
@@ -64,6 +70,8 @@ async def generate(
         if isinstance(pending_part, ToolCall) and on_tool_call:
             await callback(on_tool_call, pending_part)
 
+    if not message.content and not message.tool_calls:
+        raise APIEmptyResponseError("The API returned an empty response.")
     return message, stream.usage
 
 
