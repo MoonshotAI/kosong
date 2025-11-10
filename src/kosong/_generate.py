@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+from dataclasses import dataclass
 
 from loguru import logger
 
@@ -21,7 +22,7 @@ async def generate(
     *,
     on_message_part: Callback[[StreamedMessagePart], None] | None = None,
     on_tool_call: Callback[[ToolCall], None] | None = None,
-) -> tuple[Message, TokenUsage | None]:
+) -> "GenerateResult":
     """
     Generate one message based on the given context.
     Parts of the message will be streamed to the specified callbacks if provided.
@@ -72,7 +73,24 @@ async def generate(
 
     if not message.content and not message.tool_calls:
         raise APIEmptyResponseError("The API returned an empty response.")
-    return message, stream.usage
+
+    return GenerateResult(
+        id=stream.id,
+        message=message,
+        usage=stream.usage,
+    )
+
+
+@dataclass(frozen=True, slots=True)
+class GenerateResult:
+    """The result of a generation."""
+
+    id: str | None
+    """The ID of the generated message."""
+    message: Message
+    """The generated message."""
+    usage: TokenUsage | None
+    """The token usage of the generated message."""
 
 
 def _message_append(message: Message, part: StreamedMessagePart) -> None:

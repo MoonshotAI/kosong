@@ -75,7 +75,7 @@ from dataclasses import dataclass
 
 from loguru import logger
 
-from kosong._generate import generate
+from kosong._generate import GenerateResult, generate
 from kosong.chat_provider import ChatProvider, ChatProviderError, StreamedMessagePart, TokenUsage
 from kosong.message import Message, ToolCall
 from kosong.tooling import ToolResult, ToolResultFuture, Toolset
@@ -95,6 +95,7 @@ __all__ = [
     "contrib",
     # classes and functions
     "generate",
+    "GenerateResult",
     "step",
     "StepResult",
 ]
@@ -124,6 +125,7 @@ async def step(
         APIConnectionError: If the API connection fails.
         APITimeoutError: If the API request times out.
         APIStatusError: If the API returns a status code of 4xx or 5xx.
+        APIEmptyResponseError: If the API returns an empty response.
         ChatProviderError: If any other recognized chat provider error occurs.
         asyncio.CancelledError: If the step is cancelled.
     """
@@ -153,7 +155,7 @@ async def step(
             tool_result_futures[tool_call.id] = result
 
     try:
-        message, usage = await generate(
+        result = await generate(
             chat_provider,
             system_prompt,
             toolset.tools,
@@ -169,11 +171,20 @@ async def step(
         await asyncio.gather(*tool_result_futures.values(), return_exceptions=True)
         raise
 
-    return StepResult(message, usage, tool_calls, tool_result_futures)
+    return StepResult(
+        result.id,
+        result.message,
+        result.usage,
+        tool_calls,
+        tool_result_futures,
+    )
 
 
 @dataclass(frozen=True, slots=True)
 class StepResult:
+    id: str | None
+    """The ID of the generated message."""
+
     message: Message
     """The message generated in this step."""
 
@@ -184,7 +195,7 @@ class StepResult:
     """All the tool calls generated in this step."""
 
     _tool_result_futures: dict[str, ToolResultFuture]
-    """The futures of the results of the spawned tool calls."""
+    """@private The futures of the results of the spawned tool calls."""
 
     async def tool_results(self) -> list[ToolResult]:
         """All the tool results returned by corresponding tool calls."""

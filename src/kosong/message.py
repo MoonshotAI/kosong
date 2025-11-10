@@ -208,6 +208,8 @@ class Message(BaseModel):
         "assistant",
         "tool",
     ]
+    """The role of the message sender."""
+
     name: str | None = None
 
     content: str | list[ContentPart]

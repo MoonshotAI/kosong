@@ -27,7 +27,7 @@ def test_generate():
             ToolCallPart(arguments_part=None),
         ]
     )
-    message, _usage = asyncio.run(generate(chat_provider, system_prompt="", tools=[], history=[]))
+    message = asyncio.run(generate(chat_provider, system_prompt="", tools=[], history=[])).message
     assert message.content == [
         TextPart(text="Hello, world!"),
         ImageURLPart(image_url=ImageURLPart.ImageURL(url="https://example.com/image.png")),
@@ -70,7 +70,7 @@ def test_generate_with_callbacks():
     async def on_tool_call(tool_call: ToolCall):
         output_tool_calls.append(tool_call)
 
-    message, _usage = asyncio.run(
+    message = asyncio.run(
         generate(
             chat_provider,
             system_prompt="",
@@ -79,6 +79,6 @@ def test_generate_with_callbacks():
             on_message_part=on_message_part,
             on_tool_call=on_tool_call,
         )
-    )
+    ).message
     assert output_parts == input_parts
     assert output_tool_calls == message.tool_calls

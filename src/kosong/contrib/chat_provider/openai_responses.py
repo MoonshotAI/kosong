@@ -524,10 +524,10 @@ if __name__ == "__main__":
 
         from kosong import generate
 
-        message, usage = await generate(chat, system_prompt, [], history)
-        print(message)
-        print(usage)
-        history.append(message)
+        result = await generate(chat, system_prompt, [], history)
+        print(result.message)
+        print(result.usage)
+        history.append(result.message)
 
         # Streaming example with tools
         tools = [
@@ -546,16 +546,16 @@ if __name__ == "__main__":
             )
         ]
         history.append(Message(role="user", content="What's the weather in Beijing?"))
-        message, usage = await generate(chat, system_prompt, tools, history)
-        print(message)
-        print(usage)
-        history.append(message)
-        for tool_call in message.tool_calls or []:
+        result = await generate(chat, system_prompt, tools, history)
+        print(result.message)
+        print(result.usage)
+        history.append(result.message)
+        for tool_call in result.message.tool_calls or []:
             assert tool_call.function.name == "get_weather"
             history.append(Message(role="tool", tool_call_id=tool_call.id, content="Sunny"))
-        message, usage = await generate(chat, system_prompt, tools, history)
-        print(message)
-        print(usage)
+        result = await generate(chat, system_prompt, tools, history)
+        print(result.message)
+        print(result.usage)
 
     import asyncio
 

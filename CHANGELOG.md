@@ -2,4 +2,6 @@
 
 ## [Unreleased]
 
-- Added `APIEmptyResponseError` for cases where the API returns an empty response.
+- Add `APIEmptyResponseError` for cases where the API returns an empty response.
+- Add `GenerateResult` as the return type of `generate` function.
+- Add `id: str | None` field to `GenerateResult` and `StepResult`.
