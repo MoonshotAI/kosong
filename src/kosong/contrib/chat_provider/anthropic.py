@@ -224,6 +224,18 @@ class Anthropic(ChatProvider):
         new_self._generation_kwargs.update(kwargs)
         return new_self
 
+    @property
+    def model_parameters(self) -> dict[str, Any]:
+        """
+        The parameters of the model to use.
+
+        For tracing/logging purposes.
+        """
+
+        model_parameters: dict[str, Any] = {"base_url": str(self._client.base_url)}
+        model_parameters.update(self._generation_kwargs)
+        return model_parameters
+
 
 class AnthropicStreamedMessage:
     def __init__(self, response: AnthropicMessage | AsyncStream[RawMessageStreamEvent]):
