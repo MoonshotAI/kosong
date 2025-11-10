@@ -43,14 +43,14 @@ async def main() -> None:
         Message(role="user", content="Who are you?"),
     ]
 
-    message, usage = await kosong.generate(
+    result = await kosong.generate(
         chat_provider=kimi,
         system_prompt="You are a helpful assistant.",
         tools=[],
         history=history,
     )
-    print(message)
-    print(usage)
+    print(result.message)
+    print(result.usage)
 
 
 asyncio.run(main())
@@ -81,15 +81,15 @@ async def main() -> None:
     def output(message_part: StreamedMessagePart):
         print(message_part)
 
-    message, usage = await kosong.generate(
+    result = await kosong.generate(
         chat_provider=kimi,
         system_prompt="You are a helpful assistant.",
         tools=[],
         history=history,
         on_message_part=output,
     )
-    print(message)
-    print(usage)
+    print(result.message)
+    print(result.usage)
 
 
 asyncio.run(main())
