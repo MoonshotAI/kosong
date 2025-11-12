@@ -15,6 +15,7 @@ wheels/
 .env.local
 /tests_local
 /tests/*.jsonl
+.idea
 
 # Local generated files
 /docs/
