@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [0.24.0] - 2025-11-12
 
 - Set default temperature settings for Kimi models based on model name
 
