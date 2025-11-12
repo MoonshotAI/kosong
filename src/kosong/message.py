@@ -213,7 +213,10 @@ class Message(BaseModel):
     name: str | None = None
 
     content: str | list[ContentPart]
-    """The content of the message."""
+    """
+    The content of the message.
+    Empty string `""` or list `[]` will be interpreted as no content.
+    """
 
     tool_calls: list[ToolCall] | None = None
     """Tool calls requested by the assistant in this message."""
@@ -237,5 +240,5 @@ class Message(BaseModel):
     @classmethod
     def _coerce_none_content(cls, v: Any | None) -> Any:
         if v is None:
-            return ""
+            return []
         return v
