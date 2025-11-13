@@ -49,8 +49,8 @@ class OpenAILegacy(ChatProvider):
 
     class GenerationKwargs(TypedDict, extra_items=Any, total=False):
         """
-        Generation kwargs for various kinds of openai-compatible api,
-        use extra_items=Any to support any extra args
+        Generation kwargs for various kinds of OpenAI-compatible APIs.
+        `extra_items=Any` is used to support any extra args.
         """
 
         max_tokens: int | None
@@ -72,6 +72,12 @@ class OpenAILegacy(ChatProvider):
         reasoning_key: str | None = None,
         **client_kwargs: Any,
     ):
+        """
+        Initialize the OpenAILegacy chat provider.
+
+        To support OpenAI-compatible APIs that inject reasoning content in a extra field in
+        the message, such as `{"reasoning": ...}`, `reasoning_key` can be set to the key name.
+        """
         self.model = model
         self.stream = stream
         self.client = AsyncOpenAI(
@@ -79,10 +85,9 @@ class OpenAILegacy(ChatProvider):
             base_url=base_url,
             **client_kwargs,
         )
-        self._reasoning_effort: ReasoningEffort | Omit = omit
-        """reasoning_key is the key name of reasoning content, such as {"reasoning": XXX}"""
-        self._reasoning_key: str | None = reasoning_key
         """The underlying `AsyncOpenAI` client."""
+        self._reasoning_effort: ReasoningEffort | Omit = omit
+        self._reasoning_key = reasoning_key
         self._generation_kwargs: OpenAILegacy.GenerationKwargs = {}
 
     @property
@@ -151,13 +156,10 @@ class OpenAILegacy(ChatProvider):
 
 def message_to_openai(message: Message, reasoning_key: str | None) -> ChatCompletionMessageParam:
     """Convert a single message to OpenAI message format."""
-    # simply `model_dump` because the `Message` type is OpenAI-compatible
     # Note: for openai, `developer` role is more standard, but `system` is still accepted.
     # And many openai-compatible models do not accept `developer` role.
     # So we use `system` role here. OpenAIResponses will use `developer` role.
     # See https://cdn.openai.com/spec/model-spec-2024-05-08.html#definitions
-    # In addition, we ensure reasoning contents being added using the given "reasoning_key" arg
-    # if any reasoning content exists in given Message, the reasoning_key arg must be provided
     reasoning_content: str = ""
     if isinstance(message.content, list):
         content: list[ContentPart] = []
