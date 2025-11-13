@@ -8,7 +8,7 @@ dependencies = [
     "anthropic>=0.72.1",
     "jsonschema>=4.25.1",
     "loguru>=0.7.3",
-    "openai>=2.6.1,<2.7.0",
+    "openai>=2.7.0,<2.8.0",
     "pydantic>=2.12.4",
     "python-dotenv>=1.2.1",
 ]

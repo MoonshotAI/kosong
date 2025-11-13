@@ -19,7 +19,6 @@ from openai.types.responses import (
 from openai.types.responses.response_function_call_output_item_list_param import (
     ResponseFunctionCallOutputItemListParam,
 )
-from openai.types.responses.response_input_audio_param import ResponseInputAudioParam
 from openai.types.responses.response_input_file_content_param import (
     ResponseInputFileContentParam,
 )
@@ -364,28 +363,22 @@ def _content_parts_to_function_output_items(
     return items
 
 
-def _map_audio_url_to_input_item(
-    url: str,
-) -> ResponseInputAudioParam | ResponseInputFileParam | None:
-    """Map audio URL/data URI to an input content item.
+def _map_audio_url_to_input_item(url: str) -> ResponseInputFileParam | None:
+    """Map audio URL/data URI to an input content item (always an input_file).
 
-    - data URI (audio/mp3|audio/mpeg|audio/wav) → input_audio
-    - http(s) URL → input_file with file_url
+    OpenAI Responses message content no longer accepts `input_audio`, so both inline
+    data and remote URLs are converted to `input_file` items instead.
     """
     if url.startswith("data:audio/"):
         try:
             header, b64 = url.split(",", 1)
             subtype = header.split("/")[1].split(";")[0].lower()
-            fmt = "mp3" if subtype in {"mp3", "mpeg"} else ("wav" if subtype == "wav" else None)
-            if fmt is None:
+            ext = "mp3" if subtype in {"mp3", "mpeg"} else ("wav" if subtype == "wav" else None)
+            if ext is None:
                 return None
-            return {
-                "type": "input_audio",
-                "input_audio": {
-                    "data": b64,
-                    "format": fmt,
-                },
-            }
+            item: ResponseInputFileParam = {"type": "input_file", "file_data": b64}
+            item["filename"] = f"inline.{ext}"
+            return item
         except Exception:
             return None
     if url.startswith("http://") or url.startswith("https://"):
