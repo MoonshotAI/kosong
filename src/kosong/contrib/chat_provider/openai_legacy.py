@@ -1,7 +1,7 @@
 import copy
 import uuid
 from collections.abc import AsyncIterator, Sequence
-from typing import TYPE_CHECKING, Any, Self, cast
+from typing import TYPE_CHECKING, Any, Self, Unpack, cast
 
 import openai
 from openai import AsyncOpenAI, AsyncStream, Omit, OpenAIError, omit
@@ -13,6 +13,7 @@ from openai.types.chat import (
     ChatCompletionMessageParam,
     ChatCompletionToolParam,
 )
+from typing_extensions import TypedDict
 
 from kosong.chat_provider import (
     APIConnectionError,
@@ -24,7 +25,7 @@ from kosong.chat_provider import (
     ThinkingEffort,
     TokenUsage,
 )
-from kosong.message import Message, TextPart, ToolCall, ToolCallPart
+from kosong.message import ContentPart, Message, TextPart, ThinkPart, ToolCall, ToolCallPart
 from kosong.tooling import Tool
 
 if TYPE_CHECKING:
@@ -46,6 +47,21 @@ class OpenAILegacy(ChatProvider):
 
     name = "openai"
 
+    class GenerationKwargs(TypedDict, extra_items=Any, total=False):
+        """
+        Generation kwargs for various kinds of OpenAI-compatible APIs.
+        `extra_items=Any` is used to support any extra args.
+        """
+
+        max_tokens: int | None
+        temperature: float | None
+        top_p: float | None
+        n: int | None
+        presence_penalty: float | None
+        frequency_penalty: float | None
+        stop: str | list[str] | None
+        prompt_cache_key: str | None
+
     def __init__(
         self,
         *,
@@ -53,8 +69,15 @@ class OpenAILegacy(ChatProvider):
         api_key: str | None = None,
         base_url: str | None = None,
         stream: bool = True,
+        reasoning_key: str | None = None,
         **client_kwargs: Any,
     ):
+        """
+        Initialize the OpenAILegacy chat provider.
+
+        To support OpenAI-compatible APIs that inject reasoning content in a extra field in
+        the message, such as `{"reasoning": ...}`, `reasoning_key` can be set to the key name.
+        """
         self.model = model
         self.stream = stream
         self.client = AsyncOpenAI(
@@ -62,7 +85,10 @@ class OpenAILegacy(ChatProvider):
             base_url=base_url,
             **client_kwargs,
         )
+        """The underlying `AsyncOpenAI` client."""
         self._reasoning_effort: ReasoningEffort | Omit = omit
+        self._reasoning_key = reasoning_key
+        self._generation_kwargs: OpenAILegacy.GenerationKwargs = {}
 
     @property
     def model_name(self) -> str:
@@ -78,7 +104,10 @@ class OpenAILegacy(ChatProvider):
         if system_prompt:
             # `system` vs `developer`: see `message_to_openai` comments
             messages.append({"role": "system", "content": system_prompt})
-        messages.extend(message_to_openai(message) for message in history)
+        messages.extend(message_to_openai(message, self._reasoning_key) for message in history)
+
+        generation_kwargs: dict[str, Any] = {}
+        generation_kwargs.update(self._generation_kwargs)
 
         try:
             response = await self.client.chat.completions.create(
@@ -88,14 +117,27 @@ class OpenAILegacy(ChatProvider):
                 stream=self.stream,
                 stream_options={"include_usage": True},
                 reasoning_effort=self._reasoning_effort,
+                **generation_kwargs,
             )
-            return OpenAILegacyStreamedMessage(response)
+            return OpenAILegacyStreamedMessage(response, self._reasoning_key)
         except OpenAIError as e:
             raise convert_error(e) from e
 
     def with_thinking(self, effort: ThinkingEffort) -> Self:
         new_self = copy.copy(self)
         new_self._reasoning_effort = thinking_effort_to_reasoning_effort(effort)
+        return new_self
+
+    def with_generation_kwargs(self, **kwargs: Unpack[GenerationKwargs]) -> Self:
+        """
+        Copy the chat provider, updating the generation kwargs with the given values.
+
+        Returns:
+            Self: A new instance of the chat provider with updated generation kwargs.
+        """
+        new_self = copy.copy(self)
+        new_self._generation_kwargs = copy.deepcopy(self._generation_kwargs)
+        new_self._generation_kwargs.update(kwargs)
         return new_self
 
     @property
@@ -112,14 +154,26 @@ class OpenAILegacy(ChatProvider):
         return model_parameters
 
 
-def message_to_openai(message: Message) -> ChatCompletionMessageParam:
+def message_to_openai(message: Message, reasoning_key: str | None) -> ChatCompletionMessageParam:
     """Convert a single message to OpenAI message format."""
-    # simply `model_dump` because the `Message` type is OpenAI-compatible
     # Note: for openai, `developer` role is more standard, but `system` is still accepted.
     # And many openai-compatible models do not accept `developer` role.
     # So we use `system` role here. OpenAIResponses will use `developer` role.
     # See https://cdn.openai.com/spec/model-spec-2024-05-08.html#definitions
-    return cast(ChatCompletionMessageParam, message.model_dump(exclude_none=True))
+    reasoning_content: str = ""
+    if isinstance(message.content, list):
+        content: list[ContentPart] = []
+        for part in message.content:
+            if isinstance(part, ThinkPart):
+                reasoning_content += part.think
+            else:
+                content.append(part)
+        message.content = content
+    dumped_message = message.model_dump(exclude_none=True)
+    if reasoning_content:
+        assert reasoning_key, "reasoning_key must not be empty if reasoning_content exists"
+        dumped_message[reasoning_key] = reasoning_content
+    return cast(ChatCompletionMessageParam, dumped_message)
 
 
 def tool_to_openai(tool: Tool) -> ChatCompletionToolParam:
@@ -136,7 +190,10 @@ def tool_to_openai(tool: Tool) -> ChatCompletionToolParam:
 
 
 class OpenAILegacyStreamedMessage:
-    def __init__(self, response: ChatCompletion | AsyncStream[ChatCompletionChunk]):
+    def __init__(
+        self, response: ChatCompletion | AsyncStream[ChatCompletionChunk], reasoning_key: str | None
+    ):
+        self._reasoning_key: str | None = reasoning_key
         if isinstance(response, ChatCompletion):
             self._iter = self._convert_non_stream_response(response)
         else:
@@ -178,10 +235,15 @@ class OpenAILegacyStreamedMessage:
     ) -> AsyncIterator[StreamedMessagePart]:
         self._id = response.id
         self._usage = response.usage
-        if response.choices[0].message.content:
-            yield TextPart(text=response.choices[0].message.content)
-        if response.choices[0].message.tool_calls:
-            for tool_call in response.choices[0].message.tool_calls:
+        message = response.choices[0].message
+        reasoning_key = self._reasoning_key
+        if reasoning_key and (reasoning_content := getattr(message, reasoning_key, None)):
+            assert isinstance(reasoning_content, str)
+            yield ThinkPart(think=reasoning_content)
+        if message.content:
+            yield TextPart(text=message.content)
+        if message.tool_calls:
+            for tool_call in message.tool_calls:
                 if isinstance(tool_call, ChatCompletionMessageFunctionToolCall):
                     yield ToolCall(
                         id=tool_call.id or str(uuid.uuid4()),
@@ -206,6 +268,12 @@ class OpenAILegacyStreamedMessage:
                     continue
 
                 delta = chunk.choices[0].delta
+
+                # convert thinking content
+                reasoning_key = self._reasoning_key
+                if reasoning_key and (reasoning_content := getattr(delta, reasoning_key, None)):
+                    assert isinstance(reasoning_content, str)
+                    yield ThinkPart(think=reasoning_content)
 
                 # convert text content
                 if delta.content:

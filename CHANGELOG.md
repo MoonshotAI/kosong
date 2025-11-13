@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased]
+
+- Add `reasoning_key` argument to `OpenAILegacy` chat provider to specify the field for reasoning content in messages
+
 ## [0.24.0] - 2025-11-12
 
 - Set default temperature settings for Kimi models based on model name
