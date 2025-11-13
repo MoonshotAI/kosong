@@ -262,7 +262,7 @@ class AnthropicStreamedMessage:
             return None
         # https://docs.claude.com/en/docs/build-with-claude/prompt-caching#tracking-cache-performance
         return TokenUsage(
-            input_other=self._usage.input_tokens,
+            input_other=self._usage.input_tokens or 0,
             output=self._usage.output_tokens,
             input_cache_read=self._usage.cache_read_input_tokens or 0,
             input_cache_creation=self._usage.cache_creation_input_tokens or 0,
