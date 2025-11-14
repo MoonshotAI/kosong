@@ -102,7 +102,7 @@ def message_extract_text(message: Message) -> str:
 async def main():
     parser = ArgumentParser(description="A simple agent.")
     parser.add_argument(
-        "provider", choices=["kimi", "openai", "anthropic"], help="The chat provider to use."
+        "provider", choices=["kimi", "openai", "anthropic", "gemini"], help="The chat provider to use."
     )
     parser.add_argument(
         "--with-bash",
@@ -111,7 +111,7 @@ async def main():
     )
     args = parser.parse_args()
 
-    provider: Literal["kimi", "openai", "anthropic"] = args.provider
+    provider: Literal["kimi", "openai", "anthropic", "gemini"] = args.provider
     with_bash: bool = args.with_bash
 
     provider_upper = provider.upper()
@@ -144,6 +144,15 @@ async def main():
             model = model or "claude-sonnet-4-5"
 
             chat_provider = Anthropic(
+                base_url=base_url, api_key=api_key, model=model, default_max_tokens=50_000
+            )
+        case "gemini":
+            from kosong.contrib.chat_provider.gemini import Gemini
+
+            assert api_key is not None, "Expect GEMINI_API_KEY environment variable"
+            model = model or "gemini-2.5-flash"
+
+            chat_provider = Gemini(
                 base_url=base_url, api_key=api_key, model=model, default_max_tokens=50_000
             )
 
