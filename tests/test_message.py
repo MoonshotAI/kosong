@@ -153,3 +153,60 @@ def test_deserialize_from_json_with_content_but_no_tool_calls():
     }
     message = Message.model_validate(data)
     assert message.model_dump(exclude_none=True) == data
+
+
+def test_message_with_empty_list_content():
+    """Test that content=[] serializes to None and deserializes back to []."""
+    # Create message with empty list content
+    message = Message(role="assistant", content=[])
+
+    # Serialize - empty list should become None
+    dumped = message.model_dump()
+    assert dumped == snapshot(
+        {
+            "role": "assistant",
+            "name": None,
+            "content": None,
+            "tool_calls": None,
+            "tool_call_id": None,
+            "partial": None,
+        }
+    )
+
+    # Deserialize back - None should become empty list
+    assert Message.model_validate(dumped) == snapshot(Message(role="assistant", content=[]))
+
+    # Test with tool_calls
+    message_with_tools = Message(
+        role="assistant",
+        content=[],
+        tool_calls=[
+            ToolCall(id="123", function=ToolCall.FunctionBody(name="test_func", arguments="{}"))
+        ],
+    )
+    dumped = message_with_tools.model_dump()
+    assert dumped == snapshot(
+        {
+            "role": "assistant",
+            "name": None,
+            "content": None,
+            "tool_calls": [
+                {
+                    "type": "function",
+                    "id": "123",
+                    "function": {"name": "test_func", "arguments": "{}"},
+                }
+            ],
+            "tool_call_id": None,
+            "partial": None,
+        }
+    )
+    assert Message.model_validate(dumped) == snapshot(
+        Message(
+            role="assistant",
+            content=[],
+            tool_calls=[
+                ToolCall(id="123", function=ToolCall.FunctionBody(name="test_func", arguments="{}"))
+            ],
+        )
+    )
