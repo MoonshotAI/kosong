@@ -152,9 +152,7 @@ async def main():
             assert api_key is not None, "Expect GEMINI_API_KEY environment variable"
             model = model or "gemini-2.5-flash"
 
-            chat_provider = Gemini(
-                base_url=base_url, api_key=api_key, model=model, default_max_tokens=50_000
-            )
+            chat_provider = Gemini(base_url=base_url, api_key=api_key, model=model)
 
     toolset = SimpleToolset()
     if with_bash:

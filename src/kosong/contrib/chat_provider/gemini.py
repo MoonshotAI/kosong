@@ -71,8 +71,6 @@ class Gemini(ChatProvider):
         api_key: str | None = None,
         base_url: str | None = None,
         stream: bool = True,
-        # Must provide a max_output_tokens. Can be overridden by .with_generation_kwargs()
-        default_max_tokens: int,
         **client_kwargs: Any,
     ):
         self._model = model
@@ -83,9 +81,7 @@ class Gemini(ChatProvider):
             api_key=api_key,
             **client_kwargs,
         )
-        self._generation_kwargs: Gemini.GenerationKwargs = {
-            "max_output_tokens": default_max_tokens,
-        }
+        self._generation_kwargs: Gemini.GenerationKwargs = {}
 
     @property
     def model_name(self) -> str:
