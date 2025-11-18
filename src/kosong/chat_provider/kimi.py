@@ -4,6 +4,7 @@ import uuid
 from collections.abc import AsyncIterator, Sequence
 from typing import TYPE_CHECKING, Any, Self, TypedDict, Unpack, cast
 
+import httpx
 from openai import AsyncOpenAI, AsyncStream, OpenAIError
 from openai.types.chat import (
     ChatCompletion,
@@ -131,7 +132,7 @@ class Kimi(ChatProvider):
                 **generation_kwargs,
             )
             return KimiStreamedMessage(response)
-        except OpenAIError as e:
+        except (OpenAIError, httpx.HTTPError) as e:
             raise convert_error(e) from e
 
     def with_thinking(self, effort: ThinkingEffort) -> Self:
@@ -316,7 +317,7 @@ class KimiStreamedMessage(StreamedMessage):
                     else:
                         # skip empty tool calls
                         pass
-        except OpenAIError as e:
+        except (OpenAIError, httpx.HTTPError) as e:
             raise convert_error(e) from e
 
 

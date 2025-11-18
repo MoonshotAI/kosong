@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.25.1] - 2025-11-18
+
+- Catch httpx exceptions correctly in Kimi and OpenAI providers
+
 ## [0.25.0] - 2025-11-13
 
 - Add `reasoning_key` argument to `OpenAILegacy` chat provider to specify the field for reasoning content in messages
