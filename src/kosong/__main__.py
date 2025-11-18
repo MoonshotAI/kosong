@@ -102,7 +102,9 @@ def message_extract_text(message: Message) -> str:
 async def main():
     parser = ArgumentParser(description="A simple agent.")
     parser.add_argument(
-        "provider", choices=["kimi", "openai", "anthropic", "gemini"], help="The chat provider to use."
+        "provider",
+        choices=["kimi", "openai", "anthropic", "gemini"],
+        help="The chat provider to use."
     )
     parser.add_argument(
         "--with-bash",

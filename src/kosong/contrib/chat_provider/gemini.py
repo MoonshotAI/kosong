@@ -226,12 +226,13 @@ class GeminiStreamedMessage:
             self._id = response.response_id
 
         # Process candidates
-        if response.candidates:
-            for candidate in response.candidates:
-                if candidate.content and candidate.content.parts:
-                    for part in candidate.content.parts:
-                        async for message_part in self._process_part_async(part):
-                            yield message_part
+        for candidate in response.candidates or []:
+            parts = candidate.content.parts if candidate.content else None
+            if not parts:
+                continue
+            for part in parts:
+                async for message_part in self._process_part_async(part):
+                    yield message_part
 
     async def _convert_stream_response(
         self,
@@ -248,12 +249,13 @@ class GeminiStreamedMessage:
                     self._usage = response.usage_metadata
 
                 # Process candidates
-                if response.candidates:
-                    for candidate in response.candidates:
-                        if candidate.content and candidate.content.parts:
-                            for part in candidate.content.parts:
-                                async for message_part in self._process_part_async(part):
-                                    yield message_part
+                for candidate in response.candidates or []:
+                    parts = candidate.content.parts if candidate.content else None
+                    if not parts:
+                        continue
+                    for part in parts:
+                        async for message_part in self._process_part_async(part):
+                            yield message_part
         except genai_errors.APIError as exc:
             raise _convert_error(exc) from exc
 
