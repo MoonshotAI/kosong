@@ -3,6 +3,7 @@ import uuid
 from collections.abc import AsyncIterator, Sequence
 from typing import TYPE_CHECKING, Any, Self, Unpack, cast
 
+import httpx
 import openai
 from openai import AsyncOpenAI, AsyncStream, Omit, OpenAIError, omit
 from openai.types import CompletionUsage, ReasoningEffort
@@ -120,7 +121,7 @@ class OpenAILegacy(ChatProvider):
                 **generation_kwargs,
             )
             return OpenAILegacyStreamedMessage(response, self._reasoning_key)
-        except OpenAIError as e:
+        except (OpenAIError, httpx.HTTPError) as e:
             raise convert_error(e) from e
 
     def with_thinking(self, effort: ThinkingEffort) -> Self:
@@ -299,19 +300,26 @@ class OpenAILegacyStreamedMessage:
                     else:
                         # skip empty tool calls
                         pass
-        except OpenAIError as e:
+        except (OpenAIError, httpx.HTTPError) as e:
             raise convert_error(e) from e
 
 
-def convert_error(error: OpenAIError) -> ChatProviderError:
-    if isinstance(error, openai.APIStatusError):
-        return APIStatusError(error.status_code, error.message)
-    elif isinstance(error, openai.APIConnectionError):
-        return APIConnectionError(error.message)
-    elif isinstance(error, openai.APITimeoutError):
-        return APITimeoutError(error.message)
-    else:
-        return ChatProviderError(f"Error: {error}")
+def convert_error(error: OpenAIError | httpx.HTTPError) -> ChatProviderError:
+    match error:
+        case openai.APIStatusError():
+            return APIStatusError(error.status_code, error.message)
+        case openai.APIConnectionError():
+            return APIConnectionError(error.message)
+        case openai.APITimeoutError():
+            return APITimeoutError(error.message)
+        case httpx.TimeoutException():
+            return APITimeoutError(str(error))
+        case httpx.NetworkError():
+            return APIConnectionError(str(error))
+        case httpx.HTTPStatusError():
+            return APIStatusError(error.response.status_code, str(error))
+        case _:
+            return ChatProviderError(f"Error: {error}")
 
 
 def thinking_effort_to_reasoning_effort(effort: ThinkingEffort) -> ReasoningEffort:

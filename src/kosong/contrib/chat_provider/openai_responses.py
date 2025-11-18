@@ -3,7 +3,7 @@ import uuid
 from collections.abc import AsyncIterator, Sequence
 from typing import TYPE_CHECKING, Any, Self, TypedDict, Unpack, cast
 
-import openai
+import httpx
 from openai import AsyncOpenAI, AsyncStream, OpenAIError
 from openai.types.responses import (
     Response,
@@ -29,17 +29,11 @@ from openai.types.responses.response_input_message_content_list_param import (
 from openai.types.shared.reasoning import Reasoning
 from openai.types.shared.reasoning_effort import ReasoningEffort
 
-from kosong.chat_provider import (
-    APIConnectionError,
-    APIStatusError,
-    APITimeoutError,
-    ChatProvider,
-    ChatProviderError,
-    StreamedMessagePart,
-    ThinkingEffort,
-    TokenUsage,
+from kosong.chat_provider import ChatProvider, StreamedMessagePart, ThinkingEffort, TokenUsage
+from kosong.contrib.chat_provider.openai_legacy import (
+    convert_error,
+    thinking_effort_to_reasoning_effort,
 )
-from kosong.contrib.chat_provider.openai_legacy import thinking_effort_to_reasoning_effort
 from kosong.message import (
     AudioURLPart,
     ContentPart,
@@ -139,7 +133,7 @@ class OpenAIResponses(ChatProvider):
                 **generation_kwargs,
             )
             return OpenAIResponsesStreamedMessage(response)
-        except OpenAIError as e:
+        except (OpenAIError, httpx.HTTPError) as e:
             raise convert_error(e) from e
 
     def with_thinking(self, effort: ThinkingEffort) -> Self:
@@ -492,19 +486,8 @@ class OpenAIResponsesStreamedMessage:
                     yield ThinkPart(think=chunk.delta)
                 elif chunk.type == "response.completed":
                     self._usage = chunk.response.usage
-        except OpenAIError as e:
+        except (OpenAIError, httpx.HTTPError) as e:
             raise convert_error(e) from e
-
-
-def convert_error(error: OpenAIError) -> ChatProviderError:
-    if isinstance(error, openai.APIStatusError):
-        return APIStatusError(error.status_code, error.message)
-    elif isinstance(error, openai.APIConnectionError):
-        return APIConnectionError(error.message)
-    elif isinstance(error, openai.APITimeoutError):
-        return APITimeoutError(error.message)
-    else:
-        return ChatProviderError(f"Error: {error}")
 
 
 if __name__ == "__main__":
