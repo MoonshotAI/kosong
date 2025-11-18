@@ -48,6 +48,7 @@ from anthropic.types import (
     ToolUseBlockParam,
     URLImageSourceParam,
     Usage,
+    MessageDeltaUsage    
 )
 from anthropic.types import (
     Message as AnthropicMessage,
@@ -267,6 +268,21 @@ class AnthropicStreamedMessage:
             input_cache_read=self._usage.cache_read_input_tokens or 0,
             input_cache_creation=self._usage.cache_creation_input_tokens or 0,
         )
+        
+    def _update_usage(self, delta_usage: MessageDeltaUsage ) -> None:
+        # message_delta usage is cumulative, but fields can be None
+        # Use the non-None fields from the delta to update our existing usage
+        if delta_usage:
+            if self._usage is None:
+                self._usage = cast(Usage, delta_usage)
+            else:
+                # Merge: use values from event.usage if available else fall back to existing
+                self._usage = Usage(
+                    input_tokens=delta_usage.input_tokens or self._usage.input_tokens,
+                    output_tokens=delta_usage.output_tokens  or self._usage.output_tokens,
+                    cache_creation_input_tokens=delta_usage.cache_creation_input_tokens  or self._usage.cache_creation_input_tokens,
+                    cache_read_input_tokens=delta_usage.cache_read_input_tokens  or self._usage.cache_read_input_tokens,
+                )
 
     async def _convert_non_stream_response(
         self,
@@ -301,6 +317,9 @@ class AnthropicStreamedMessage:
                 async for event in stream:
                     if isinstance(event, MessageStartEvent):
                         self._id = event.message.id
+                        if isinstance(event.message.usage,Usage):
+                            # Capture initial usage from start event (contains prompt/input token usage)
+                            self._usage = event.message.usage
                     elif isinstance(event, RawContentBlockStartEvent):
                         block = event.content_block
                         match block.type:
@@ -332,8 +351,9 @@ class AnthropicStreamedMessage:
                             case "citations_delta":
                                 # ignore
                                 continue
-                    elif isinstance(event, MessageDeltaEvent):
-                        self._usage = cast(Usage, event.usage)
+                    elif isinstance(event, MessageDeltaEvent):                        
+                        if isinstance(event.usage,MessageDeltaUsage):
+                            self._update_usage(event.usage)                           
                     elif isinstance(event, MessageStopEvent):
                         continue
         except AnthropicError as exc:
