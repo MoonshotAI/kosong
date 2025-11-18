@@ -1,11 +1,11 @@
 [project]
 name = "kosong"
-version = "0.25.0"
+version = "0.25.1"
 description = "The LLM abstraction layer for modern AI agent applications."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "anthropic>=0.72.1",
+    "anthropic>=0.73.0",
     "jsonschema>=4.25.1",
     "loguru>=0.7.3",
     "openai>=2.7.0,<2.8.0",
