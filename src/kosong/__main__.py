@@ -4,6 +4,7 @@ import textwrap
 from argparse import ArgumentParser
 from typing import Literal
 
+from dotenv import load_dotenv
 from pydantic import BaseModel
 
 import kosong
@@ -100,6 +101,8 @@ def message_extract_text(message: Message) -> str:
 
 
 async def main():
+    load_dotenv()
+
     parser = ArgumentParser(description="A simple agent.")
     parser.add_argument(
         "provider",
