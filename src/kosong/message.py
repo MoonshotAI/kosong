@@ -147,7 +147,7 @@ class ToolCall(BaseModel, MergeableMixin):
     >>> ToolCall(
     ...     id="123",
     ...     function=ToolCall.FunctionBody(name="function", arguments="{}"),
-    ... ).model_dump()
+    ... ).model_dump(exclude_none=True)
     {'type': 'function', 'id': '123', 'function': {'name': 'function', 'arguments': '{}'}}
     """
 
@@ -165,6 +165,8 @@ class ToolCall(BaseModel, MergeableMixin):
     """The ID of the tool call."""
     function: FunctionBody
     """The function body of the tool call."""
+    extras: dict[str, Any] | None = None
+    """Extra information about the tool call."""
 
     @override
     def merge_in_place(self, other: Any) -> bool:

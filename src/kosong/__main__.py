@@ -102,7 +102,9 @@ def message_extract_text(message: Message) -> str:
 async def main():
     parser = ArgumentParser(description="A simple agent.")
     parser.add_argument(
-        "provider", choices=["kimi", "openai", "anthropic"], help="The chat provider to use."
+        "provider",
+        choices=["kimi", "openai", "anthropic", "google"],
+        help="The chat provider to use.",
     )
     parser.add_argument(
         "--with-bash",
@@ -111,7 +113,7 @@ async def main():
     )
     args = parser.parse_args()
 
-    provider: Literal["kimi", "openai", "anthropic"] = args.provider
+    provider: Literal["kimi", "openai", "anthropic", "google"] = args.provider
     with_bash: bool = args.with_bash
 
     provider_upper = provider.upper()
@@ -146,6 +148,20 @@ async def main():
             chat_provider = Anthropic(
                 base_url=base_url, api_key=api_key, model=model, default_max_tokens=50_000
             )
+        case "google":
+            from kosong.contrib.chat_provider.google_genai import GoogleGenAI
+
+            api_key = os.getenv("GEMINI_API_KEY")
+            if api_key is None:
+                google_cloud_project = os.getenv("GOOGLE_CLOUD_PROJECT")
+                google_genai_use_vertexai = os.getenv("GOOGLE_GENAI_USE_VERTEXAI", False)
+                assert google_cloud_project and google_genai_use_vertexai, (
+                    "If GEMINI_API_KEY is not set, expect GOOGLE_CLOUD_PROJECT "
+                    "and GOOGLE_GENAI_USE_VERTEXAI=True must be set"
+                )
+
+            model = model or "gemini-2.5-flash"
+            chat_provider = GoogleGenAI(base_url=base_url, api_key=api_key, model=model)
 
     toolset = SimpleToolset()
     if with_bash:

@@ -81,24 +81,34 @@ def test_message_deserialization():
     )
 
     dumped_message = message.model_dump(exclude_none=True)
-    assert dumped_message == {
-        "role": "user",
-        "content": [
-            TextPart(text="Hello, world!").model_dump(),
-            ThinkPart(think="I think I need to think about this.").model_dump(),
-            ImageURLPart(
-                image_url=ImageURLPart.ImageURL(url="https://example.com/image.png")
-            ).model_dump(),
-            AudioURLPart(
-                audio_url=AudioURLPart.AudioURL(url="https://example.com/audio.mp3")
-            ).model_dump(),
-        ],
-        "tool_calls": [
-            ToolCall(
-                id="123", function=ToolCall.FunctionBody(name="function", arguments="{}")
-            ).model_dump(),
-        ],
-    }
+    assert dumped_message == snapshot(
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": "Hello, world!"},
+                {
+                    "type": "think",
+                    "think": "I think I need to think about this.",
+                    "encrypted": None,
+                },
+                {
+                    "type": "image_url",
+                    "image_url": {"url": "https://example.com/image.png", "id": None},
+                },
+                {
+                    "type": "audio_url",
+                    "audio_url": {"url": "https://example.com/audio.mp3", "id": None},
+                },
+            ],
+            "tool_calls": [
+                {
+                    "type": "function",
+                    "id": "123",
+                    "function": {"name": "function", "arguments": "{}"},
+                }
+            ],
+        }
+    )
 
     assert Message.model_validate(dumped_message) == message
 
@@ -195,6 +205,7 @@ def test_message_with_empty_list_content():
                     "type": "function",
                     "id": "123",
                     "function": {"name": "test_func", "arguments": "{}"},
+                    "extras": None,
                 }
             ],
             "tool_call_id": None,
