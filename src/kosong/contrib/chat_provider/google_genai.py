@@ -19,6 +19,7 @@ from google.genai.types import (
     HttpOptions,
     Part,
     ThinkingConfig,
+    ThinkingLevel,
     Tool,
     ToolConfig,
 )
@@ -49,7 +50,7 @@ if TYPE_CHECKING:
         _: ChatProvider = google_genai
 
 
-class GoogleGenAI(ChatProvider):
+class GoogleGenAI:
     """
     Chat provider backed by Google's Gemini API.
     """
@@ -97,69 +98,61 @@ class GoogleGenAI(ChatProvider):
         tools: Sequence[KosongTool],
         history: Sequence[Message],
     ) -> "GoogleGenAIStreamedMessage":
-        # Convert messages to GoogleGenAI format
-        contents: list[Content] = []
+        contents = [message_to_google_genai(message) for message in history]
 
-        # Convert history messages (excluding system prompt which is handled separately)
-        for message in history:
-            contents.append(message_to_google_genai(message))
-
-        generation_kwargs: dict[str, Any] = {}
-
-        # Prepare tools
-        google_genai_tools = [tool_to_google_genai(tool) for tool in tools]
-        if google_genai_tools:
-            generation_kwargs["tools"] = google_genai_tools
-
-        # Prepare generation config with system instruction
-        generation_kwargs.update(self._generation_kwargs)
-
-        # Add system instruction if provided
-        config_args: dict[str, Any] = {}
-        if system_prompt:
-            config_args["system_instruction"] = system_prompt
-
-        generation_config = GenerateContentConfig(**config_args, **generation_kwargs)
+        config = GenerateContentConfig(**self._generation_kwargs)
+        config.system_instruction = system_prompt
+        config.tools = [tool_to_google_genai(tool) for tool in tools]
 
         try:
             if self._stream:
                 stream_response = await self._client.aio.models.generate_content_stream(  # type: ignore[reportUnknownMemberType]
                     model=self._model,
                     contents=contents,
-                    config=generation_config,
+                    config=config,
                 )
                 return GoogleGenAIStreamedMessage(stream_response)
             else:
                 response = await self._client.aio.models.generate_content(  # type: ignore[reportUnknownMemberType]
                     model=self._model,
                     contents=contents,
-                    config=generation_config,
+                    config=config,
                 )
                 return GoogleGenAIStreamedMessage(response)
         except Exception as e:  # genai_errors.APIError and others
             raise _convert_error(e) from e
 
     def with_thinking(self, effort: "ThinkingEffort") -> Self:
-        # Map thinking effort to budget tokens
-        thinking_budget: int
-        include_thoughts: bool
-        match effort:
-            case "off":
-                thinking_budget = 0
-                include_thoughts = False
-            case "low":
-                thinking_budget = 1024
-                include_thoughts = True
-            case "medium":
-                thinking_budget = 4096
-                include_thoughts = True
-            case "high":
-                thinking_budget = 32_000
-                include_thoughts = True
+        thinking_config = ThinkingConfig(include_thoughts=True)
 
-        thinking_config = ThinkingConfig(
-            thinking_budget=thinking_budget, include_thoughts=include_thoughts
-        )
+        # Map thinking effort to budget tokens
+        if "gemini-3" in self._model:
+            match effort:
+                case "off":
+                    # use default thinking config
+                    pass
+                case "low":
+                    thinking_config.thinking_level = ThinkingLevel.LOW
+                case "medium":
+                    # FIXME: medium not supported yet, use high
+                    thinking_config.thinking_level = ThinkingLevel.HIGH
+                case "high":
+                    thinking_config.thinking_level = ThinkingLevel.HIGH
+        else:
+            match effort:
+                case "off":
+                    thinking_config.thinking_budget = 0
+                    thinking_config.include_thoughts = False
+                case "low":
+                    thinking_config.thinking_budget = 1024
+                    thinking_config.include_thoughts = True
+                case "medium":
+                    thinking_config.thinking_budget = 4096
+                    thinking_config.include_thoughts = True
+                case "high":
+                    thinking_config.thinking_budget = 32_000
+                    thinking_config.include_thoughts = True
+
         return self.with_generation_kwargs(thinking_config=thinking_config)
 
     def with_generation_kwargs(self, **kwargs: Unpack[GenerationKwargs]) -> Self:
@@ -273,10 +266,11 @@ class GoogleGenAIStreamedMessage:
         - function calls
         """
         if part.thought:
+            # Synthetic thinking part
             if part.text:
                 yield ThinkPart(think=part.text)
         elif part.text:
-            # Regular text part (non-thinking)
+            # Regular text part
             yield TextPart(text=part.text)
         elif part.function_call:
             func_call = part.function_call
@@ -287,8 +281,10 @@ class GoogleGenAIStreamedMessage:
             # Gemini uses thought_signature to store the encrypted thinking signature.
             # part.thought is synthetic
             # See: https://colab.research.google.com/github/GoogleCloudPlatform/generative-ai/blob/main/gemini/thinking/intro_thought_signatures.ipynb
-            extras = (
-                {"thought_signature": part.thought_signature} if part.thought_signature else None
+            thought_signature_b64 = (
+                base64.b64encode(part.thought_signature).decode("ascii")
+                if part.thought_signature
+                else None
             )
             yield ToolCall(
                 id=tool_call_id,
@@ -296,7 +292,11 @@ class GoogleGenAIStreamedMessage:
                     name=func_call.name,
                     arguments=json.dumps(func_call.args) if func_call.args else "{}",
                 ),
-                extras=extras,
+                extras={
+                    "thought_signature_b64": thought_signature_b64,
+                }
+                if thought_signature_b64
+                else None,
             )
 
     async def _process_part_async(self, part: Part) -> AsyncIterator[StreamedMessagePart]:
@@ -309,14 +309,12 @@ def tool_to_google_genai(tool: KosongTool) -> Tool:
     """Convert a Kosong tool to GoogleGenAI tool format."""
     # Kosong already validates parameters as JSON Schema format via jsonschema
     # The google-genai SDK accepts dict format and internally converts to Schema
-    parameters_dict: dict[str, Any] = tool.parameters or {"type": "object", "properties": {}}
-
     return Tool(
         function_declarations=[
             FunctionDeclaration(
                 name=tool.name,
                 description=tool.description,
-                parameters=parameters_dict,  # type: ignore[arg-type] # GoogleGenAI accepts dict
+                parameters=tool.parameters,  # type: ignore[arg-type] # GoogleGenAI accepts dict
             )
         ]
     )
@@ -485,9 +483,10 @@ def message_to_google_genai(message: Message) -> Content:
             args=args,
         )
         # Add thought_signature back to function_call
-        if tool_call.extras:
-            for name, value in tool_call.extras.items():
-                setattr(function_call, name, value)
+        if tool_call.extras and "thought_signature_b64" in tool_call.extras:
+            function_call.thought_signature = base64.b64decode(
+                cast(str, tool_call.extras["thought_signature_b64"])
+            )
         parts.append(function_call)
 
     return Content(role=google_genai_role, parts=parts)
@@ -519,3 +518,43 @@ def _convert_error(error: Exception) -> ChatProviderError:
     else:
         # Fallback for unexpected errors
         return ChatProviderError(f"Unexpected GoogleGenAI error: {error}")
+
+
+if __name__ == "__main__":
+
+    async def main():
+        import kosong
+
+        chat = GoogleGenAI(model="gemini-3-pro-preview").with_thinking("high")
+        system_prompt = "You are a helpful assistant."
+        history = [Message(role="user", content="Hello, how are you?")]
+        async for part in await chat.generate(system_prompt, [], history):
+            print(part.model_dump(exclude_none=True))
+
+        tools = [
+            kosong.tooling.Tool(
+                name="get_weather",
+                description="Get the weather",
+                parameters={
+                    "type": "object",
+                    "properties": {
+                        "city": {
+                            "type": "string",
+                            "description": "The city to get the weather for.",
+                        },
+                    },
+                },
+            )
+        ]
+        history = [Message(role="user", content="What's the weather in Beijing?")]
+        stream = await chat.generate(system_prompt, tools, history)
+        async for part in stream:
+            print(part.model_dump(exclude_none=True))
+        print("usage:", stream.usage)
+
+    import asyncio
+
+    from dotenv import load_dotenv
+
+    load_dotenv()
+    asyncio.run(main())

@@ -4,6 +4,8 @@ from typing import Any, ClassVar, Literal, cast, override
 from pydantic import BaseModel, GetCoreSchemaHandler, field_serializer, field_validator
 from pydantic_core import core_schema
 
+from kosong.utils.typing import JsonType
+
 
 class MergeableMixin:
     def merge_in_place(self, other: Any) -> bool:
@@ -165,7 +167,7 @@ class ToolCall(BaseModel, MergeableMixin):
     """The ID of the tool call."""
     function: FunctionBody
     """The function body of the tool call."""
-    extras: dict[str, Any] | None = None
+    extras: dict[str, JsonType] | None = None
     """Extra information about the tool call."""
 
     @override

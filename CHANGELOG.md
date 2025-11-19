@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased]
+
+- Better thinking level mapping in `GoogleGenAI` chat provider
+
 ## [0.26.1] - 2025-11-19
 
 - Deref JSON schema in tool parameters to fix compatibility with some LLM providers

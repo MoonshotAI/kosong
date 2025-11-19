@@ -151,17 +151,14 @@ async def main():
         case "google":
             from kosong.contrib.chat_provider.google_genai import GoogleGenAI
 
-            api_key = os.getenv("GEMINI_API_KEY")
-            if api_key is None:
-                google_cloud_project = os.getenv("GOOGLE_CLOUD_PROJECT")
-                google_genai_use_vertexai = os.getenv("GOOGLE_GENAI_USE_VERTEXAI", False)
-                assert google_cloud_project and google_genai_use_vertexai, (
-                    "If GEMINI_API_KEY is not set, expect GOOGLE_CLOUD_PROJECT "
-                    "and GOOGLE_GENAI_USE_VERTEXAI=True must be set"
-                )
-
-            model = model or "gemini-2.5-flash"
-            chat_provider = GoogleGenAI(base_url=base_url, api_key=api_key, model=model)
+            api_key = api_key or os.getenv("GEMINI_API_KEY")
+            assert api_key is not None, (
+                "Expect GOOGLE_API_KEY or GEMINI_API_KEY environment variable"
+            )
+            model = model or "gemini-3-pro-preview"
+            chat_provider = GoogleGenAI(
+                base_url=base_url, api_key=api_key, model=model
+            ).with_thinking("high")
 
     toolset = SimpleToolset()
     if with_bash:
