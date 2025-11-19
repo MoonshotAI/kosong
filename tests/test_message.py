@@ -194,7 +194,9 @@ def test_message_with_empty_list_content():
                 {
                     "type": "function",
                     "id": "123",
-                    "function": {"name": "test_func", "arguments": "{}"}, "extras": None}
+                    "function": {"name": "test_func", "arguments": "{}"},
+                    "extras": None,
+                }
             ],
             "tool_call_id": None,
             "partial": None,
