@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.26.0] - 2025-11-19
+
+- Fix thinking part in `Anthropic` provider's non-stream mode
+- Add `GoogleGenAI` chat provider
+
 ## [0.25.1] - 2025-11-18
 
 - Catch httpx exceptions correctly in Kimi and OpenAI providers
