@@ -1,3 +1,3 @@
-from typing import Any
+from __future__ import annotations
 
-type JsonType = None | int | float | str | bool | list[Any] | dict[str, Any]
+type JsonType = None | int | float | str | bool | list[JsonType] | dict[str, JsonType]
