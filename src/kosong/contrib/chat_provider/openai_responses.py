@@ -52,7 +52,7 @@ if TYPE_CHECKING:
         _: ChatProvider = openai_responses
 
 
-class OpenAIResponses(ChatProvider):
+class OpenAIResponses:
     """
     A chat provider that uses the OpenAI Responses API.
 

@@ -35,7 +35,7 @@ if TYPE_CHECKING:
         _: ChatProvider = openai_legacy
 
 
-class OpenAILegacy(ChatProvider):
+class OpenAILegacy:
     """
     A chat provider that uses the OpenAI Chat Completions API.
 

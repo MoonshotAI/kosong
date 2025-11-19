@@ -85,7 +85,7 @@ type MessagePayload = tuple[str | None, list[MessageParam]]
 type BetaFeatures = Literal["interleaved-thinking-2025-05-14"]
 
 
-class Anthropic(ChatProvider):
+class Anthropic:
     """
     Chat provider backed by Anthropic's Messages API.
     """

@@ -33,7 +33,7 @@ type ToolType = CallableTool | CallableTool2[Any]
 """The tool type that can be added to the `SimpleToolset`."""
 
 
-class SimpleToolset(Toolset):
+class SimpleToolset:
     """A simple toolset that can handle tool calls concurrently."""
 
     _tool_dict: dict[str, ToolType]
