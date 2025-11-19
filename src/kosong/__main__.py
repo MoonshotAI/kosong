@@ -104,7 +104,7 @@ async def main():
     parser.add_argument(
         "provider",
         choices=["kimi", "openai", "anthropic", "google"],
-        help="The chat provider to use."
+        help="The chat provider to use.",
     )
     parser.add_argument(
         "--with-bash",

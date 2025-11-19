@@ -284,22 +284,20 @@ class GoogleGenAIStreamedMessage:
                 # Skip function calls without a name
                 return
             tool_call_id = func_call.id if func_call.id is not None else f"call_{id(func_call)}"
+            # Gemini uses thought_signature to store the encrypted thinking signature.
+            # part.thought is synthetic
+            # See: https://colab.research.google.com/github/GoogleCloudPlatform/generative-ai/blob/main/gemini/thinking/intro_thought_signatures.ipynb
+            extras = (
+                {"thought_signature": part.thought_signature} if part.thought_signature else None
+            )
             yield ToolCall(
                 id=tool_call_id,
                 function=ToolCall.FunctionBody(
                     name=func_call.name,
                     arguments=json.dumps(func_call.args) if func_call.args else "{}",
                 ),
+                extras=extras,
             )
-            # Gemini uses thought_signature to store the encrypted thinking signature.
-            # part.thought is synthetic
-            # See: https://colab.research.google.com/github/GoogleCloudPlatform/generative-ai/blob/main/gemini/thinking/intro_thought_signatures.ipynb
-            if part.thought_signature:
-                # Here use think to record tool_call_id
-                yield ThinkPart(
-                    think=tool_call_id,
-                    encrypted=base64.b64encode(part.thought_signature).decode("utf-8"),
-                )
 
     async def _process_part_async(self, part: Part) -> AsyncIterator[StreamedMessagePart]:
         """Async wrapper for _process_part."""
@@ -451,8 +449,6 @@ def message_to_google_genai(message: Message) -> Content:
     parts: list[Part] = []
 
     # Handle content parts
-    # Record thought_signature and add to tool_calls
-    thought_signatures: dict[str, bytes] = {}
     if isinstance(message.content, str):
         if message.content:
             parts.append(Part.from_text(text=message.content))
@@ -466,11 +462,7 @@ def message_to_google_genai(message: Message) -> Content:
                 parts.append(_audio_url_part_to_google_genai(part))
             elif isinstance(part, ThinkPart):
                 # Note: skip part.thought because it is synthetic
-                if part.encrypted is not None:
-                    # Record thought_signature and add to tool_call below
-                    thought_signatures[part.think] = base64.b64decode(
-                        part.encrypted.encode("utf-8")
-                    )
+                continue
             else:
                 # Skip unsupported parts
                 continue
@@ -493,8 +485,9 @@ def message_to_google_genai(message: Message) -> Content:
             args=args,
         )
         # Add thought_signature back to function_call
-        if tool_call.id in thought_signatures:
-            function_call.thought_signature = thought_signatures[tool_call.id]
+        if tool_call.extras:
+            for name, value in tool_call.extras.items():
+                setattr(function_call, name, value)
         parts.append(function_call)
 
     return Content(role=google_genai_role, parts=parts)
