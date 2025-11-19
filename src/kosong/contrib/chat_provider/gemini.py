@@ -3,6 +3,7 @@ import copy
 import json
 import mimetypes
 from collections.abc import AsyncIterator, Sequence
+import httpx
 from typing import TYPE_CHECKING, Any, Self, TypedDict, Unpack, cast
 
 from google import genai
@@ -11,6 +12,7 @@ from google.genai import errors as genai_errors
 from google.genai.types import (
     Content,
     FunctionDeclaration,
+    FunctionResponsePart,
     GenerateContentConfig,
     GenerateContentResponse,
     GenerateContentResponseUsageMetadata,
@@ -31,6 +33,8 @@ from kosong.chat_provider import (
     TokenUsage,
 )
 from kosong.message import (
+    AudioURLPart,
+    ContentPart,
     ImageURLPart,
     Message,
     TextPart,
@@ -263,13 +267,12 @@ class GeminiStreamedMessage:
         """Process a single part and yield message components (synchronous generator).
 
         Handles different part types from Gemini API:
-        - thinking parts (part.thought is True)
+        - synthetic thinking parts (part.thought is True)
+        - encrypted thinking parts (part.thought_signature is not None)
         - text parts
         - function calls
         """
-        # Check if this is a thinking part first
-        if getattr(part, 'thought', False):
-            # This is a thinking/thought summary part (Gemini 2.5 models)
+        if part.thought:
             if part.text:
                 yield ThinkPart(think=part.text)
         elif part.text:
@@ -280,13 +283,23 @@ class GeminiStreamedMessage:
             if func_call.name is None:
                 # Skip function calls without a name
                 return
+            tool_call_id = func_call.id if func_call.id is not None else f"call_{id(func_call)}"
             yield ToolCall(
-                id=func_call.id if func_call.id is not None else f"call_{id(func_call)}",
+                id=tool_call_id,
                 function=ToolCall.FunctionBody(
                     name=func_call.name,
                     arguments=json.dumps(func_call.args) if func_call.args else "{}",
                 ),
             )
+            # Gemini uses thought_signature to store the encrypted thinking signature.
+            # part.thought is synthetic
+            # See: https://colab.research.google.com/github/GoogleCloudPlatform/generative-ai/blob/main/gemini/thinking/intro_thought_signatures.ipynb
+            if part.thought_signature:
+                # Here use think to record tool_call_id
+                yield ThinkPart(
+                    think=tool_call_id,
+                    encrypted=base64.b64encode(part.thought_signature).decode("utf-8"),
+                )
 
     async def _process_part_async(self, part: Part) -> AsyncIterator[StreamedMessagePart]:
         """Async wrapper for _process_part."""
@@ -332,91 +345,149 @@ def _image_url_part_to_gemini(part: ImageURLPart) -> Part:
         data_bytes = base64.b64decode(data_b64)
         return Part.from_bytes(data=data_bytes, mime_type=media_type)
     else:
-        # For regular URLs, try to detect MIME type from URL extension
-        # If detection fails, use a safe default that Gemini accepts
+        # For regular URLs, try to download the image and convert to bytes
         mime_type, _ = mimetypes.guess_type(url)
         if not mime_type or not mime_type.startswith("image/"):
             # Default to image/png if we can't detect or it's not an image type
             mime_type = "image/png"
+        response = httpx.get(url).raise_for_status()
+        data_bytes = response.content
+        return Part.from_bytes(data=data_bytes, mime_type=mime_type)
 
-        return Part.from_uri(file_uri=url, mime_type=mime_type)
+
+def _audio_url_part_to_gemini(part: AudioURLPart) -> Part:
+    """Convert an audio URL part to Gemini format."""
+    url = part.audio_url.url
+
+    # Handle data URLs
+    if url.startswith("data:"):
+        # data:[<media-type>][;base64],<data>
+        res = url[5:].split(";base64,", 1)
+        if len(res) != 2:
+            raise ChatProviderError(f"Invalid data URL for audio: {url}")
+
+        media_type, data_b64 = res
+        # Supported audio formats for Gemini
+        supported_audio_types = ("audio/wav", "audio/mp3", "audio/aiff", "audio/aac",
+                               "audio/ogg", "audio/flac")
+        if media_type not in supported_audio_types:
+            error_msg = (
+                f"Unsupported media type for base64 audio: {media_type}, url: {url}. "
+                f"Supported types: {supported_audio_types}"
+            )
+            raise ChatProviderError(error_msg)
+
+        # Decode base64 string to bytes
+        data_bytes = base64.b64decode(data_b64)
+        return Part.from_bytes(data=data_bytes, mime_type=media_type)
+    else:
+        # Fetch the audio and convert to bytes
+        mime_type, _ = mimetypes.guess_type(url)
+        if not mime_type or not mime_type.startswith("audio/"):
+            # Default to audio/mp3 if we can't detect or it's not an audio type
+            mime_type = "audio/mp3"
+        response = httpx.get(url).raise_for_status()
+        data_bytes = response.content
+        return Part.from_bytes(data=data_bytes, mime_type=mime_type)
+
+
+def _tool_result_to_response_and_parts(parts: list[ContentPart]) -> tuple[dict[str, str], list[FunctionResponsePart]]:
+    """Convert tool response content to Gemini function response format."""
+    genai_parts: list[FunctionResponsePart] = []
+    response: str = ""
+
+    for part in parts:
+        if isinstance(part, TextPart):
+            if part.text:
+                response += part.text
+        elif isinstance(part, ImageURLPart):
+            genai_parts.append(FunctionResponsePart.from_uri(file_uri=part.image_url.url))
+        elif isinstance(part, AudioURLPart):
+            genai_parts.append(FunctionResponsePart.from_uri(file_uri=part.audio_url.url))
+        else:
+            # Skip unsupported parts (like ThinkPart, etc.)
+            continue
+
+    return {"output": response}, genai_parts
 
 
 def message_to_gemini(message: Message) -> Content:
     """Convert a single internal message into Gemini wire format."""
     role = message.role
 
-    # Map role to Gemini roles
-    # Gemini uses: "user" and "model" (not "assistant")
-    if role == "assistant":
-        gemini_role = "model"
-    elif role == "tool":
+    # Tool responses are sent as user messages
+    if role == "tool":
         gemini_role = "user"  # Tool responses are sent as user messages
-    else:
-        gemini_role = role
+        if message.tool_call_id is None:
+            raise ChatProviderError("Tool response is missing `tool_call_id`")
 
+        # Convert content to Gemini function response format
+        if isinstance(message.content, str):
+            response_data = {"output": message.content}
+            tool_result_parts = None
+        else:
+            response_data, tool_result_parts = _tool_result_to_response_and_parts(message.content)
+        return Content(
+            role="user",
+            parts=[
+                Part.from_function_response(
+                    name=message.tool_call_id,
+                    response=response_data,
+                    parts=tool_result_parts,
+                )
+            ],
+        )
+
+    # Gemini uses: "user" and "model" (not "assistant")
+    gemini_role = "model" if role == "assistant" else role
     parts: list[Part] = []
 
-    # Handle content (only for non-tool messages)
-    if role != "tool":
-        if isinstance(message.content, str):
-            if message.content:
-                parts.append(Part.from_text(text=message.content))
-        else:
-            for part in message.content:
-                if isinstance(part, TextPart):
-                    parts.append(Part.from_text(text=part.text))
-                elif isinstance(part, ImageURLPart):
-                    parts.append(_image_url_part_to_gemini(part))
-                elif isinstance(part, ThinkPart):
-                    # For models without native thinking support, include as special text block
-                    if part.think:
-                        parts.append(Part.from_text(text=f"<thinking>{part.think}</thinking>"))
-                else:
-                    # Skip unsupported parts
-                    continue
+    # Handle content parts
+    # Record thought_signature and add to tool_calls
+    thought_signatures: dict[str, bytes] = {}
+    if isinstance(message.content, str):
+        if message.content:
+            parts.append(Part.from_text(text=message.content))
+    else:
+        for part in message.content:
+            if isinstance(part, TextPart):
+                parts.append(Part.from_text(text=part.text))
+            elif isinstance(part, ImageURLPart):
+                parts.append(_image_url_part_to_gemini(part))
+            elif isinstance(part, AudioURLPart):
+                parts.append(_audio_url_part_to_gemini(part))
+            elif isinstance(part, ThinkPart):
+                # Note: skip part.thought because it is synthetic
+                if part.encrypted is not None:
+                    # Record thought_signature and add to tool_call below
+                    thought_signatures[part.think] = base64.b64decode(
+                        part.encrypted.encode("utf-8")
+                    )
+            else:
+                # Skip unsupported parts
+                continue
 
     # Handle tool calls for assistant messages
-    if message.tool_calls:
-        for tool_call in message.tool_calls:
-            if tool_call.function.arguments:
-                try:
-                    parsed_arguments = json.loads(tool_call.function.arguments)
-                except json.JSONDecodeError as exc:  # pragma: no cover - defensive guard
-                    raise ChatProviderError("Tool call arguments must be valid JSON.") from exc
-                if not isinstance(parsed_arguments, dict):
-                    raise ChatProviderError("Tool call arguments must be a JSON object.")
-                args = cast(dict[str, object], parsed_arguments)
-            else:
-                args = {}
-
-            parts.append(
-                Part.from_function_call(
-                    name=tool_call.function.name,
-                    args=args,
-                )
-            )
-
-    # Handle tool responses
-    if role == "tool" and message.tool_call_id:
-        if isinstance(message.content, str):
-            response_content = message.content
+    for tool_call in message.tool_calls or []:
+        if tool_call.function.arguments:
+            try:
+                parsed_arguments = json.loads(tool_call.function.arguments)
+            except json.JSONDecodeError as exc:  # pragma: no cover - defensive guard
+                raise ChatProviderError("Tool call arguments must be valid JSON.") from exc
+            if not isinstance(parsed_arguments, dict):
+                raise ChatProviderError("Tool call arguments must be a JSON object.")
+            args = cast(dict[str, object], parsed_arguments)
         else:
-            # Combine text parts for tool response
-            response_parts: list[str] = []
-            for part in message.content:
-                if isinstance(part, TextPart):
-                    response_parts.append(part.text)
-            response_content = " ".join(response_parts) if response_parts else ""
+            args = {}
 
-        # Use tool_call_id as function name for the response
-        # This matches the pattern used in the tool calls
-        parts.append(
-            Part.from_function_response(
-                name=message.tool_call_id,
-                response={"result": response_content},
-            )
+        function_call = Part.from_function_call(
+            name=tool_call.function.name,
+            args=args,
         )
+        # Add thought_signature back to function_call
+        if tool_call.id in thought_signatures:
+            function_call.thought_signature = thought_signatures[tool_call.id]
+        parts.append(function_call)
 
     return Content(role=gemini_role, parts=parts)
 
