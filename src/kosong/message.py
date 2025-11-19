@@ -147,7 +147,7 @@ class ToolCall(BaseModel, MergeableMixin):
     >>> ToolCall(
     ...     id="123",
     ...     function=ToolCall.FunctionBody(name="function", arguments="{}"),
-    ... ).model_dump()
+    ... ).model_dump(exclude_none=True)
     {'type': 'function', 'id': '123', 'function': {'name': 'function', 'arguments': '{}'}}
     """
 
