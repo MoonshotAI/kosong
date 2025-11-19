@@ -279,7 +279,7 @@ class AnthropicStreamedMessage:
                 case "text":
                     yield TextPart(text=block.text)
                 case "thinking":
-                    yield ThinkPart(think=block.thinking)
+                    yield ThinkPart(think=block.thinking, encrypted=block.signature)
                 case "redacted_thinking":
                     yield ThinkPart(think="", encrypted=block.data)
                 case "tool_use":
