@@ -3,9 +3,9 @@ import copy
 import json
 import mimetypes
 from collections.abc import AsyncIterator, Sequence
-import httpx
 from typing import TYPE_CHECKING, Any, Self, TypedDict, Unpack, cast
 
+import httpx
 from google import genai
 from google.genai import client as genai_client
 from google.genai import errors as genai_errors
@@ -45,16 +45,16 @@ from kosong.tooling import Tool as KosongTool
 
 if TYPE_CHECKING:
 
-    def type_check(gemini: "Gemini"):
-        _: ChatProvider = gemini
+    def type_check(google_genai: "GoogleGenAI"):
+        _: ChatProvider = google_genai
 
 
-class Gemini(ChatProvider):
+class GoogleGenAI(ChatProvider):
     """
     Chat provider backed by Google's Gemini API.
     """
 
-    name = "gemini"
+    name = "google_genai"
 
     class GenerationKwargs(TypedDict, total=False):
         max_output_tokens: int | None
@@ -85,7 +85,7 @@ class Gemini(ChatProvider):
             api_key=api_key,
             **client_kwargs,
         )
-        self._generation_kwargs: Gemini.GenerationKwargs = {}
+        self._generation_kwargs: GoogleGenAI.GenerationKwargs = {}
 
     @property
     def model_name(self) -> str:
@@ -96,20 +96,20 @@ class Gemini(ChatProvider):
         system_prompt: str,
         tools: Sequence[KosongTool],
         history: Sequence[Message],
-    ) -> "GeminiStreamedMessage":
-        # Convert messages to Gemini format
+    ) -> "GoogleGenAIStreamedMessage":
+        # Convert messages to GoogleGenAI format
         contents: list[Content] = []
 
         # Convert history messages (excluding system prompt which is handled separately)
         for message in history:
-            contents.append(message_to_gemini(message))
+            contents.append(message_to_google_genai(message))
 
         generation_kwargs: dict[str, Any] = {}
 
         # Prepare tools
-        gemini_tools = [tool_to_gemini(tool) for tool in tools]
-        if gemini_tools:
-            generation_kwargs["tools"] = gemini_tools
+        google_genai_tools = [tool_to_google_genai(tool) for tool in tools]
+        if google_genai_tools:
+            generation_kwargs["tools"] = google_genai_tools
 
         # Prepare generation config with system instruction
         generation_kwargs.update(self._generation_kwargs)
@@ -128,14 +128,14 @@ class Gemini(ChatProvider):
                     contents=contents,
                     config=generation_config,
                 )
-                return GeminiStreamedMessage(stream_response)
+                return GoogleGenAIStreamedMessage(stream_response)
             else:
                 response = await self._client.aio.models.generate_content(  # type: ignore[reportUnknownMemberType]
                     model=self._model,
                     contents=contents,
                     config=generation_config,
                 )
-                return GeminiStreamedMessage(response)
+                return GoogleGenAIStreamedMessage(response)
         except Exception as e:  # genai_errors.APIError and others
             raise _convert_error(e) from e
 
@@ -188,7 +188,7 @@ class Gemini(ChatProvider):
         }
 
 
-class GeminiStreamedMessage:
+class GoogleGenAIStreamedMessage:
     def __init__(self, response: GenerateContentResponse | AsyncIterator[GenerateContentResponse]):
         if isinstance(response, GenerateContentResponse):
             self._iter = self._convert_non_stream_response(response)
@@ -307,8 +307,8 @@ class GeminiStreamedMessage:
             yield message_part
 
 
-def tool_to_gemini(tool: KosongTool) -> Tool:
-    """Convert a Kosong tool to Gemini tool format."""
+def tool_to_google_genai(tool: KosongTool) -> Tool:
+    """Convert a Kosong tool to GoogleGenAI tool format."""
     # Kosong already validates parameters as JSON Schema format via jsonschema
     # The google-genai SDK accepts dict format and internally converts to Schema
     parameters_dict: dict[str, Any] = tool.parameters or {"type": "object", "properties": {}}
@@ -318,14 +318,14 @@ def tool_to_gemini(tool: KosongTool) -> Tool:
             FunctionDeclaration(
                 name=tool.name,
                 description=tool.description,
-                parameters=parameters_dict,  # type: ignore[arg-type] # Gemini accepts dict
+                parameters=parameters_dict,  # type: ignore[arg-type] # GoogleGenAI accepts dict
             )
         ]
     )
 
 
-def _image_url_part_to_gemini(part: ImageURLPart) -> Part:
-    """Convert an image URL part to Gemini format."""
+def _image_url_part_to_google_genai(part: ImageURLPart) -> Part:
+    """Convert an image URL part to GoogleGenAI format."""
     url = part.image_url.url
 
     # Handle data URLs
@@ -355,8 +355,8 @@ def _image_url_part_to_gemini(part: ImageURLPart) -> Part:
         return Part.from_bytes(data=data_bytes, mime_type=mime_type)
 
 
-def _audio_url_part_to_gemini(part: AudioURLPart) -> Part:
-    """Convert an audio URL part to Gemini format."""
+def _audio_url_part_to_google_genai(part: AudioURLPart) -> Part:
+    """Convert an audio URL part to GoogleGenAI format."""
     url = part.audio_url.url
 
     # Handle data URLs
@@ -367,9 +367,15 @@ def _audio_url_part_to_gemini(part: AudioURLPart) -> Part:
             raise ChatProviderError(f"Invalid data URL for audio: {url}")
 
         media_type, data_b64 = res
-        # Supported audio formats for Gemini
-        supported_audio_types = ("audio/wav", "audio/mp3", "audio/aiff", "audio/aac",
-                               "audio/ogg", "audio/flac")
+        # Supported audio formats for GoogleGenAI
+        supported_audio_types = (
+            "audio/wav",
+            "audio/mp3",
+            "audio/aiff",
+            "audio/aac",
+            "audio/ogg",
+            "audio/flac",
+        )
         if media_type not in supported_audio_types:
             error_msg = (
                 f"Unsupported media type for base64 audio: {media_type}, url: {url}. "
@@ -391,7 +397,9 @@ def _audio_url_part_to_gemini(part: AudioURLPart) -> Part:
         return Part.from_bytes(data=data_bytes, mime_type=mime_type)
 
 
-def _tool_result_to_response_and_parts(parts: list[ContentPart]) -> tuple[dict[str, str], list[FunctionResponsePart]]:
+def _tool_result_to_response_and_parts(
+    parts: list[ContentPart],
+) -> tuple[dict[str, str], list[FunctionResponsePart]]:
     """Convert tool response content to Gemini function response format."""
     genai_parts: list[FunctionResponsePart] = []
     response: str = ""
@@ -411,13 +419,13 @@ def _tool_result_to_response_and_parts(parts: list[ContentPart]) -> tuple[dict[s
     return {"output": response}, genai_parts
 
 
-def message_to_gemini(message: Message) -> Content:
-    """Convert a single internal message into Gemini wire format."""
+def message_to_google_genai(message: Message) -> Content:
+    """Convert a single internal message into GoogleGenAI wire format."""
     role = message.role
 
     # Tool responses are sent as user messages
     if role == "tool":
-        gemini_role = "user"  # Tool responses are sent as user messages
+        google_genai_role = "user"  # Tool responses are sent as user messages
         if message.tool_call_id is None:
             raise ChatProviderError("Tool response is missing `tool_call_id`")
 
@@ -438,8 +446,8 @@ def message_to_gemini(message: Message) -> Content:
             ],
         )
 
-    # Gemini uses: "user" and "model" (not "assistant")
-    gemini_role = "model" if role == "assistant" else role
+    # GoogleGenAI uses: "user" and "model" (not "assistant")
+    google_genai_role = "model" if role == "assistant" else role
     parts: list[Part] = []
 
     # Handle content parts
@@ -453,9 +461,9 @@ def message_to_gemini(message: Message) -> Content:
             if isinstance(part, TextPart):
                 parts.append(Part.from_text(text=part.text))
             elif isinstance(part, ImageURLPart):
-                parts.append(_image_url_part_to_gemini(part))
+                parts.append(_image_url_part_to_google_genai(part))
             elif isinstance(part, AudioURLPart):
-                parts.append(_audio_url_part_to_gemini(part))
+                parts.append(_audio_url_part_to_google_genai(part))
             elif isinstance(part, ThinkPart):
                 # Note: skip part.thought because it is synthetic
                 if part.encrypted is not None:
@@ -489,12 +497,12 @@ def message_to_gemini(message: Message) -> Content:
             function_call.thought_signature = thought_signatures[tool_call.id]
         parts.append(function_call)
 
-    return Content(role=gemini_role, parts=parts)
+    return Content(role=google_genai_role, parts=parts)
 
 
 def _convert_error(error: Exception) -> ChatProviderError:
-    """Convert a Gemini error to a Kosong chat provider error."""
-    # Handle specific Gemini error types with detailed status code mapping
+    """Convert a GoogleGenAI error to a Kosong chat provider error."""
+    # Handle specific GoogleGenAI error types with detailed status code mapping
     if isinstance(error, genai_errors.ClientError):
         # 4xx client errors
         status_code = getattr(error, "code", 400)
@@ -517,4 +525,4 @@ def _convert_error(error: Exception) -> ChatProviderError:
         return APITimeoutError(f"Request timed out: {error}")
     else:
         # Fallback for unexpected errors
-        return ChatProviderError(f"Unexpected Gemini error: {error}")
+        return ChatProviderError(f"Unexpected GoogleGenAI error: {error}")
