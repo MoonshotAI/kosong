@@ -4,6 +4,7 @@ import textwrap
 from argparse import ArgumentParser
 from typing import Literal
 
+from dotenv import load_dotenv
 from pydantic import BaseModel
 
 import kosong
@@ -100,9 +101,13 @@ def message_extract_text(message: Message) -> str:
 
 
 async def main():
+    load_dotenv()
+
     parser = ArgumentParser(description="A simple agent.")
     parser.add_argument(
-        "provider", choices=["kimi", "openai", "anthropic"], help="The chat provider to use."
+        "provider",
+        choices=["kimi", "openai", "anthropic", "google"],
+        help="The chat provider to use.",
     )
     parser.add_argument(
         "--with-bash",
@@ -111,7 +116,7 @@ async def main():
     )
     args = parser.parse_args()
 
-    provider: Literal["kimi", "openai", "anthropic"] = args.provider
+    provider: Literal["kimi", "openai", "anthropic", "google"] = args.provider
     with_bash: bool = args.with_bash
 
     provider_upper = provider.upper()
@@ -146,6 +151,17 @@ async def main():
             chat_provider = Anthropic(
                 base_url=base_url, api_key=api_key, model=model, default_max_tokens=50_000
             )
+        case "google":
+            from kosong.contrib.chat_provider.google_genai import GoogleGenAI
+
+            api_key = api_key or os.getenv("GEMINI_API_KEY")
+            assert api_key is not None, (
+                "Expect GOOGLE_API_KEY or GEMINI_API_KEY environment variable"
+            )
+            model = model or "gemini-3-pro-preview"
+            chat_provider = GoogleGenAI(
+                base_url=base_url, api_key=api_key, model=model
+            ).with_thinking("high")
 
     toolset = SimpleToolset()
     if with_bash:

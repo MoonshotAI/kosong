@@ -86,7 +86,7 @@ type MessagePayload = tuple[str | None, list[MessageParam]]
 type BetaFeatures = Literal["interleaved-thinking-2025-05-14"]
 
 
-class Anthropic(ChatProvider):
+class Anthropic:
     """
     Chat provider backed by Anthropic's Messages API.
     """
@@ -297,7 +297,7 @@ class AnthropicStreamedMessage:
                 case "text":
                     yield TextPart(text=block.text)
                 case "thinking":
-                    yield ThinkPart(think=block.thinking)
+                    yield ThinkPart(think=block.thinking, encrypted=block.signature)
                 case "redacted_thinking":
                     yield ThinkPart(think="", encrypted=block.data)
                 case "tool_use":

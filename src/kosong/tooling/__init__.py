@@ -10,6 +10,7 @@ from pydantic import BaseModel, model_validator
 from pydantic.json_schema import GenerateJsonSchema
 
 from kosong.message import ContentPart, ToolCall
+from kosong.utils.jsonschema import deref_json_schema
 from kosong.utils.typing import JsonType
 
 type ParametersType = dict[str, Any]
@@ -142,7 +143,9 @@ class CallableTool2[Params: BaseModel](BaseModel, ABC):
         self._base = Tool(
             name=self.name,
             description=self.description,
-            parameters=self.params.model_json_schema(schema_generator=_GenerateJsonSchemaNoTitles),
+            parameters=deref_json_schema(
+                self.params.model_json_schema(schema_generator=_GenerateJsonSchemaNoTitles)
+            ),
         )
 
     @property
