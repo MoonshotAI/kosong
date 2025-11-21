@@ -25,7 +25,10 @@ def test_message_to_google_genai_includes_tool_use_block_for_string_content() ->
 
     assert google_genai_payload == snapshot(
         Content(
-            parts=[Part(text="6"), Part(function_call=FunctionCall(args={"x": 1}, name="foo"))],
+            parts=[
+                Part(text="6"),
+                Part(function_call=FunctionCall(id="abc", args={"x": 1}, name="foo")),
+            ],
             role="model",
         )
     )

@@ -11,7 +11,9 @@ from google.genai import client as genai_client
 from google.genai import errors as genai_errors
 from google.genai.types import (
     Content,
+    FunctionCall,
     FunctionDeclaration,
+    FunctionResponse,
     FunctionResponsePart,
     GenerateContentConfig,
     GenerateContentResponse,
@@ -277,7 +279,8 @@ class GoogleGenAIStreamedMessage:
             if func_call.name is None:
                 # Skip function calls without a name
                 return
-            tool_call_id = func_call.id if func_call.id is not None else f"call_{id(func_call)}"
+            id_ = func_call.id if func_call.id is not None else f"{id(func_call)}"
+            tool_call_id = f"{func_call.name}_{id_}"
             # Gemini uses thought_signature to store the encrypted thinking signature.
             # part.thought is synthetic
             # See: https://colab.research.google.com/github/GoogleCloudPlatform/generative-ai/blob/main/gemini/thinking/intro_thought_signatures.ipynb
@@ -434,11 +437,14 @@ def message_to_google_genai(message: Message) -> Content:
         return Content(
             role="user",
             parts=[
-                Part.from_function_response(
-                    name=message.tool_call_id,
-                    response=response_data,
-                    parts=tool_result_parts,
-                )
+                Part(
+                    function_response=FunctionResponse(
+                        id=message.tool_call_id,
+                        name=message.tool_call_id.split("_", 1)[0],
+                        response=response_data,
+                        parts=tool_result_parts,
+                    )
+                ),
             ],
         )
 
@@ -478,16 +484,18 @@ def message_to_google_genai(message: Message) -> Content:
         else:
             args = {}
 
-        function_call = Part.from_function_call(
+        function_call = FunctionCall(
+            id=tool_call.id,
             name=tool_call.function.name,
             args=args,
         )
+        function_call_part = Part(function_call=function_call)
         # Add thought_signature back to function_call
         if tool_call.extras and "thought_signature_b64" in tool_call.extras:
-            function_call.thought_signature = base64.b64decode(
+            function_call_part.thought_signature = base64.b64decode(
                 cast(str, tool_call.extras["thought_signature_b64"])
             )
-        parts.append(function_call)
+        parts.append(function_call_part)
 
     return Content(role=google_genai_role, parts=parts)
 

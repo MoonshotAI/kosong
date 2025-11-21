@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased]
+
+- Fix function call ID in `GoogleGenAI` chat provider
+
 ## [0.26.2] - 2025-11-20
 
 - Better thinking level mapping in `GoogleGenAI` chat provider
