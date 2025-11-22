@@ -123,7 +123,7 @@ class _GenerateJsonSchemaNoTitles(GenerateJsonSchema):
         json_schema.pop("title", None)
 
 
-class CallableTool2[Params: BaseModel](BaseModel, ABC):
+class CallableTool2[Params: BaseModel](ABC):
     """
     The abstract base class of tools that can be called as callables, with typed parameters.
 
@@ -138,8 +138,38 @@ class CallableTool2[Params: BaseModel](BaseModel, ABC):
     params: type[Params]
     """The Pydantic model type of the tool parameters."""
 
-    def __init__(self, **kwargs: Any) -> None:
-        super().__init__(**kwargs)
+    def __init__(
+        self,
+        name: str | None = None,
+        description: str | None = None,
+        params: type[Params] | None = None,
+    ) -> None:
+        cls = self.__class__
+
+        self.name = name or getattr(cls, "name", "")
+        if not self.name:
+            raise ValueError(
+                "Tool name must be provided either as class variable or constructor argument"
+            )
+        if not isinstance(self.name, str):  # pyright: ignore[reportUnnecessaryIsInstance]
+            raise ValueError("Tool name must be a string")
+
+        self.description = description or getattr(cls, "description", "")
+        if not self.description:
+            raise ValueError(
+                "Tool description must be provided either as class variable or constructor argument"
+            )
+        if not isinstance(self.description, str):  # pyright: ignore[reportUnnecessaryIsInstance]
+            raise ValueError("Tool description must be a string")
+
+        self.params = params or getattr(cls, "params", None)  # type: ignore
+        if not self.params:
+            raise ValueError(
+                "Tool param must be provided either as class variable or constructor argument"
+            )
+        if not isinstance(self.params, type) or not issubclass(self.params, BaseModel):  # pyright: ignore[reportUnnecessaryIsInstance]
+            raise ValueError("Tool params must be a subclass of pydantic.BaseModel")
+
         self._base = Tool(
             name=self.name,
             description=self.description,
