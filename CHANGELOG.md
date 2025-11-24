@@ -4,6 +4,9 @@
 
 - Fix function call ID in `GoogleGenAI` chat provider
 - Make `CallableTool2` not a `pydantic.BaseModel`
+- Introduce `ToolReturnValue` as the common base class of `ToolOk` and `ToolError`
+- Require `CallableTool` and `CallableTool2` to return `ToolReturnValue` instead of `ToolOk | ToolError`
+- Rename `ToolResult.result` to `ToolResult.return_value`
 
 ## [0.26.2] - 2025-11-20
 
