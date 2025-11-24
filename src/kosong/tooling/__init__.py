@@ -58,7 +58,7 @@ class ToolReturnValue(BaseModel):
     # For model
     output: list[ContentPart]
     """The output content returned by the tool."""
-    hint: str
+    message: str
     """An explanatory message to be given to the model."""
 
     # For user
@@ -88,7 +88,7 @@ class ToolOk(ToolReturnValue):
                 if isinstance(output, ContentPart)
                 else output
             ),
-            hint=message,
+            message=message,
             display=[DisplayBlock(type="brief", data=brief)] if brief else [],
         )
 
@@ -108,7 +108,7 @@ class ToolError(ToolReturnValue):
                 if isinstance(output, ContentPart)
                 else output
             ),
-            hint=message,
+            message=message,
             display=[DisplayBlock(type="brief", data=brief)] if brief else [],
         )
 

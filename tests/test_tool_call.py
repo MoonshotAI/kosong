@@ -234,7 +234,7 @@ def test_simple_toolset():
     assert isinstance(results[3].return_value, ToolRuntimeError)
     assert isinstance(results[4].return_value, ToolNotFoundError)
     assert isinstance(results[5].return_value, ToolError)
-    assert results[5].return_value.hint == "test error"
+    assert results[5].return_value.message == "test error"
     assert results[5].return_value.display[0].type == "brief"
     assert results[5].return_value.display[0].data == "Error"
 
