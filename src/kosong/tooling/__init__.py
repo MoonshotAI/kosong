@@ -68,6 +68,14 @@ class ToolReturnValue(BaseModel):
     # For debugging/testing
     extras: dict[str, JsonType] | None = None
 
+    @property
+    def brief(self) -> str:
+        """Get the brief display block data, if any."""
+        for block in self.display:
+            if block.type == "brief" and isinstance(block.data, str):
+                return block.data
+        return ""
+
 
 class ToolOk(ToolReturnValue):
     """Subclass of `ToolReturnValue` representing a successful tool call."""
