@@ -51,7 +51,7 @@ def test_tool_ok():
     assert ret.model_dump(mode="json", exclude_none=True) == snapshot(
         {
             "is_error": False,
-            "output": [{"type": "text", "text": "output text"}],
+            "output": "output text",
             "message": "This is a successful tool call.",
             "display": [{"type": "brief", "data": "a brief msg for user"}],
         }
@@ -68,7 +68,7 @@ def test_tool_error():
     assert ret.model_dump(mode="json", exclude_none=True) == snapshot(
         {
             "is_error": True,
-            "output": [{"type": "text", "text": "error output text"}],
+            "output": "error output text",
             "message": "This is a failed tool call.",
             "display": [{"type": "brief", "data": "a brief error msg for user"}],
         }
@@ -111,7 +111,7 @@ def test_tool_error_subclass():
     assert ret.model_dump(mode="json", exclude_none=True) == snapshot(
         {
             "is_error": True,
-            "output": [{"type": "text", "text": ""}],
+            "output": "",
             "message": "Tool `non_existent_tool` not found",
             "display": [{"type": "brief", "data": "Tool `non_existent_tool` not found"}],
         }

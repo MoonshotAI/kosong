@@ -7,7 +7,7 @@ import pydantic
 from pydantic import BaseModel, model_validator
 from pydantic.json_schema import GenerateJsonSchema
 
-from kosong.message import ContentPart, TextPart, ToolCall
+from kosong.message import ContentPart, ToolCall
 from kosong.utils.jsonschema import deref_json_schema
 from kosong.utils.typing import JsonType
 
@@ -55,7 +55,7 @@ class ToolReturnValue(BaseModel):
     """Whether the tool call resulted in an error."""
 
     # For model
-    output: list[ContentPart]
+    output: str | list[ContentPart]
     """The output content returned by the tool."""
     message: str
     """An explanatory message to be given to the model."""
@@ -88,13 +88,7 @@ class ToolOk(ToolReturnValue):
     ) -> None:
         super().__init__(
             is_error=False,
-            output=(
-                [TextPart(type="text", text=output)]
-                if isinstance(output, str)
-                else [output]
-                if isinstance(output, ContentPart)
-                else output
-            ),
+            output=([output] if isinstance(output, ContentPart) else output),
             message=message,
             display=[DisplayBlock(type="brief", data=brief)] if brief else [],
         )
@@ -108,13 +102,7 @@ class ToolError(ToolReturnValue):
     ):
         super().__init__(
             is_error=True,
-            output=(
-                [TextPart(type="text", text=output)]
-                if isinstance(output, str)
-                else [output]
-                if isinstance(output, ContentPart)
-                else output
-            ),
+            output=([output] if isinstance(output, ContentPart) else output),
             message=message,
             display=[DisplayBlock(type="brief", data=brief)] if brief else [],
         )
