@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.27.1] - 2025-11-24
+
+- Nothing
+
 ## [0.27.0] - 2025-11-24
 
 - Fix function call ID in `GoogleGenAI` chat provider
