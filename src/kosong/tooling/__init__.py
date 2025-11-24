@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
 from asyncio import Future
-from collections.abc import Sequence
-from dataclasses import dataclass
-from typing import Any, Protocol, Self, override, runtime_checkable
+from typing import Any, Literal, Protocol, Self, override, runtime_checkable
 
 import jsonschema
 import pydantic
@@ -34,33 +32,80 @@ class Tool(BaseModel):
         return self
 
 
-@dataclass(frozen=True, kw_only=True, slots=True)
-class ToolOk:
-    """The successful output returned by a tool."""
+class DisplayBlock(BaseModel):
+    """A block of content to be displayed to the user."""
 
-    output: str | ContentPart | Sequence[ContentPart]
-    """The output content returned by the tool."""
-    message: str = ""
-    """An explanatory message to be given to the model."""
-    brief: str = ""
-    """A brief message to be shown to the user."""
+    type: Literal["brief"] | str
+    """The type of the display block."""
+
+    data: JsonType
+    """The content of the display block."""
+
+    @model_validator(mode="after")
+    def _validate_data(self) -> Self:
+        if self.type == "brief" and not isinstance(self.data, str):
+            raise ValueError("DisplayBlock of type 'brief' must have string data")
+        return self
 
 
-# TODO: merge with ToolOk
-@dataclass(frozen=True, kw_only=True, slots=True)
-class ToolError:
-    """The error returned by a tool. This is not an exception."""
+class ToolReturnValue(BaseModel):
+    """The return type of a callable tool."""
 
-    output: str | ContentPart | Sequence[ContentPart] = ""
+    is_error: bool
+    """Whether the tool call resulted in an error."""
+
+    # For model
+    output: str | list[ContentPart]
     """The output content returned by the tool."""
     message: str
-    """An error message to be given to the model."""
-    brief: str
-    """A brief message to be shown to the user."""
+    """An explanatory message to be given to the model."""
+
+    # For user
+    display: list[DisplayBlock]
+    """The content blocks to be displayed to the user."""
+
+    # For debugging/testing
+    extras: dict[str, JsonType] | None = None
+
+    @property
+    def brief(self) -> str:
+        """Get the brief display block data, if any."""
+        for block in self.display:
+            if block.type == "brief" and isinstance(block.data, str):
+                return block.data
+        return ""
 
 
-type ToolReturnType = ToolOk | ToolError
-"""The return type of a callable tool."""
+class ToolOk(ToolReturnValue):
+    """Subclass of `ToolReturnValue` representing a successful tool call."""
+
+    def __init__(
+        self,
+        *,
+        output: str | ContentPart | list[ContentPart],
+        message: str = "",
+        brief: str = "",
+    ) -> None:
+        super().__init__(
+            is_error=False,
+            output=([output] if isinstance(output, ContentPart) else output),
+            message=message,
+            display=[DisplayBlock(type="brief", data=brief)] if brief else [],
+        )
+
+
+class ToolError(ToolReturnValue):
+    """Subclass of `ToolReturnValue` representing a failed tool call."""
+
+    def __init__(
+        self, *, message: str, brief: str, output: str | ContentPart | list[ContentPart] = ""
+    ):
+        super().__init__(
+            is_error=True,
+            output=([output] if isinstance(output, ContentPart) else output),
+            message=message,
+            display=[DisplayBlock(type="brief", data=brief)] if brief else [],
+        )
 
 
 class CallableTool(Tool, ABC):
@@ -78,7 +123,7 @@ class CallableTool(Tool, ABC):
         """The base tool definition."""
         return self
 
-    async def call(self, arguments: JsonType) -> ToolReturnType:
+    async def call(self, arguments: JsonType) -> ToolReturnValue:
         from kosong.tooling.error import ToolValidateError
 
         try:
@@ -92,7 +137,7 @@ class CallableTool(Tool, ABC):
             ret = await self.__call__(**arguments)
         else:
             ret = await self.__call__(arguments)
-        if not isinstance(ret, ToolOk | ToolError):  # pyright: ignore[reportUnnecessaryIsInstance]
+        if not isinstance(ret, ToolReturnValue):  # pyright: ignore[reportUnnecessaryIsInstance]
             # let's do not trust the return type of the tool
             ret = ToolError(
                 message=f"Invalid return type: {type(ret)}",
@@ -101,7 +146,7 @@ class CallableTool(Tool, ABC):
         return ret
 
     @abstractmethod
-    async def __call__(self, *args: Any, **kwargs: Any) -> ToolReturnType:
+    async def __call__(self, *args: Any, **kwargs: Any) -> ToolReturnValue:
         """
         @public
 
@@ -183,7 +228,7 @@ class CallableTool2[Params: BaseModel](ABC):
         """The base tool definition."""
         return self._base
 
-    async def call(self, arguments: JsonType) -> ToolReturnType:
+    async def call(self, arguments: JsonType) -> ToolReturnValue:
         from kosong.tooling.error import ToolValidateError
 
         try:
@@ -192,7 +237,7 @@ class CallableTool2[Params: BaseModel](ABC):
             return ToolValidateError(str(e))
 
         ret = await self.__call__(params)
-        if not isinstance(ret, ToolOk | ToolError):  # pyright: ignore[reportUnnecessaryIsInstance]
+        if not isinstance(ret, ToolReturnValue):  # pyright: ignore[reportUnnecessaryIsInstance]
             # let's do not trust the return type of the tool
             ret = ToolError(
                 message=f"Invalid return type: {type(ret)}",
@@ -201,7 +246,7 @@ class CallableTool2[Params: BaseModel](ABC):
         return ret
 
     @abstractmethod
-    async def __call__(self, params: Params) -> ToolReturnType:
+    async def __call__(self, params: Params) -> ToolReturnValue:
         """
         @public
 
@@ -210,13 +255,12 @@ class CallableTool2[Params: BaseModel](ABC):
         ...
 
 
-@dataclass(frozen=True)
-class ToolResult:
+class ToolResult(BaseModel):
     """The result of a tool call."""
 
     tool_call_id: str
     """The ID of the tool call."""
-    result: ToolReturnType
+    return_value: ToolReturnValue
     """The actual return value of the tool call."""
 
 

@@ -11,7 +11,7 @@ from kosong.tooling import (
     HandleResult,
     Tool,
     ToolResult,
-    ToolReturnType,
+    ToolReturnValue,
     Toolset,
 )
 from kosong.tooling.error import (
@@ -51,9 +51,9 @@ class SimpleToolset:
         Add a tool to the toolset.
         """
         return_annotation = inspect.signature(tool.__call__).return_annotation
-        if return_annotation is not ToolReturnType:
+        if return_annotation is not ToolReturnValue:
             raise TypeError(
-                f"Expected tool `{tool.name}` to return `ToolReturnType`, "
+                f"Expected tool `{tool.name}` to return `ToolReturnValue`, "
                 f"but got `{return_annotation}`"
             )
         self._tool_dict[tool.name] = tool
@@ -76,8 +76,8 @@ class SimpleToolset:
     def handle(self, tool_call: ToolCall) -> HandleResult:
         if tool_call.function.name not in self._tool_dict:
             return ToolResult(
-                tool_call.id,
-                ToolNotFoundError(tool_call.function.name),
+                tool_call_id=tool_call.id,
+                return_value=ToolNotFoundError(tool_call.function.name),
             )
 
         tool = self._tool_dict[tool_call.function.name]
@@ -85,13 +85,13 @@ class SimpleToolset:
         try:
             arguments: JsonType = json.loads(tool_call.function.arguments or "{}")
         except json.JSONDecodeError as e:
-            return ToolResult(tool_call.id, ToolParseError(str(e)))
+            return ToolResult(tool_call_id=tool_call.id, return_value=ToolParseError(str(e)))
 
         async def _call():
             try:
                 ret = await tool.call(arguments)
-                return ToolResult(tool_call.id, ret)
+                return ToolResult(tool_call_id=tool_call.id, return_value=ret)
             except Exception as e:
-                return ToolResult(tool_call.id, ToolRuntimeError(str(e)))
+                return ToolResult(tool_call_id=tool_call.id, return_value=ToolRuntimeError(str(e)))
 
         return asyncio.create_task(_call())
