@@ -1,4 +1,5 @@
 import copy
+import json
 import uuid
 from collections.abc import AsyncIterator, Sequence
 from typing import TYPE_CHECKING, Any, Self, Unpack, cast
@@ -26,7 +27,16 @@ from kosong.chat_provider import (
     ThinkingEffort,
     TokenUsage,
 )
-from kosong.message import ContentPart, Message, TextPart, ThinkPart, ToolCall, ToolCallPart
+from kosong.message import (
+    AudioURLPart,
+    ContentPart,
+    ImageURLPart,
+    Message,
+    TextPart,
+    ThinkPart,
+    ToolCall,
+    ToolCallPart,
+)
 from kosong.tooling import Tool
 
 if TYPE_CHECKING:
@@ -170,11 +180,30 @@ def message_to_openai(message: Message, reasoning_key: str | None) -> ChatComple
             if isinstance(part, TextPart):
                 if part.text:
                     serialized_parts.append(part.text)
+            elif isinstance(part, ImageURLPart):
+                serialized_parts.append(
+                    json.dumps(
+                        {
+                            "type": "image_url",
+                            "image_url": part.image_url.model_dump(exclude_none=True),
+                        }
+                    )
+                )
+            elif isinstance(part, AudioURLPart):
+                serialized_parts.append(
+                    json.dumps(
+                        {
+                            "type": "audio_url",
+                            "audio_url": part.audio_url.model_dump(exclude_none=True),
+                        }
+                    )
+                )
             else:
-                serialized_parts.append(part.model_dump_json(exclude_none=True))
+                # Skip ThinkPart and other unsupported parts to avoid noisy tool messages
+                continue
         serialized_content = "\n".join(serialized_parts)
-        # If no content parts remain, avoid setting empty string; use None instead
-        message.content = serialized_content if serialized_content else None
+        # If no content parts remain, avoid setting empty content
+        message.content = serialized_content if serialized_content else []
 
     reasoning_content: str = ""
     content: list[ContentPart] = []
