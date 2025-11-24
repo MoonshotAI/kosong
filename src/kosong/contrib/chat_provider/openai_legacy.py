@@ -162,6 +162,20 @@ def message_to_openai(message: Message, reasoning_key: str | None) -> ChatComple
     # So we use `system` role here. OpenAIResponses will use `developer` role.
     # See https://cdn.openai.com/spec/model-spec-2024-05-08.html#definitions
     message = message.model_copy(deep=True)
+
+    # Tool messages must use string content for OpenAI-compatible APIs
+    if message.role == "tool" and isinstance(message.content, list):
+        serialized_parts: list[str] = []
+        for part in message.content:
+            if isinstance(part, TextPart):
+                if part.text:
+                    serialized_parts.append(part.text)
+            else:
+                serialized_parts.append(part.model_dump_json(exclude_none=True))
+        serialized_content = "\n".join(serialized_parts)
+        # If no content parts remain, avoid setting empty string; use None instead
+        message.content = serialized_content if serialized_content else None
+
     reasoning_content: str = ""
     content: list[ContentPart] = []
     for part in message.content:
