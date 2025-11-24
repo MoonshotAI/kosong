@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [0.27.0] - 2025-11-24
 
 - Fix function call ID in `GoogleGenAI` chat provider
 - Make `CallableTool2` not a `pydantic.BaseModel`
