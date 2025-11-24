@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from asyncio import Future
-from dataclasses import dataclass
 from typing import Any, Literal, Protocol, Self, override, runtime_checkable
 
 import jsonschema
@@ -268,8 +267,7 @@ class CallableTool2[Params: BaseModel](ABC):
         ...
 
 
-@dataclass(frozen=True)
-class ToolResult:
+class ToolResult(BaseModel):
     """The result of a tool call."""
 
     tool_call_id: str

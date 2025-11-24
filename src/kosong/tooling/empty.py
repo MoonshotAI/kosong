@@ -18,4 +18,7 @@ class EmptyToolset:
         return []
 
     def handle(self, tool_call: ToolCall) -> HandleResult:
-        return ToolResult(tool_call.id, ToolNotFoundError(tool_call.function.name))
+        return ToolResult(
+            tool_call_id=tool_call.id,
+            return_value=ToolNotFoundError(tool_call.function.name),
+        )
