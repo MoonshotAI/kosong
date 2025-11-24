@@ -11,7 +11,7 @@ from kosong.tooling import (
     HandleResult,
     Tool,
     ToolResult,
-    ToolReturnType,
+    ToolReturnValue,
     Toolset,
 )
 from kosong.tooling.error import (
@@ -51,9 +51,9 @@ class SimpleToolset:
         Add a tool to the toolset.
         """
         return_annotation = inspect.signature(tool.__call__).return_annotation
-        if return_annotation is not ToolReturnType:
+        if return_annotation is not ToolReturnValue:
             raise TypeError(
-                f"Expected tool `{tool.name}` to return `ToolReturnType`, "
+                f"Expected tool `{tool.name}` to return `ToolReturnValue`, "
                 f"but got `{return_annotation}`"
             )
         self._tool_dict[tool.name] = tool
