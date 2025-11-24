@@ -65,6 +65,9 @@ class ToolReturnValue(BaseModel):
     display: list[DisplayBlock]
     """The content blocks to be displayed to the user."""
 
+    # For debugging/testing
+    extras: dict[str, JsonType] | None = None
+
 
 class ToolOk(ToolReturnValue):
     """Subclass of `ToolReturnValue` representing a successful tool call."""
