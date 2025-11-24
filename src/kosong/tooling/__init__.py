@@ -283,11 +283,11 @@ class Toolset(Protocol):
         """
         Handle a tool call.
         The result of the tool call, or the async future of the result, should be returned.
-        The result should be a `ToolReturnType`, which means `ToolOk` or `ToolError`.
+        The result should be a `ToolReturnValue`.
 
         This method MUST NOT do any blocking operations because it will be called during
         consuming the chat response stream.
         This method MUST NOT raise any exception except for `asyncio.CancelledError`. Any other
-        error should be returned as a `ToolError`.
+        error should be returned as a `ToolReturnValue` with `is_error=True`.
         """
         ...
