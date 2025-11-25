@@ -56,18 +56,17 @@ class ChaosTransport(httpx.AsyncBaseTransport):
     def __init__(self, wrapped_transport: httpx.AsyncBaseTransport, config: ChaosConfig):
         self._wrapped = wrapped_transport
         self._config = config
-        if config.seed is not None:
-            random.seed(config.seed)
+        self._rng = random.Random(config.seed)
 
     async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
         if self._should_inject_error():
-            error_code = random.choice(self._config.error_types)
+            error_code = self._rng.choice(self._config.error_types)
             return self._create_error_response(request, error_code)
 
         return await self._wrapped.handle_async_request(request)
 
     def _should_inject_error(self) -> bool:
-        return random.random() < self._config.error_probability
+        return self._rng.random() < self._config.error_probability
 
     def _create_error_response(self, request: httpx.Request, status_code: int) -> httpx.Response:
         error_messages = {
@@ -161,17 +160,16 @@ class ChaosChatProvider(ChatProvider):
             if nested and hasattr(nested, "_transport"):
                 return nested
 
-        for owner in candidates:
-            if hasattr(owner, "_transport"):
-                return owner
-
         raise ChatProviderError(
             "ChaosChatProvider only supports providers backed by httpx.AsyncBaseTransport"
         )
 
     @property
     def model_name(self) -> str:
-        if self._chaos_config.error_probability > 0:
+        if (
+            self._chaos_config.error_probability > 0
+            or self._chaos_config.corrupt_tool_call_probability > 0
+        ):
             return f"chaos({self._provider.model_name})"
         return self._provider.model_name
 
@@ -179,11 +177,13 @@ class ChaosChatProvider(ChatProvider):
         return ChaosChatProvider(self._provider.with_thinking(effort), self._chaos_config)
 
     @classmethod
-    def for_kimi(cls, **kwargs: Any) -> "ChaosChatProvider":
+    def for_kimi(
+        cls, chaos_config: ChaosConfig | None = None, **kwargs: Any
+    ) -> "ChaosChatProvider":
         """Helper to wrap a Kimi provider without changing caller sites."""
         from kosong.chat_provider.kimi import Kimi
 
-        return cls(Kimi(**kwargs))
+        return cls(Kimi(**kwargs), chaos_config=chaos_config)
 
 
 class ChaosStreamedMessage(StreamedMessage):
@@ -192,6 +192,7 @@ class ChaosStreamedMessage(StreamedMessage):
     def __init__(self, wrapped: StreamedMessage, config: ChaosConfig):
         self._wrapped = wrapped
         self._config = config
+        self._rng = random.Random(config.seed)
         self._iterator = wrapped.__aiter__()
 
     def __aiter__(self) -> AsyncIterator[StreamedMessagePart]:
@@ -211,7 +212,7 @@ class ChaosStreamedMessage(StreamedMessage):
 
     def _should_corrupt_tool_call(self) -> bool:
         probability = self._config.corrupt_tool_call_probability
-        return probability > 0 and random.random() < probability
+        return probability > 0 and self._rng.random() < probability
 
     def _maybe_corrupt_tool_call(self, part: StreamedMessagePart) -> StreamedMessagePart:
         if not self._should_corrupt_tool_call():
