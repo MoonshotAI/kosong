@@ -7,8 +7,14 @@ from typing import TYPE_CHECKING, Any
 import httpx
 from pydantic import BaseModel
 
-from kosong.chat_provider import ChatProvider, StreamedMessage, StreamedMessagePart, TokenUsage
-from kosong.chat_provider.kimi import Kimi, KimiStreamedMessage
+from kosong.chat_provider import (
+    ChatProvider,
+    ChatProviderError,
+    StreamedMessage,
+    StreamedMessagePart,
+    ThinkingEffort,
+    TokenUsage,
+)
 from kosong.message import Message, ToolCall, ToolCallPart
 from kosong.tooling import Tool
 
@@ -92,19 +98,13 @@ class ChaosTransport(httpx.AsyncBaseTransport):
         )
 
 
-class ChaosChatProvider(Kimi):
-    """Kimi chat provider with chaos error injection."""
+class ChaosChatProvider(ChatProvider):
+    """Wrap a chat provider and inject chaos into its HTTP transport and streamed tool calls."""
 
-    def __init__(
-        self,
-        model: str,
-        api_key: str | None = None,
-        base_url: str | None = None,
-        chaos_config: ChaosConfig | None = None,
-        **client_kwargs: Any,
-    ):
-        super().__init__(model=model, api_key=api_key, base_url=base_url, **client_kwargs)
+    def __init__(self, provider: ChatProvider, chaos_config: ChaosConfig | None = None):
+        self._provider = provider
         self._chaos_config = chaos_config or ChaosConfig.from_env()
+        self.name: str = provider.name
         self._monkey_patch_client()
 
     async def generate(
@@ -113,23 +113,80 @@ class ChaosChatProvider(Kimi):
         tools: Sequence[Tool],
         history: Sequence[Message],
     ) -> "ChaosStreamedMessage":
-        base_stream = await super().generate(system_prompt, tools, history)
+        base_stream = await self._provider.generate(system_prompt, tools, history)
         return ChaosStreamedMessage(base_stream, self._chaos_config)
 
     def _monkey_patch_client(self):
-        """Inject chaos transport into the client."""
-        original_transport = self.client._client._transport  # pyright: ignore[reportPrivateUsage]
-        chaos_transport = ChaosTransport(original_transport, self._chaos_config)
-        self.client._client._transport = chaos_transport  # pyright: ignore[reportPrivateUsage]
+        """
+        Inject chaos transport into providers backed by httpx AsyncBaseTransport.
+
+        Supported today (explicit list):
+        - Kimi
+        - OpenAILegacy
+        - Anthropic
+
+        The provider must expose an AsyncOpenAI/Anthropic/httpx client via `.client`,
+        `.client._client`, or `._client`. Providers without an accessible httpx transport
+        will raise ChatProviderError.
+        """
+        transport_owner = self._find_transport_owner()
+        transport = getattr(transport_owner, "_transport", None)
+        if not isinstance(transport, httpx.AsyncBaseTransport):
+            raise ChatProviderError(
+                "ChaosChatProvider only supports providers backed by httpx.AsyncBaseTransport"
+            )
+
+        chaos_transport = ChaosTransport(transport, self._chaos_config)
+        transport_owner._transport = chaos_transport  # pyright: ignore[reportPrivateUsage]
+
+    def _find_transport_owner(self) -> Any:
+        """Locate the object that owns the httpx transport."""
+        candidates: list[Any] = []
+
+        client = getattr(self._provider, "client", None)
+        if client is not None:
+            candidates.append(client)
+            raw_client = getattr(client, "_client", None)
+            if raw_client is not None:
+                candidates.append(raw_client)
+
+        inner_client = getattr(self._provider, "_client", None)
+        if inner_client is not None:
+            candidates.append(inner_client)
+
+        for owner in candidates:
+            if hasattr(owner, "_transport"):
+                return owner
+            nested = getattr(owner, "_client", None)
+            if nested and hasattr(nested, "_transport"):
+                return nested
+
+        for owner in candidates:
+            if hasattr(owner, "_transport"):
+                return owner
+
+        raise ChatProviderError(
+            "ChaosChatProvider only supports providers backed by httpx.AsyncBaseTransport"
+        )
 
     @property
     def model_name(self) -> str:
         if self._chaos_config.error_probability > 0:
-            return f"chaos({super().model_name})"
-        return super().model_name
+            return f"chaos({self._provider.model_name})"
+        return self._provider.model_name
+
+    def with_thinking(self, effort: ThinkingEffort) -> "ChaosChatProvider":
+        return ChaosChatProvider(self._provider.with_thinking(effort), self._chaos_config)
+
+    @classmethod
+    def for_kimi(cls, **kwargs: Any) -> "ChaosChatProvider":
+        """Helper to wrap a Kimi provider without changing caller sites."""
+        from kosong.chat_provider.kimi import Kimi
+
+        return cls(Kimi(**kwargs))
 
 
-class ChaosStreamedMessage(KimiStreamedMessage):
+class ChaosStreamedMessage(StreamedMessage):
     """Stream wrapper that injects chaos into tool calls."""
 
     def __init__(self, wrapped: StreamedMessage, config: ChaosConfig):
@@ -180,3 +237,39 @@ class ChaosStreamedMessage(KimiStreamedMessage):
         corrupted = part.model_copy(deep=True)
         corrupted.arguments_part = arguments[:-1]
         return corrupted
+
+
+if __name__ == "__main__":
+
+    async def _dev_main_anthropic():
+        from dotenv import load_dotenv
+
+        from kosong.contrib.chat_provider.anthropic import Anthropic
+        from kosong.message import Message, TextPart
+
+        load_dotenv()
+
+        provider = Anthropic(
+            model="claude-3-5-sonnet-latest",
+            api_key=os.getenv("ANTHROPIC_API_KEY"),
+            default_max_tokens=64,
+            stream=True,
+        )
+        chat = ChaosChatProvider(
+            provider,
+            ChaosConfig(
+                error_probability=0.0,
+                corrupt_tool_call_probability=0.2,
+                seed=42,
+            ),
+        )
+        history = [Message(role="user", content=[TextPart(text="Say hello briefly.")])]
+        stream = await chat.generate(system_prompt="", tools=[], history=history)
+        async for part in stream:
+            print(part.model_dump(exclude_none=True))
+        print("id:", stream.id)
+        print("usage:", stream.usage)
+
+    import asyncio
+
+    asyncio.run(_dev_main_anthropic())
