@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.27.2] - 2025-11-25
+
+- Support non-OpenAI models in `OpenAIResponse` chat provider which do not accept `developer` role in system prompt.
+
 ## [0.27.1] - 2025-11-24
 
 - Nothing

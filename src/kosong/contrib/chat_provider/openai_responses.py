@@ -72,6 +72,11 @@ def get_openai_models_set() -> set[str]:
 _openai_models = get_openai_models_set()
 
 
+def is_openai_model(model_name: str) -> bool:
+    """Judge if the model name is an OpenAI model."""
+    return model_name in _openai_models
+
+
 class OpenAIResponses:
     """
     A chat provider that uses the OpenAI Responses API.
@@ -121,12 +126,6 @@ class OpenAIResponses:
     def model_name(self) -> str:
         return self._model
 
-    @property
-    def _is_openai_model(self) -> bool:
-        """judge if the model is an OpenAI model"""
-        # we use `developer` role for system prompts in openai models
-        return self.model_name in _openai_models
-
     async def generate(
         self,
         system_prompt: str,
@@ -136,13 +135,13 @@ class OpenAIResponses:
         inputs: ResponseInputParam = []
         if system_prompt:
             system_message: ResponseInputItemParam = {"role": "system", "content": system_prompt}
-            if self._is_openai_model:
+            if is_openai_model(self.model_name):
                 system_message["role"] = "developer"
             inputs.append(system_message)
         # The `Message` type is OpenAI-compatible for Responses API `input` messages.
 
         for m in history:
-            inputs.extend(message_to_openai(m, self._is_openai_model))
+            inputs.extend(message_to_openai(m, is_openai_model(self.model_name)))
 
         generation_kwargs: dict[str, Any] = {}
         generation_kwargs.update(self._generation_kwargs)
