@@ -1,13 +1,16 @@
 import json
 import os
 import random
+from collections.abc import AsyncIterator, Sequence
 from typing import TYPE_CHECKING, Any
 
 import httpx
 from pydantic import BaseModel
 
-from kosong.chat_provider import ChatProvider
-from kosong.chat_provider.kimi import Kimi
+from kosong.chat_provider import ChatProvider, StreamedMessage, StreamedMessagePart, TokenUsage
+from kosong.chat_provider.kimi import Kimi, KimiStreamedMessage
+from kosong.message import Message, ToolCall, ToolCallPart
+from kosong.tooling import Tool
 
 if TYPE_CHECKING:
 
@@ -22,6 +25,7 @@ class ChaosConfig(BaseModel):
     error_types: list[int] = [429, 500, 502, 503]
     retry_after: int = 2
     seed: int | None = None
+    corrupt_tool_call_probability: float = 0.1
 
     @classmethod
     def from_env(cls) -> "ChaosConfig":
@@ -34,6 +38,9 @@ class ChaosConfig(BaseModel):
             ],
             retry_after=int(os.getenv("CHAOS_RETRY_AFTER", "2")),
             seed=int(seed_str) if seed_str else None,
+            corrupt_tool_call_probability=float(
+                os.getenv("CHAOS_CORRUPT_TOOL_CALL_PROBABILITY", "0.1")
+            ),
         )
 
 
@@ -100,6 +107,15 @@ class ChaosChatProvider(Kimi):
         self._chaos_config = chaos_config or ChaosConfig.from_env()
         self._monkey_patch_client()
 
+    async def generate(
+        self,
+        system_prompt: str,
+        tools: Sequence[Tool],
+        history: Sequence[Message],
+    ) -> "ChaosStreamedMessage":
+        base_stream = await super().generate(system_prompt, tools, history)
+        return ChaosStreamedMessage(base_stream, self._chaos_config)
+
     def _monkey_patch_client(self):
         """Inject chaos transport into the client."""
         original_transport = self.client._client._transport  # pyright: ignore[reportPrivateUsage]
@@ -111,3 +127,56 @@ class ChaosChatProvider(Kimi):
         if self._chaos_config.error_probability > 0:
             return f"chaos({super().model_name})"
         return super().model_name
+
+
+class ChaosStreamedMessage(KimiStreamedMessage):
+    """Stream wrapper that injects chaos into tool calls."""
+
+    def __init__(self, wrapped: StreamedMessage, config: ChaosConfig):
+        self._wrapped = wrapped
+        self._config = config
+        self._iterator = wrapped.__aiter__()
+
+    def __aiter__(self) -> AsyncIterator[StreamedMessagePart]:
+        return self
+
+    async def __anext__(self) -> StreamedMessagePart:
+        part = await self._iterator.__anext__()
+        return self._maybe_corrupt_tool_call(part)
+
+    @property
+    def id(self) -> str | None:
+        return self._wrapped.id
+
+    @property
+    def usage(self) -> TokenUsage | None:
+        return self._wrapped.usage
+
+    def _should_corrupt_tool_call(self) -> bool:
+        probability = self._config.corrupt_tool_call_probability
+        return probability > 0 and random.random() < probability
+
+    def _maybe_corrupt_tool_call(self, part: StreamedMessagePart) -> StreamedMessagePart:
+        if not self._should_corrupt_tool_call():
+            return part
+        if isinstance(part, ToolCall):
+            return self._corrupt_tool_call(part)
+        if isinstance(part, ToolCallPart):
+            return self._corrupt_tool_call_part(part)
+        return part
+
+    def _corrupt_tool_call(self, tool_call: ToolCall) -> StreamedMessagePart:
+        arguments = tool_call.function.arguments
+        if arguments is None or not arguments.endswith("}"):
+            return tool_call
+        corrupted = tool_call.model_copy(deep=True)
+        corrupted.function.arguments = arguments[:-1]
+        return corrupted
+
+    def _corrupt_tool_call_part(self, part: ToolCallPart) -> StreamedMessagePart:
+        arguments = part.arguments_part
+        if arguments is None or not arguments.endswith("}"):
+            return part
+        corrupted = part.model_copy(deep=True)
+        corrupted.arguments_part = arguments[:-1]
+        return corrupted
