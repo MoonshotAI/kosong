@@ -97,7 +97,7 @@ class ChaosTransport(httpx.AsyncBaseTransport):
         )
 
 
-class ChaosChatProvider(ChatProvider):
+class ChaosChatProvider:
     """Wrap a chat provider and inject chaos into its HTTP transport and streamed tool calls."""
 
     def __init__(self, provider: ChatProvider, chaos_config: ChaosConfig | None = None):
@@ -186,7 +186,7 @@ class ChaosChatProvider(ChatProvider):
         return cls(Kimi(**kwargs), chaos_config=chaos_config)
 
 
-class ChaosStreamedMessage(StreamedMessage):
+class ChaosStreamedMessage:
     """Stream wrapper that injects chaos into tool calls."""
 
     def __init__(self, wrapped: StreamedMessage, config: ChaosConfig):
