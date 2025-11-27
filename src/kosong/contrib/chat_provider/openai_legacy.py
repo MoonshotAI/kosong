@@ -173,37 +173,40 @@ def message_to_openai(message: Message, reasoning_key: str | None) -> ChatComple
     # See https://cdn.openai.com/spec/model-spec-2024-05-08.html#definitions
     message = message.model_copy(deep=True)
 
+    serialized_tool_content: list[str] | None = None
     # Tool messages must use string content for OpenAI-compatible APIs
     if message.role == "tool" and isinstance(message.content, list):
         serialized_parts: list[str] = []
         for part in message.content:
             if isinstance(part, TextPart):
                 if part.text:
-                    serialized_parts.append(part.text)
+                    serialized_parts.append(f"TextPart(text={part.text!r})")
             elif isinstance(part, ImageURLPart):
+                image_url_payload = part.image_url.model_dump(exclude_none=True)
+                image_url_repr = (
+                    image_url_payload["url"]
+                    if len(image_url_payload) == 1
+                    else json.dumps(image_url_payload, separators=(",", ":"))
+                )
                 serialized_parts.append(
-                    json.dumps(
-                        {
-                            "type": "image_url",
-                            "image_url": part.image_url.model_dump(exclude_none=True),
-                        }
-                    )
+                    f"ImageURLPart(type='image_url',image_url={image_url_repr!r})"
                 )
             elif isinstance(part, AudioURLPart):
+                audio_url_payload = part.audio_url.model_dump(exclude_none=True)
+                audio_url_repr = (
+                    audio_url_payload["url"]
+                    if len(audio_url_payload) == 1
+                    else json.dumps(audio_url_payload, separators=(",", ":"))
+                )
                 serialized_parts.append(
-                    json.dumps(
-                        {
-                            "type": "audio_url",
-                            "audio_url": part.audio_url.model_dump(exclude_none=True),
-                        }
-                    )
+                    f"AudioURLPart(type='audio_url',audio_url={audio_url_repr!r})"
                 )
             else:
                 # Skip ThinkPart and other unsupported parts to avoid noisy tool messages
                 continue
-        serialized_content = "\n".join(serialized_parts)
-        # If no content parts remain, avoid setting empty content
-        message.content = serialized_content if serialized_content else []
+        serialized_tool_content = serialized_parts or None
+        # Reset content before model_dump; we'll inject serialized_tool_content later.
+        message.content = []
 
     reasoning_content: str = ""
     content: list[ContentPart] = []
@@ -214,6 +217,8 @@ def message_to_openai(message: Message, reasoning_key: str | None) -> ChatComple
             content.append(part)
     message.content = content
     dumped_message = message.model_dump(exclude_none=True)
+    if serialized_tool_content is not None:
+        dumped_message["content"] = serialized_tool_content
     if reasoning_content:
         assert reasoning_key, "reasoning_key must not be empty if reasoning_content exists"
         dumped_message[reasoning_key] = reasoning_content

@@ -24,12 +24,11 @@ def test_message_to_openai_serializes_tool_content_parts():
     assert "content" in converted
     content = converted["content"]
 
-    assert isinstance(content, str)
-    assert "result text" in content
-    assert '"type": "image_url"' in content
-    assert "image.png" in content
-    assert '"type": "audio_url"' in content
-    assert "audio.mp3" in content
+    assert content == [
+        "TextPart(text='result text')",
+        "ImageURLPart(type='image_url',image_url='https://example.com/image.png')",
+        "AudioURLPart(type='audio_url',audio_url='https://example.com/audio.mp3')",
+    ]
 
 
 def test_message_to_openai_skips_unsupported_tool_content_parts():
@@ -51,7 +50,4 @@ def test_message_to_openai_skips_unsupported_tool_content_parts():
     assert "content" in converted
     content = converted["content"]
 
-    assert isinstance(content, str)
-    assert content == "kept text"
-    assert "secret" not in content
-    assert "ignore me" not in content
+    assert content == ["TextPart(text='kept text')"]
