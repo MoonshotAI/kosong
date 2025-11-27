@@ -173,7 +173,7 @@ def message_to_openai(message: Message, reasoning_key: str | None) -> ChatComple
     # See https://cdn.openai.com/spec/model-spec-2024-05-08.html#definitions
     message = message.model_copy(deep=True)
 
-    serialized_tool_content: list[str] | None = None
+    serialized_tool_content: str | None = None
     # Tool messages must use string content for OpenAI-compatible APIs
     if message.role == "tool" and isinstance(message.content, list):
         serialized_parts: list[str] = []
@@ -204,7 +204,7 @@ def message_to_openai(message: Message, reasoning_key: str | None) -> ChatComple
             else:
                 # Skip ThinkPart and other unsupported parts to avoid noisy tool messages
                 continue
-        serialized_tool_content = serialized_parts or None
+        serialized_tool_content = "\n".join(serialized_parts) or None
         # Reset content before model_dump; we'll inject serialized_tool_content later.
         message.content = []
 
