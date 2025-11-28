@@ -34,6 +34,7 @@ from anthropic.types import (
     ContentBlockParam,
     ImageBlockParam,
     MessageDeltaEvent,
+    MessageDeltaUsage,
     MessageParam,
     MessageStartEvent,
     RawContentBlockDeltaEvent,
@@ -244,7 +245,7 @@ class AnthropicStreamedMessage:
         else:
             self._iter = self._convert_stream_response(response)
         self._id: str | None = None
-        self._usage: Usage | None = None
+        self._usage = Usage(input_tokens=0, output_tokens=0)
 
     def __aiter__(self) -> AsyncIterator[StreamedMessagePart]:
         return self
@@ -258,15 +259,24 @@ class AnthropicStreamedMessage:
 
     @property
     def usage(self) -> TokenUsage | None:
-        if self._usage is None:
-            return None
         # https://docs.claude.com/en/docs/build-with-claude/prompt-caching#tracking-cache-performance
         return TokenUsage(
-            input_other=self._usage.input_tokens,
+            # Note: in some Anthropic-compatible APIs, input_tokens can be None
+            input_other=self._usage.input_tokens or 0,
             output=self._usage.output_tokens,
             input_cache_read=self._usage.cache_read_input_tokens or 0,
             input_cache_creation=self._usage.cache_creation_input_tokens or 0,
         )
+
+    def _update_usage(self, delta_usage: MessageDeltaUsage) -> None:
+        if delta_usage.cache_creation_input_tokens is not None:
+            self._usage.cache_creation_input_tokens = delta_usage.cache_creation_input_tokens
+        if delta_usage.cache_read_input_tokens is not None:
+            self._usage.cache_read_input_tokens = delta_usage.cache_read_input_tokens
+        if delta_usage.input_tokens is not None:
+            self._usage.input_tokens = delta_usage.input_tokens
+        if delta_usage.output_tokens is not None:  # type: ignore
+            self._usage.output_tokens = delta_usage.output_tokens
 
     async def _convert_non_stream_response(
         self,
@@ -301,6 +311,9 @@ class AnthropicStreamedMessage:
                 async for event in stream:
                     if isinstance(event, MessageStartEvent):
                         self._id = event.message.id
+                        # Capture initial usage from start event
+                        # (contains initial prompt/input token usage)
+                        self._usage = event.message.usage
                     elif isinstance(event, RawContentBlockStartEvent):
                         block = event.content_block
                         match block.type:
@@ -333,7 +346,8 @@ class AnthropicStreamedMessage:
                                 # ignore
                                 continue
                     elif isinstance(event, MessageDeltaEvent):
-                        self._usage = cast(Usage, event.usage)
+                        if event.usage:
+                            self._update_usage(event.usage)
                     elif isinstance(event, MessageStopEvent):
                         continue
         except AnthropicError as exc:
