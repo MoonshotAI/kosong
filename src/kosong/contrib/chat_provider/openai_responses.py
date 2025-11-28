@@ -1,7 +1,7 @@
 import copy
 import uuid
 from collections.abc import AsyncIterator, Sequence
-from typing import TYPE_CHECKING, Any, Self, TypedDict, Unpack, cast
+from typing import TYPE_CHECKING, Any, Self, TypedDict, Unpack, cast, get_args
 
 import httpx
 from openai import AsyncOpenAI, AsyncStream, OpenAIError
@@ -28,6 +28,7 @@ from openai.types.responses.response_input_message_content_list_param import (
 )
 from openai.types.shared.reasoning import Reasoning
 from openai.types.shared.reasoning_effort import ReasoningEffort
+from openai.types.shared_params.responses_model import ResponsesModel
 
 from kosong.chat_provider import ChatProvider, StreamedMessagePart, ThinkingEffort, TokenUsage
 from kosong.contrib.chat_provider.openai_legacy import (
@@ -50,6 +51,30 @@ if TYPE_CHECKING:
 
     def type_check(openai_responses: "OpenAIResponses"):
         _: ChatProvider = openai_responses
+
+
+def get_openai_models_set() -> set[str]:
+    """Return a set of all available OpenAI response models.
+
+    This extracts all literal values from the ResponsesModel TypeAlias, which includes
+    both ChatModel and additional response-specific models.
+    """
+    responses_model_args = get_args(ResponsesModel)
+    # responses_model_args is (str, ChatModel, Literal[...])
+    # Extract from ChatModel (index 1)
+    chat_models = set(get_args(responses_model_args[1]))
+    # Extract from the Literal part (index 2)
+    response_models = set(get_args(responses_model_args[2]))
+
+    return chat_models | response_models
+
+
+_openai_models = get_openai_models_set()
+
+
+def is_openai_model(model_name: str) -> bool:
+    """Judge if the model name is an OpenAI model."""
+    return model_name in _openai_models
 
 
 class OpenAIResponses:
@@ -109,11 +134,14 @@ class OpenAIResponses:
     ) -> "OpenAIResponsesStreamedMessage":
         inputs: ResponseInputParam = []
         if system_prompt:
-            inputs.append({"role": "developer", "content": system_prompt})
+            system_message: ResponseInputItemParam = {"role": "system", "content": system_prompt}
+            if is_openai_model(self.model_name):
+                system_message["role"] = "developer"
+            inputs.append(system_message)
         # The `Message` type is OpenAI-compatible for Responses API `input` messages.
 
         for m in history:
-            inputs.extend(message_to_openai(m))
+            inputs.extend(message_to_openai(m, is_openai_model(self.model_name)))
 
         generation_kwargs: dict[str, Any] = {}
         generation_kwargs.update(self._generation_kwargs)
@@ -176,11 +204,14 @@ def tool_to_openai(tool: Tool) -> ToolParam:
     }
 
 
-def message_to_openai(message: Message) -> list[ResponseInputItemParam]:
+def message_to_openai(
+    message: Message, is_openai_model: bool = False
+) -> list[ResponseInputItemParam]:
     """Convert a single message to OpenAI Responses input format.
 
     Rules:
-    - role in {user, developer, assistant}: map to EasyInputMessageParam
+    - role in {user, assistant}: map to EasyInputMessageParam with role kept
+      role == system: map to role=developer for OpenAI models, otherwise kept
       content: str kept; list[ContentPart] mapped to ResponseInputMessageContentListParam
     - role == tool: map to FunctionCallOutput with call_id and output
     """
@@ -212,7 +243,8 @@ def message_to_openai(message: Message) -> list[ResponseInputItemParam]:
             {
                 # for openai, we should use `developer` role, although `system` is still accepted
                 # See https://cdn.openai.com/spec/model-spec-2024-05-08.html#definitions
-                "role": role if role != "system" else "developer",
+                # for other non-OpenAI models not supporting `developer` role, we keep `system` role
+                "role": role if (role != "system" or not is_openai_model) else "developer",
                 "type": "message",
                 "content": content,
             }

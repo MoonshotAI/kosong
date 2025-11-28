@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.27.2] - 2025-11-25
+
+- Support non-OpenAI models which do not accept `developer` role in system prompt in `OpenAIResponses` chat provider
+
+## [0.27.1] - 2025-11-24
+
+- Nothing
+
+## [0.27.0] - 2025-11-24
+
+- Fix function call ID in `GoogleGenAI` chat provider
+- Make `CallableTool2` not a `pydantic.BaseModel`
+- Introduce `ToolReturnValue` as the common base class of `ToolOk` and `ToolError`
+- Require `CallableTool` and `CallableTool2` to return `ToolReturnValue` instead of `ToolOk | ToolError`
+- Rename `ToolResult.result` to `ToolResult.return_value`
+
 ## [0.26.2] - 2025-11-20
 
 - Better thinking level mapping in `GoogleGenAI` chat provider

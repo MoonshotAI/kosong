@@ -106,7 +106,7 @@ import kosong
 from kosong import StepResult
 from kosong.chat_provider.kimi import Kimi
 from kosong.message import Message
-from kosong.tooling import CallableTool2, ToolOk, ToolReturnType
+from kosong.tooling import CallableTool2, ToolOk, ToolReturnValue
 from kosong.tooling.simple import SimpleToolset
 
 
@@ -120,7 +120,7 @@ class AddTool(CallableTool2[AddToolParams]):
     description: str = "Add two integers."
     params: type[AddToolParams] = AddToolParams
 
-    async def __call__(self, params: AddToolParams) -> ToolReturnType:
+    async def __call__(self, params: AddToolParams) -> ToolReturnValue:
         return ToolOk(output=str(params.a + params.b))
 
 

@@ -9,8 +9,8 @@ from pydantic import BaseModel
 
 import kosong
 from kosong.chat_provider import ChatProvider
-from kosong.message import ContentPart, Message, TextPart
-from kosong.tooling import CallableTool2, ToolError, ToolOk, ToolResult, ToolReturnType, Toolset
+from kosong.message import Message, TextPart
+from kosong.tooling import CallableTool2, ToolError, ToolOk, ToolResult, ToolReturnValue, Toolset
 from kosong.tooling.simple import SimpleToolset
 
 
@@ -24,7 +24,7 @@ class BashTool(CallableTool2[BashToolParams]):
     description: str = "Execute a bash command."
     params: type[BashToolParams] = BashToolParams
 
-    async def __call__(self, params: BashToolParams) -> ToolReturnType:
+    async def __call__(self, params: BashToolParams) -> ToolReturnValue:
         proc = await asyncio.create_subprocess_shell(
             params.command,
             stdout=asyncio.subprocess.PIPE,
@@ -84,14 +84,11 @@ async def agent_loop(chat_provider: ChatProvider, toolset: Toolset):
 
 
 def tool_result_to_message(result: ToolResult) -> Message:
-    match result.result.output:
-        case str():
-            content = result.result.output
-        case ContentPart() as part:
-            content = [part]
-        case _:
-            content = list(result.result.output)
-    return Message(role="tool", tool_call_id=result.tool_call_id, content=content)
+    return Message(
+        role="tool",
+        tool_call_id=result.tool_call_id,
+        content=result.return_value.output,
+    )
 
 
 def message_extract_text(message: Message) -> str:
