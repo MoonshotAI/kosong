@@ -3,6 +3,8 @@
 ## [Unreleased]
 
 - Fix token usage for Anthropic chat provider
+- Fix `StepResult.tool_results()` cannot be called multiple times
+- Add `EchoChatProvider` to allow generate assistant responses by echoing back the user messages
 
 ## [0.27.2] - 2025-11-25
 
