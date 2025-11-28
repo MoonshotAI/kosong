@@ -205,7 +205,7 @@ class StepResult:
         try:
             results: list[ToolResult] = []
             for tool_call in self.tool_calls:
-                future = self._tool_result_futures.pop(tool_call.id)
+                future = self._tool_result_futures[tool_call.id]
                 result = await future
                 results.append(result)
             return results
