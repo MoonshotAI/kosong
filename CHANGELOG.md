@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased]
+
+- Fix token usage for Anthropic chat provider
+
 ## [0.27.2] - 2025-11-25
 
 - Support non-OpenAI models which do not accept `developer` role in system prompt in `OpenAIResponses` chat provider

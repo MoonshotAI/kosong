@@ -245,7 +245,7 @@ class AnthropicStreamedMessage:
         else:
             self._iter = self._convert_stream_response(response)
         self._id: str | None = None
-        self._usage: Usage | None = None
+        self._usage = Usage(input_tokens=0, output_tokens=0)
 
     def __aiter__(self) -> AsyncIterator[StreamedMessagePart]:
         return self
@@ -259,10 +259,9 @@ class AnthropicStreamedMessage:
 
     @property
     def usage(self) -> TokenUsage | None:
-        if self._usage is None:
-            return None
         # https://docs.claude.com/en/docs/build-with-claude/prompt-caching#tracking-cache-performance
         return TokenUsage(
+            # Note: in some Anthropic-compatible APIs, input_tokens can be None
             input_other=self._usage.input_tokens or 0,
             output=self._usage.output_tokens,
             input_cache_read=self._usage.cache_read_input_tokens or 0,
@@ -270,21 +269,14 @@ class AnthropicStreamedMessage:
         )
 
     def _update_usage(self, delta_usage: MessageDeltaUsage) -> None:
-        # message_delta usage is cumulative, but fields can be None
-        # Use the non-None fields from the delta to update our existing usage
-        if delta_usage:
-            if self._usage is None:
-                self._usage = cast(Usage, delta_usage)
-            else:
-                # Merge: use values from event.usage if available else fall back to existing
-                self._usage = Usage(
-                    input_tokens=delta_usage.input_tokens or self._usage.input_tokens,
-                    output_tokens=delta_usage.output_tokens or self._usage.output_tokens,
-                    cache_creation_input_tokens=delta_usage.cache_creation_input_tokens
-                    or self._usage.cache_creation_input_tokens,
-                    cache_read_input_tokens=delta_usage.cache_read_input_tokens
-                    or self._usage.cache_read_input_tokens,
-                )
+        if delta_usage.cache_creation_input_tokens is not None:
+            self._usage.cache_creation_input_tokens = delta_usage.cache_creation_input_tokens
+        if delta_usage.cache_read_input_tokens is not None:
+            self._usage.cache_read_input_tokens = delta_usage.cache_read_input_tokens
+        if delta_usage.input_tokens is not None:
+            self._usage.input_tokens = delta_usage.input_tokens
+        if delta_usage.output_tokens is not None:  # type: ignore
+            self._usage.output_tokens = delta_usage.output_tokens
 
     async def _convert_non_stream_response(
         self,
@@ -354,7 +346,8 @@ class AnthropicStreamedMessage:
                                 # ignore
                                 continue
                     elif isinstance(event, MessageDeltaEvent):
-                        self._update_usage(event.usage)
+                        if event.usage:
+                            self._update_usage(event.usage)
                     elif isinstance(event, MessageStopEvent):
                         continue
         except AnthropicError as exc:
