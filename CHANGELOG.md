@@ -1,14 +1,11 @@
 # Changelog
 
-## [Unreleased]
+## [0.28.0] - 2025-11-28
 
+- Support non-OpenAI models which do not accept `developer` role in system prompt in `OpenAIResponses` chat provider
 - Fix token usage for Anthropic chat provider
 - Fix `StepResult.tool_results()` cannot be called multiple times
 - Add `EchoChatProvider` to allow generate assistant responses by echoing back the user messages
-
-## [0.27.2] - 2025-11-25
-
-- Support non-OpenAI models which do not accept `developer` role in system prompt in `OpenAIResponses` chat provider
 
 ## [0.27.1] - 2025-11-24
 
