@@ -1,5 +1,4 @@
 import copy
-import json
 import uuid
 from collections.abc import AsyncIterator, Sequence
 from typing import TYPE_CHECKING, Any, Self, Unpack, cast
@@ -181,27 +180,9 @@ def message_to_openai(message: Message, reasoning_key: str | None) -> ChatComple
         for part in message.content:
             if isinstance(part, TextPart):
                 if part.text:
-                    serialized_parts.append(f"TextPart(text={part.text!r})")
-            elif isinstance(part, ImageURLPart):
-                image_url_payload = part.image_url.model_dump(exclude_none=True)
-                image_url_repr = (
-                    image_url_payload["url"]
-                    if len(image_url_payload) == 1
-                    else json.dumps(image_url_payload, separators=(",", ":"))
-                )
-                serialized_parts.append(
-                    f"ImageURLPart(type='image_url',image_url={image_url_repr!r})"
-                )
-            elif isinstance(part, AudioURLPart):
-                audio_url_payload = part.audio_url.model_dump(exclude_none=True)
-                audio_url_repr = (
-                    audio_url_payload["url"]
-                    if len(audio_url_payload) == 1
-                    else json.dumps(audio_url_payload, separators=(",", ":"))
-                )
-                serialized_parts.append(
-                    f"AudioURLPart(type='audio_url',audio_url={audio_url_repr!r})"
-                )
+                    serialized_parts.append(str(part.model_dump()))
+            elif isinstance(part, (ImageURLPart, AudioURLPart)):
+                serialized_parts.append(str(part.model_dump()))
             else:
                 # Skip ThinkPart and other unsupported parts to avoid noisy tool messages
                 continue
