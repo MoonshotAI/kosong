@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.28.1] - 2025-12-01
+
+- Fix interleaved thinking for Kimi and OpenAILegacy chat providers
+
 ## [0.28.0] - 2025-11-28
 
 - Support non-OpenAI models which do not accept `developer` role in system prompt in `OpenAIResponses` chat provider
