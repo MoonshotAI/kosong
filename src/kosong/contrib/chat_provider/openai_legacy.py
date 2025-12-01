@@ -161,6 +161,7 @@ def message_to_openai(message: Message, reasoning_key: str | None) -> ChatComple
     # And many openai-compatible models do not accept `developer` role.
     # So we use `system` role here. OpenAIResponses will use `developer` role.
     # See https://cdn.openai.com/spec/model-spec-2024-05-08.html#definitions
+    message = message.model_copy(deep=True)
     reasoning_content: str = ""
     if isinstance(message.content, list):
         content: list[ContentPart] = []

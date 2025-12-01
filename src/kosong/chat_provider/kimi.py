@@ -173,6 +173,7 @@ class Kimi(ChatProvider):
 
 
 def message_to_kimi(message: Message) -> ChatCompletionMessageParam:
+    message = message.model_copy(deep=True)
     reasoning_content: str = ""
     if isinstance(message.content, list):
         content: list[ContentPart] = []
