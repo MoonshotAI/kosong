@@ -365,14 +365,17 @@ def tool_to_anthropic(tool: Tool) -> ToolParam:
 def message_to_anthropic(message: Message) -> MessageParam:
     """Convert a single internal message into Anthropic wire format."""
     role = message.role
-    content = message.content
 
     if role == "system":
         # Anthropic does not support system messages in the conversation.
         # We map it to a special user message.
         return MessageParam(
             role="user",
-            content=[TextBlockParam(type="text", text=f"<system>{content}</system>")],
+            content=[
+                TextBlockParam(
+                    type="text", text=f"<system>{message.extract_text(sep='\n')}</system>"
+                )
+            ],
         )
     elif role == "tool":
         block = _tool_result_message_to_block(message)
@@ -380,27 +383,23 @@ def message_to_anthropic(message: Message) -> MessageParam:
 
     assert role in ("user", "assistant")
     blocks: list[ContentBlockParam] = []
-    if isinstance(content, str):
-        blocks.append(TextBlockParam(type="text", text=content))
-    else:
-        for part in content:
-            if isinstance(part, TextPart):
-                blocks.append(TextBlockParam(type="text", text=part.text))
-            elif isinstance(part, ImageURLPart):
-                blocks.append(_image_url_part_to_anthropic(part))
-
-            elif isinstance(part, ThinkPart):
-                if part.encrypted is None:
-                    # missing signature, strip this thinking block.
-                    continue
-                else:
-                    blocks.append(
-                        ThinkingBlockParam(
-                            type="thinking", thinking=part.think, signature=part.encrypted
-                        )
-                    )
-            else:
+    for part in message.content:
+        if isinstance(part, TextPart):
+            blocks.append(TextBlockParam(type="text", text=part.text))
+        elif isinstance(part, ImageURLPart):
+            blocks.append(_image_url_part_to_anthropic(part))
+        elif isinstance(part, ThinkPart):
+            if part.encrypted is None:
+                # missing signature, strip this thinking block.
                 continue
+            else:
+                blocks.append(
+                    ThinkingBlockParam(
+                        type="thinking", thinking=part.think, signature=part.encrypted
+                    )
+                )
+        else:
+            continue
     for tool_call in message.tool_calls or []:
         if tool_call.function.arguments:
             try:
@@ -427,24 +426,17 @@ def _tool_result_message_to_block(message: Message) -> ToolResultBlockParam:
     if message.tool_call_id is None:
         raise ChatProviderError("Tool response is missing `tool_call_id`")
 
-    content: str | Sequence[ToolResultContent]
-    if isinstance(message.content, str):
-        content = message.content
-    else:
-        content_blocks: list[ToolResultContent] = []
-        for part in message.content:
-            if isinstance(part, TextPart):
-                if part.text:
-                    content_blocks.append(TextBlockParam(type="text", text=part.text))
-            elif isinstance(part, ImageURLPart):
-                content_blocks.append(_image_url_part_to_anthropic(part))
-            else:
-                # https://docs.claude.com/en/docs/build-with-claude/files#file-types-and-content-blocks
-                # Anthropic API supports very limited file types
-                raise ChatProviderError(
-                    f"Anthropic API does not support {type(part)} in tool result"
-                )
-        content = content_blocks
+    content: list[ToolResultContent] = []
+    for part in message.content:
+        if isinstance(part, TextPart):
+            if part.text:
+                content.append(TextBlockParam(type="text", text=part.text))
+        elif isinstance(part, ImageURLPart):
+            content.append(_image_url_part_to_anthropic(part))
+        else:
+            # https://docs.claude.com/en/docs/build-with-claude/files#file-types-and-content-blocks
+            # Anthropic API supports very limited file types
+            raise ChatProviderError(f"Anthropic API does not support {type(part)} in tool result")
 
     return ToolResultBlockParam(
         type="tool_result",

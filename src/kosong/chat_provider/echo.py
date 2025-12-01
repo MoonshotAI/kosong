@@ -15,7 +15,6 @@ from kosong.chat_provider import (
 )
 from kosong.message import (
     AudioURLPart,
-    ContentPart,
     ImageURLPart,
     Message,
     TextPart,
@@ -82,7 +81,7 @@ class EchoChatProvider:
         if history[-1].role != "user":
             raise ChatProviderError("EchoChatProvider expects the last history message to be user.")
 
-        script_text = self._extract_script(history[-1].content)
+        script_text = history[-1].extract_text()
         parts, message_id, usage = self._parse_script(script_text)
         if not parts:
             raise ChatProviderError("EchoChatProvider DSL produced no streamable parts.")
@@ -92,14 +91,6 @@ class EchoChatProvider:
         # Thinking effort is irrelevant to the echo provider; return a shallow copy to
         # satisfy the protocol and keep the instance immutable.
         return copy.copy(self)
-
-    def _extract_script(self, content: str | list[ContentPart]) -> str:
-        if isinstance(content, str):
-            return content
-        text_fragments = [part.text for part in content if isinstance(part, TextPart)]
-        if not text_fragments:
-            raise ChatProviderError("EchoChatProvider expects text content in the last message.")
-        return "".join(text_fragments)
 
     def _parse_script(
         self, script: str
