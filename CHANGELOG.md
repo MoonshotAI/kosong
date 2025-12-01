@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+- Change `Message.content` field from `str | list[ContentPart]` to just `list[ContentPart]`
+- Add `Message.extract_text()` method to extract text content from message
+
 ## [0.28.1] - 2025-12-01
 
 - Fix interleaved thinking for Kimi and OpenAILegacy chat providers

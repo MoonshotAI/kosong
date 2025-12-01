@@ -9,7 +9,7 @@ from pydantic import BaseModel
 
 import kosong
 from kosong.chat_provider import ChatProvider
-from kosong.message import Message, TextPart
+from kosong.message import Message
 from kosong.tooling import CallableTool2, ToolError, ToolOk, ToolResult, ToolReturnValue, Toolset
 from kosong.tooling.simple import SimpleToolset
 
@@ -70,10 +70,10 @@ async def agent_loop(chat_provider: ChatProvider, toolset: Toolset):
             assistant_message = result.message
             tool_messages = [tool_result_to_message(tr) for tr in tool_results]
 
-            if s := message_extract_text(assistant_message):
+            if s := assistant_message.extract_text():
                 print("Assistant:\n", textwrap.indent(s, "  "))
             for tool_msg in tool_messages:
-                if s := message_extract_text(tool_msg):
+                if s := tool_msg.extract_text():
                     print("Tool:\n", textwrap.indent(s, "  "))
 
             if not result.tool_calls:
@@ -89,12 +89,6 @@ def tool_result_to_message(result: ToolResult) -> Message:
         tool_call_id=result.tool_call_id,
         content=result.return_value.output,
     )
-
-
-def message_extract_text(message: Message) -> str:
-    if isinstance(message.content, str):
-        return message.content
-    return "".join(part.text for part in message.content if isinstance(part, TextPart))
 
 
 async def main():

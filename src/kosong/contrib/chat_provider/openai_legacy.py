@@ -163,14 +163,13 @@ def message_to_openai(message: Message, reasoning_key: str | None) -> ChatComple
     # See https://cdn.openai.com/spec/model-spec-2024-05-08.html#definitions
     message = message.model_copy(deep=True)
     reasoning_content: str = ""
-    if isinstance(message.content, list):
-        content: list[ContentPart] = []
-        for part in message.content:
-            if isinstance(part, ThinkPart):
-                reasoning_content += part.think
-            else:
-                content.append(part)
-        message.content = content
+    content: list[ContentPart] = []
+    for part in message.content:
+        if isinstance(part, ThinkPart):
+            reasoning_content += part.think
+        else:
+            content.append(part)
+    message.content = content
     dumped_message = message.model_dump(exclude_none=True)
     if reasoning_content:
         assert reasoning_key, "reasoning_key must not be empty if reasoning_content exists"

@@ -5,12 +5,29 @@ from kosong.message import AudioURLPart, ImageURLPart, Message, TextPart, ThinkP
 
 def test_plain_text_message():
     message = Message(role="user", content="Hello, world!")
-    assert message.role == "user"
-    assert message.content == "Hello, world!"
-    assert message.model_dump(exclude_none=True) == {
-        "role": "user",
-        "content": "Hello, world!",
-    }
+    dumped = message.model_dump(exclude_none=True)
+    assert dumped == snapshot({"role": "user", "content": "Hello, world!"})
+    assert Message.model_validate(dumped) == message
+
+
+def test_message_with_single_part():
+    message = Message(
+        role="assistant",
+        content=ImageURLPart(image_url=ImageURLPart.ImageURL(url="https://example.com/image.png")),
+    )
+    dumped = message.model_dump(exclude_none=True)
+    assert dumped == snapshot(
+        {
+            "role": "assistant",
+            "content": [
+                {
+                    "type": "image_url",
+                    "image_url": {"url": "https://example.com/image.png", "id": None},
+                }
+            ],
+        }
+    )
+    assert Message.model_validate(dumped) == message
 
 
 def test_message_with_tool_calls():
@@ -21,31 +38,27 @@ def test_message_with_tool_calls():
             ToolCall(id="123", function=ToolCall.FunctionBody(name="function", arguments="{}"))
         ],
     )
-    assert message.model_dump(exclude_none=True) == {
-        "role": "assistant",
-        "content": [
-            {
-                "type": "text",
-                "text": "Hello, world!",
-            }
-        ],
-        "tool_calls": [
-            {
-                "type": "function",
-                "id": "123",
-                "function": {
-                    "name": "function",
-                    "arguments": "{}",
-                },
-            }
-        ],
-    }
+    dumped = message.model_dump(exclude_none=True)
+    assert dumped == snapshot(
+        {
+            "role": "assistant",
+            "content": "Hello, world!",
+            "tool_calls": [
+                {
+                    "type": "function",
+                    "id": "123",
+                    "function": {"name": "function", "arguments": "{}"},
+                }
+            ],
+        }
+    )
+    assert Message.model_validate(dumped) == message
 
 
 def test_message_with_no_content():
     message = Message(
         role="assistant",
-        content="",
+        content=[],
         tool_calls=[
             ToolCall(id="123", function=ToolCall.FunctionBody(name="function", arguments="{}"))
         ],
@@ -66,7 +79,7 @@ def test_message_with_no_content():
     )
 
 
-def test_message_deserialization():
+def test_message_with_complex_content():
     message = Message(
         role="user",
         content=[
@@ -79,9 +92,8 @@ def test_message_deserialization():
             ToolCall(id="123", function=ToolCall.FunctionBody(name="function", arguments="{}")),
         ],
     )
-
-    dumped_message = message.model_dump(exclude_none=True)
-    assert dumped_message == snapshot(
+    dumped = message.model_dump(exclude_none=True)
+    assert dumped == snapshot(
         {
             "role": "user",
             "content": [
@@ -109,8 +121,16 @@ def test_message_deserialization():
             ],
         }
     )
+    assert Message.model_validate(dumped) == message
 
-    assert Message.model_validate(dumped_message) == message
+
+def test_deserialize_from_json_plain_text():
+    data = {
+        "role": "user",
+        "content": "Hello, world!",
+    }
+    message = Message.model_validate(data)
+    assert message == snapshot(Message(role="user", content=[TextPart(text="Hello, world!")]))
 
 
 def test_deserialize_from_json_with_content_and_tool_calls():
@@ -131,7 +151,18 @@ def test_deserialize_from_json_with_content_and_tool_calls():
         ],
     }
     message = Message.model_validate(data)
-    assert message.model_dump(exclude_none=True) == data
+    assert message == snapshot(
+        Message(
+            role="assistant",
+            content=[TextPart(text="Hello, world!")],
+            tool_calls=[
+                ToolCall(
+                    id="tc_123",
+                    function=ToolCall.FunctionBody(name="do_something", arguments='{"x":1}'),
+                )
+            ],
+        )
+    )
 
 
 def test_deserialize_from_json_none_content_with_tool_calls():
@@ -147,8 +178,17 @@ def test_deserialize_from_json_none_content_with_tool_calls():
         ],
     }
     message = Message.model_validate(data)
-    # Round-trip back to dict (exclude_none to keep content=None as in input)
-    assert message.model_dump(exclude_none=True) == data
+    assert message == snapshot(
+        Message(
+            role="assistant",
+            content=[],
+            tool_calls=[
+                ToolCall(
+                    id="tc_456", function=ToolCall.FunctionBody(name="do_other", arguments="{}")
+                )
+            ],
+        )
+    )
 
 
 def test_deserialize_from_json_with_content_but_no_tool_calls():
@@ -162,7 +202,9 @@ def test_deserialize_from_json_with_content_but_no_tool_calls():
         ],
     }
     message = Message.model_validate(data)
-    assert message.model_dump(exclude_none=True) == data
+    assert message == snapshot(
+        Message(role="user", content=[TextPart(text="Only content, no tools.")])
+    )
 
 
 def test_message_with_empty_list_content():
@@ -221,3 +263,24 @@ def test_message_with_empty_list_content():
             ],
         )
     )
+
+
+def test_message_extract_text():
+    message = Message(
+        role="user",
+        content=[
+            TextPart(text="Hello, "),
+            TextPart(text="world"),
+            ImageURLPart(image_url=ImageURLPart.ImageURL(url="https://example.com/image.png")),
+            TextPart(text="!"),
+            ThinkPart(think="This is a thought."),
+        ],
+    )
+    extracted_text = message.extract_text()
+    assert extracted_text == snapshot("Hello, world!")
+    extracted_text = message.extract_text(sep="\n")
+    assert extracted_text == snapshot("""\
+Hello, \n\
+world
+!\
+""")

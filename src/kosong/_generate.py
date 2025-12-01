@@ -9,7 +9,7 @@ from kosong.chat_provider import (
     StreamedMessagePart,
     TokenUsage,
 )
-from kosong.message import ContentPart, Message, TextPart, ToolCall
+from kosong.message import ContentPart, Message, ToolCall
 from kosong.tooling import Tool
 from kosong.utils.aio import Callback, callback
 
@@ -96,8 +96,6 @@ class GenerateResult:
 def _message_append(message: Message, part: StreamedMessagePart) -> None:
     match part:
         case ContentPart():
-            if isinstance(message.content, str):
-                message.content = [TextPart(text=message.content)]
             message.content.append(part)
         case ToolCall():
             if message.tool_calls is None:
