@@ -1,5 +1,6 @@
 from abc import ABC
-from typing import Any, ClassVar, Literal, cast, override
+from collections.abc import Sequence
+from typing import Any, ClassVar, Final, Literal, cast, override
 
 from pydantic import BaseModel, GetCoreSchemaHandler, field_serializer, field_validator
 from pydantic_core import core_schema
@@ -198,46 +199,71 @@ class ToolCallPart(BaseModel, MergeableMixin):
         return True
 
 
+type Role = Literal[
+    # for OpenAI API, this should be converted to `developer`
+    # OpenAI & Kimi support system messages in the middle of the conversation.
+    # Anthropic only support system messages at the beginning https://docs.claude.com/en/api/messages#body-messages
+    # In this case, we map `system` message to a `user` message wrapped in `<system></system>` tags.
+    "system",
+    "user",
+    "assistant",
+    "tool",
+]
+"""The role of a message sender."""
+
+
 class Message(BaseModel):
     """A message in a conversation."""
 
-    role: Literal[
-        # for OpenAI API, this should be converted to `developer`
-        # OpenAI & Kimi support system messages in the middle of the conversation.
-        # Anthropic only support system messages at the beginning https://docs.claude.com/en/api/messages#body-messages
-        # In this case, we map `system` message to a `user` message wrapped in `<system></system>`
-        # tags.
-        "system",
-        "user",
-        "assistant",
-        "tool",
-    ]
+    role: Final[Role]
     """The role of the message sender."""
 
-    name: str | None = None
+    name: Final[str | None]
 
-    content: str | list[ContentPart]
+    content: Final[Sequence[ContentPart]]
     """
     The content of the message.
     Empty string `""` or list `[]` will be interpreted as no content.
     """
 
-    tool_calls: list[ToolCall] | None = None
+    tool_calls: Final[Sequence[ToolCall] | None]
     """Tool calls requested by the assistant in this message."""
 
-    tool_call_id: str | None = None
+    tool_call_id: Final[str | None]
     """The ID of the tool call if this message is a tool response."""
 
-    partial: bool | None = None
+    partial: Final[bool | None]
+
+    def __init__(
+        self,
+        *,
+        role: Role,
+        content: str | ContentPart | Sequence[ContentPart],
+        name: str | None = None,
+        tool_calls: Sequence[ToolCall] | None = None,
+        tool_call_id: str | None = None,
+        partial: bool | None = None,
+    ) -> None:
+        if isinstance(content, str):
+            content_parts: Sequence[ContentPart] = [TextPart(text=content)]
+        elif isinstance(content, ContentPart):
+            content_parts = [content]
+        else:
+            content_parts = content
+
+        super().__init__(
+            role=role,
+            name=name,
+            content=content_parts,
+            tool_calls=tool_calls,
+            tool_call_id=tool_call_id,
+            partial=partial,
+        )
 
     @field_serializer("content")
-    def _serialize_content(
-        self, content: str | list[ContentPart]
-    ) -> str | list[dict[str, Any]] | None:
+    def _serialize_content(self, content: Sequence[ContentPart]) -> list[dict[str, Any]] | None:
         if not content:
             return None
-        if isinstance(content, str):
-            return content
         return [part.model_dump() for part in content]
 
     @field_validator("content", mode="before")
@@ -246,3 +272,22 @@ class Message(BaseModel):
         if v is None:
             return []
         return v
+
+    def extract_text(self, sep: str = "") -> str:
+        """Extract and concatenate all text parts in the message content."""
+        texts: list[str] = []
+        for part in self.content:
+            if isinstance(part, TextPart):
+                texts.append(part.text)
+        return sep.join(texts)
+
+    def copy_with_new_content(self, new_content: Sequence[ContentPart]) -> "Message":
+        """Create a copy of the message with new content."""
+        return Message(
+            role=self.role,
+            name=self.name,
+            content=new_content,
+            tool_calls=self.tool_calls,
+            tool_call_id=self.tool_call_id,
+            partial=self.partial,
+        )

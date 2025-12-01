@@ -162,15 +162,13 @@ def message_to_openai(message: Message, reasoning_key: str | None) -> ChatComple
     # So we use `system` role here. OpenAIResponses will use `developer` role.
     # See https://cdn.openai.com/spec/model-spec-2024-05-08.html#definitions
     reasoning_content: str = ""
-    if isinstance(message.content, list):
-        content: list[ContentPart] = []
-        for part in message.content:
-            if isinstance(part, ThinkPart):
-                reasoning_content += part.think
-            else:
-                content.append(part)
-        message.content = content
-    dumped_message = message.model_dump(exclude_none=True)
+    content: list[ContentPart] = []
+    for part in message.content:
+        if isinstance(part, ThinkPart):
+            reasoning_content += part.think
+        else:
+            content.append(part)
+    dumped_message = message.copy_with_new_content(content).model_dump(exclude_none=True)
     if reasoning_content:
         assert reasoning_key, "reasoning_key must not be empty if reasoning_content exists"
         dumped_message[reasoning_key] = reasoning_content

@@ -9,9 +9,40 @@ from kosong.chat_provider import (
     StreamedMessagePart,
     TokenUsage,
 )
-from kosong.message import ContentPart, Message, TextPart, ToolCall
+from kosong.message import ContentPart, Message, ToolCall
 from kosong.tooling import Tool
 from kosong.utils.aio import Callback, callback
+
+
+class _MessageBuilder:
+    """
+    A helper class to build a message with streaming parts.
+    """
+
+    def __init__(self):
+        self.content_parts: list[ContentPart] = []
+        self.tool_calls: list[ToolCall] = []
+
+    def append(self, part: StreamedMessagePart) -> None:
+        match part:
+            case ContentPart():
+                self.content_parts.append(part)
+            case ToolCall():
+                self.tool_calls.append(part)
+            case _:
+                # may be an orphaned `ToolCallPart`
+                return
+
+    @property
+    def is_empty(self) -> bool:
+        return not self.content_parts and not self.tool_calls
+
+    def build(self) -> Message:
+        return Message(
+            role="assistant",
+            content=self.content_parts,
+            tool_calls=self.tool_calls or None,
+        )
 
 
 async def generate(
@@ -46,7 +77,7 @@ async def generate(
         APIEmptyResponseError: If the API returns an empty response.
         ChatProviderError: If any other recognized chat provider error occurs.
     """
-    message = Message(role="assistant", content=[])
+    builder = _MessageBuilder()
     pending_part: StreamedMessagePart | None = None  # message part that is currently incomplete
 
     logger.trace("Generating with history: {history}", history=history)
@@ -60,23 +91,23 @@ async def generate(
             pending_part = part
         elif not pending_part.merge_in_place(part):  # try merge into the pending part
             # unmergeable part must push the pending part to the buffer
-            _message_append(message, pending_part)
+            builder.append(pending_part)
             if isinstance(pending_part, ToolCall) and on_tool_call:
                 await callback(on_tool_call, pending_part)
             pending_part = part
 
     # end of message
     if pending_part is not None:
-        _message_append(message, pending_part)
+        builder.append(pending_part)
         if isinstance(pending_part, ToolCall) and on_tool_call:
             await callback(on_tool_call, pending_part)
 
-    if not message.content and not message.tool_calls:
+    if builder.is_empty:
         raise APIEmptyResponseError("The API returned an empty response.")
 
     return GenerateResult(
         id=stream.id,
-        message=message,
+        message=builder.build(),
         usage=stream.usage,
     )
 
@@ -91,18 +122,3 @@ class GenerateResult:
     """The generated message."""
     usage: TokenUsage | None
     """The token usage of the generated message."""
-
-
-def _message_append(message: Message, part: StreamedMessagePart) -> None:
-    match part:
-        case ContentPart():
-            if isinstance(message.content, str):
-                message.content = [TextPart(text=message.content)]
-            message.content.append(part)
-        case ToolCall():
-            if message.tool_calls is None:
-                message.tool_calls = []
-            message.tool_calls.append(part)
-        case _:
-            # may be an orphaned `ToolCallPart`
-            return
