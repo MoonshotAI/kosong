@@ -148,9 +148,7 @@ class Anthropic:
             if system_prompt
             else omit
         )
-        messages: list[MessageParam] = []
-        for m in history:
-            messages.append(message_to_anthropic(m))
+        messages = messages_to_anthropic(history)
         if messages:
             last_message = messages[-1]
             last_content = last_message["content"]
@@ -360,6 +358,36 @@ def tool_to_anthropic(tool: Tool) -> ToolParam:
         "description": tool.description,
         "input_schema": tool.parameters,
     }
+
+
+def messages_to_anthropic(history: Sequence[Message]) -> list[MessageParam]:
+    """
+    Convert a message history into Anthropic wire format.
+
+    Consecutive tool result messages are batched into a single user message to satisfy Anthropic's
+    requirement that all tool_result blocks for a turn are adjacent to the tool_use message.
+    """
+    messages: list[MessageParam] = []
+    pending_tool_results: list[ToolResultBlockParam] = []
+
+    for message in history:
+        if message.role == "tool":
+            pending_tool_results.append(_tool_result_message_to_block(message))
+            continue
+
+        if pending_tool_results:
+            messages.append(MessageParam(role="user", content=pending_tool_results))
+            pending_tool_results = []
+
+        converted = message_to_anthropic(message)
+        # Anthropic requires every message to have non-empty content; skip empty conversions.
+        if converted["content"]:
+            messages.append(converted)
+
+    if pending_tool_results:
+        messages.append(MessageParam(role="user", content=pending_tool_results))
+
+    return messages
 
 
 def message_to_anthropic(message: Message) -> MessageParam:
