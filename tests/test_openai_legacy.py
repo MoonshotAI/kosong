@@ -1,4 +1,4 @@
-from kosong.contrib.chat_provider.openai_legacy import message_to_openai
+from kosong.contrib.chat_provider.openai_legacy import OpenAILegacy, message_to_openai
 from kosong.message import (
     AudioURLPart,
     ContentPart,
@@ -51,3 +51,23 @@ def test_message_to_openai_skips_unsupported_tool_content_parts():
     content = converted["content"]
 
     assert content == "{'type': 'text', 'text': 'kept text'}"
+
+
+def test_message_to_openai_includes_empty_reasoning_for_assistant_when_requested():
+    message = Message(role="assistant", content=[])
+
+    converted = message_to_openai(message, reasoning_key="reasoning_content")
+
+    assert converted["reasoning_content"] == ""
+    assert converted["role"] == "assistant"
+
+
+def test_openai_legacy_defaults_reasoning_key_for_deepseek():
+    provider = OpenAILegacy(
+        model="deepseek-chat",
+        api_key="sk-test",
+        base_url="https://api.deepseek.com",
+        stream=False,
+    )
+
+    assert provider.reasoning_key == "reasoning_content"

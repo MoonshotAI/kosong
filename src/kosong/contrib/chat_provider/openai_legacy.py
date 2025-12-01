@@ -44,6 +44,19 @@ if TYPE_CHECKING:
         _: ChatProvider = openai_legacy
 
 
+def _infer_reasoning_key(
+    model: str, base_url: str | None, provided_reasoning_key: str | None
+) -> str | None:
+    if provided_reasoning_key:
+        return provided_reasoning_key
+
+    base_url_lower = str(base_url).lower() if base_url else ""
+    if "deepseek" in model.lower() or "deepseek" in base_url_lower:
+        return "reasoning_content"
+
+    return None
+
+
 class OpenAILegacy:
     """
     A chat provider that uses the OpenAI Chat Completions API.
@@ -87,6 +100,7 @@ class OpenAILegacy:
 
         To support OpenAI-compatible APIs that inject reasoning content in a extra field in
         the message, such as `{"reasoning": ...}`, `reasoning_key` can be set to the key name.
+        If omitted, it defaults to `reasoning_content` for DeepSeek-compatible endpoints.
         """
         self.model = model
         self.stream = stream
@@ -97,12 +111,16 @@ class OpenAILegacy:
         )
         """The underlying `AsyncOpenAI` client."""
         self._reasoning_effort: ReasoningEffort | Omit = omit
-        self._reasoning_key = reasoning_key
+        self._reasoning_key = _infer_reasoning_key(model, base_url, reasoning_key)
         self._generation_kwargs: OpenAILegacy.GenerationKwargs = {}
 
     @property
     def model_name(self) -> str:
         return self.model
+
+    @property
+    def reasoning_key(self) -> str | None:
+        return self._reasoning_key
 
     async def generate(
         self,
@@ -203,6 +221,9 @@ def message_to_openai(message: Message, reasoning_key: str | None) -> ChatComple
         dumped_message["content"] = serialized_tool_content
     if reasoning_content:
         assert reasoning_key, "reasoning_key must not be empty if reasoning_content exists"
+        dumped_message[reasoning_key] = reasoning_content
+    elif reasoning_key and message.role == "assistant":
+        # Some providers (e.g. DeepSeek thinking models) require the field even when empty
         dumped_message[reasoning_key] = reasoning_content
     return cast(ChatCompletionMessageParam, dumped_message)
 
