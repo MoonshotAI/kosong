@@ -5,12 +5,9 @@ from kosong.message import AudioURLPart, ImageURLPart, Message, TextPart, ThinkP
 
 def test_plain_text_message():
     message = Message(role="user", content="Hello, world!")
-    assert message.role == "user"
-    assert message.content == "Hello, world!"
-    assert message.model_dump(exclude_none=True) == {
-        "role": "user",
-        "content": "Hello, world!",
-    }
+    dumped = message.model_dump(exclude_none=True)
+    assert dumped == snapshot({"role": "user", "content": "Hello, world!"})
+    assert Message.model_validate(dumped) == message
 
 
 def test_message_with_tool_calls():
@@ -21,37 +18,33 @@ def test_message_with_tool_calls():
             ToolCall(id="123", function=ToolCall.FunctionBody(name="function", arguments="{}"))
         ],
     )
-    assert message.model_dump(exclude_none=True) == {
-        "role": "assistant",
-        "content": [
-            {
-                "type": "text",
-                "text": "Hello, world!",
-            }
-        ],
-        "tool_calls": [
-            {
-                "type": "function",
-                "id": "123",
-                "function": {
-                    "name": "function",
-                    "arguments": "{}",
-                },
-            }
-        ],
-    }
+    dumped = message.model_dump(exclude_none=True)
+    assert dumped == snapshot(
+        {
+            "role": "assistant",
+            "content": "Hello, world!",
+            "tool_calls": [
+                {
+                    "type": "function",
+                    "id": "123",
+                    "function": {"name": "function", "arguments": "{}"},
+                }
+            ],
+        }
+    )
+    assert Message.model_validate(dumped) == message
 
 
 def test_message_with_no_content():
     message = Message(
         role="assistant",
-        content="",
+        content=[],
         tool_calls=[
             ToolCall(id="123", function=ToolCall.FunctionBody(name="function", arguments="{}"))
         ],
     )
-
-    assert message.model_dump(exclude_none=True) == snapshot(
+    dumped = message.model_dump(exclude_none=True)
+    assert dumped == snapshot(
         {
             "role": "assistant",
             "content": None,
@@ -64,6 +57,7 @@ def test_message_with_no_content():
             ],
         }
     )
+    assert Message.model_validate(dumped) == message
 
 
 def test_message_deserialization():
@@ -131,7 +125,19 @@ def test_deserialize_from_json_with_content_and_tool_calls():
         ],
     }
     message = Message.model_validate(data)
-    assert message.model_dump(exclude_none=True) == data
+    assert message.model_dump(exclude_none=True) == snapshot(
+        {
+            "role": "assistant",
+            "content": "Hello, world!",
+            "tool_calls": [
+                {
+                    "type": "function",
+                    "id": "tc_123",
+                    "function": {"name": "do_something", "arguments": '{"x":1}'},
+                }
+            ],
+        }
+    )
 
 
 def test_deserialize_from_json_none_content_with_tool_calls():
@@ -148,7 +154,19 @@ def test_deserialize_from_json_none_content_with_tool_calls():
     }
     message = Message.model_validate(data)
     # Round-trip back to dict (exclude_none to keep content=None as in input)
-    assert message.model_dump(exclude_none=True) == data
+    assert message.model_dump(exclude_none=True) == snapshot(
+        {
+            "role": "assistant",
+            "content": None,
+            "tool_calls": [
+                {
+                    "type": "function",
+                    "id": "tc_456",
+                    "function": {"name": "do_other", "arguments": "{}"},
+                }
+            ],
+        }
+    )
 
 
 def test_deserialize_from_json_with_content_but_no_tool_calls():
@@ -162,7 +180,9 @@ def test_deserialize_from_json_with_content_but_no_tool_calls():
         ],
     }
     message = Message.model_validate(data)
-    assert message.model_dump(exclude_none=True) == data
+    assert message.model_dump(exclude_none=True) == snapshot(
+        {"role": "user", "content": "Only content, no tools."}
+    )
 
 
 def test_message_with_empty_list_content():
@@ -184,7 +204,16 @@ def test_message_with_empty_list_content():
     )
 
     # Deserialize back - None should become empty list
-    assert Message.model_validate(dumped) == snapshot(Message(role="assistant", content=[]))
+    assert Message.model_validate(dumped) == snapshot(
+        Message(
+            role="assistant",
+            name=None,
+            content=[],
+            tool_calls=None,
+            tool_call_id=None,
+            partial=None,
+        )
+    )
 
     # Test with tool_calls
     message_with_tools = Message(
@@ -215,9 +244,12 @@ def test_message_with_empty_list_content():
     assert Message.model_validate(dumped) == snapshot(
         Message(
             role="assistant",
+            name=None,
             content=[],
             tool_calls=[
                 ToolCall(id="123", function=ToolCall.FunctionBody(name="test_func", arguments="{}"))
             ],
+            tool_call_id=None,
+            partial=None,
         )
     )
