@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [0.29.0] - 2025-12-02
 
 - Change `Message.content` field from `str | list[ContentPart]` to just `list[ContentPart]`
 - Add `Message.extract_text()` method to extract text content from message
