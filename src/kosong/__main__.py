@@ -70,7 +70,8 @@ async def agent_loop(chat_provider: ChatProvider, toolset: Toolset):
             assistant_message = result.message
             tool_messages = [tool_result_to_message(tr) for tr in tool_results]
 
-            history.append(result.message)
+            history.append(assistant_message)
+            history.extend(tool_messages)
 
             if s := message_extract_text(assistant_message):
                 print("Assistant:\n", textwrap.indent(s, "  "))
@@ -80,8 +81,6 @@ async def agent_loop(chat_provider: ChatProvider, toolset: Toolset):
 
             if not result.tool_calls:
                 break
-
-            history.extend(tool_messages)
 
 
 def tool_result_to_message(result: ToolResult) -> Message:
