@@ -217,6 +217,8 @@ def message_to_openai(
     """
 
     role = message.role
+    if is_openai_model and role == "system":
+        role = "developer"
 
     # tool role → function_call_output (return value from a prior tool call)
     if role == "tool":
