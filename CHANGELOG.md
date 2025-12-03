@@ -1,8 +1,9 @@
 # Changelog
 
-## [Unreleased]
+## [0.30.0] - 2025-12-03
 
 - Serialize empty content as an empty list instead of `None`
+- Fix Kimi chat provider panicking when `stream` is `False`
 
 ## [0.29.0] - 2025-12-02
 
