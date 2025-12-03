@@ -426,17 +426,26 @@ def _tool_result_message_to_block(message: Message) -> ToolResultBlockParam:
     if message.tool_call_id is None:
         raise ChatProviderError("Tool response is missing `tool_call_id`")
 
-    content: list[ToolResultContent] = []
-    for part in message.content:
-        if isinstance(part, TextPart):
-            if part.text:
-                content.append(TextBlockParam(type="text", text=part.text))
-        elif isinstance(part, ImageURLPart):
-            content.append(_image_url_part_to_anthropic(part))
-        else:
-            # https://docs.claude.com/en/docs/build-with-claude/files#file-types-and-content-blocks
-            # Anthropic API supports very limited file types
-            raise ChatProviderError(f"Anthropic API does not support {type(part)} in tool result")
+    content: str | list[ToolResultContent]
+    # If content has only one part and the part is a TextPart, use the text directly
+    if len(message.content) == 1 and isinstance(message.content[0], TextPart):
+        content = message.content[0].text
+    else:
+        # Otherwise, map parts to content blocks
+        blocks: list[ToolResultContent] = []
+        for part in message.content:
+            if isinstance(part, TextPart):
+                if part.text:
+                    blocks.append(TextBlockParam(type="text", text=part.text))
+            elif isinstance(part, ImageURLPart):
+                blocks.append(_image_url_part_to_anthropic(part))
+            else:
+                # https://docs.claude.com/en/docs/build-with-claude/files#file-types-and-content-blocks
+                # Anthropic API supports very limited file types
+                raise ChatProviderError(
+                    f"Anthropic API does not support {type(part)} in tool result"
+                )
+        content = blocks
 
     return ToolResultBlockParam(
         type="tool_result",
