@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased]
+
+- Serialize empty content as an empty list instead of `None`
+
 ## [0.29.0] - 2025-12-02
 
 - Change `Message.content` field from `str | list[ContentPart]` to just `list[ContentPart]`
