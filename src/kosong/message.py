@@ -235,8 +235,9 @@ class Message(BaseModel):
 
     @field_serializer("content")
     def _serialize_content(self, content: list[ContentPart]) -> str | list[dict[str, Any]] | None:
-        if len(content) == 1 and isinstance(content[0], TextPart):
-            return content[0].text
+        text_parts = [part for part in content if isinstance(part, TextPart)]
+        if 0 < len(content) == len(text_parts):
+            return "\n".join([text_part.text for text_part in text_parts])
         return [part.model_dump() for part in content]
 
     @field_validator("content", mode="before")
@@ -272,3 +273,6 @@ class Message(BaseModel):
     def extract_text(self, sep: str = "") -> str:
         """Extract and concatenate all text parts in the message content."""
         return sep.join(part.text for part in self.content if isinstance(part, TextPart))
+
+    def only_has_text_contents(self) -> bool:
+        return len(self.content) > 0 and all([isinstance(part, TextPart) for part in self.content])

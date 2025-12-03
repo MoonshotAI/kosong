@@ -223,7 +223,7 @@ def message_to_openai(
     # tool role → function_call_output (return value from a prior tool call)
     if role == "tool":
         call_id = message.tool_call_id or ""
-        output = _content_parts_to_function_output_items(message.content)
+        output = _map_message_to_function_output_items(message)
 
         return [
             {
@@ -355,17 +355,17 @@ def _content_parts_to_output_items(parts: list[ContentPart]) -> list[ResponseOut
     return items
 
 
-def _content_parts_to_function_output_items(
-    parts: list[ContentPart],
+def _map_message_to_function_output_items(
+    message: Message,
 ) -> str | ResponseFunctionCallOutputItemListParam:
-    """Map ContentPart list → ResponseFunctionCallOutputItemListParam items."""
+    """Map message → ResponseFunctionCallOutputItemListParam items."""
     output: str | ResponseFunctionCallOutputItemListParam
-    # If content has only one part and the part is a TextPart, use the text directly
-    if len(parts) == 1 and isinstance(parts[0], TextPart):
-        output = parts[0].text
+    # If message has only text parts, join them into one string and use it as output
+    if message.only_has_text_contents():
+        output = message.extract_text("\n")
     else:
         items: ResponseFunctionCallOutputItemListParam = []
-        for part in parts:
+        for part in message.content:
             if isinstance(part, TextPart):
                 if part.text:
                     items.append({"type": "input_text", "text": part.text})

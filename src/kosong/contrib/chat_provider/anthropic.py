@@ -428,8 +428,8 @@ def _tool_result_message_to_block(message: Message) -> ToolResultBlockParam:
 
     content: str | list[ToolResultContent]
     # If content has only one part and the part is a TextPart, use the text directly
-    if len(message.content) == 1 and isinstance(message.content[0], TextPart):
-        content = message.content[0].text
+    if message.only_has_text_contents():
+        content = message.extract_text("\n")
     else:
         # Otherwise, map parts to content blocks
         blocks: list[ToolResultContent] = []
