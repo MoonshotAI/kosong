@@ -235,8 +235,6 @@ class Message(BaseModel):
 
     @field_serializer("content")
     def _serialize_content(self, content: list[ContentPart]) -> str | list[dict[str, Any]] | None:
-        if not content:
-            return None
         if len(content) == 1 and isinstance(content[0], TextPart):
             return content[0].text
         return [part.model_dump() for part in content]

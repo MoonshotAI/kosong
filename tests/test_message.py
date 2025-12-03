@@ -67,7 +67,7 @@ def test_message_with_no_content():
     assert message.model_dump(exclude_none=True) == snapshot(
         {
             "role": "assistant",
-            "content": None,
+            "content": [],
             "tool_calls": [
                 {
                     "type": "function",
@@ -218,7 +218,7 @@ def test_message_with_empty_list_content():
         {
             "role": "assistant",
             "name": None,
-            "content": None,
+            "content": [],
             "tool_calls": None,
             "tool_call_id": None,
             "partial": None,
@@ -241,7 +241,7 @@ def test_message_with_empty_list_content():
         {
             "role": "assistant",
             "name": None,
-            "content": None,
+            "content": [],
             "tool_calls": [
                 {
                     "type": "function",
