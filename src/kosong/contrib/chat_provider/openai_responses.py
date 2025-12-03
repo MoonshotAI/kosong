@@ -357,23 +357,29 @@ def _content_parts_to_output_items(parts: list[ContentPart]) -> list[ResponseOut
 
 def _content_parts_to_function_output_items(
     parts: list[ContentPart],
-) -> ResponseFunctionCallOutputItemListParam:
+) -> str | ResponseFunctionCallOutputItemListParam:
     """Map ContentPart list → ResponseFunctionCallOutputItemListParam items."""
-    items: ResponseFunctionCallOutputItemListParam = []
-    for part in parts:
-        if isinstance(part, TextPart):
-            if part.text:
-                items.append({"type": "input_text", "text": part.text})
-        elif isinstance(part, ImageURLPart):
-            url = part.image_url.url
-            items.append({"type": "input_image", "image_url": url})
-        elif isinstance(part, AudioURLPart):
-            mapped = _map_audio_url_to_file_content(part.audio_url.url)
-            if mapped is not None:
-                items.append(mapped)
-        else:
-            continue
-    return items
+    output: str | ResponseFunctionCallOutputItemListParam
+    # If content has only one part and the part is a TextPart, use the text directly
+    if len(parts) == 1 and isinstance(parts[0], TextPart):
+        output = parts[0].text
+    else:
+        items: ResponseFunctionCallOutputItemListParam = []
+        for part in parts:
+            if isinstance(part, TextPart):
+                if part.text:
+                    items.append({"type": "input_text", "text": part.text})
+            elif isinstance(part, ImageURLPart):
+                url = part.image_url.url
+                items.append({"type": "input_image", "image_url": url})
+            elif isinstance(part, AudioURLPart):
+                mapped = _map_audio_url_to_file_content(part.audio_url.url)
+                if mapped is not None:
+                    items.append(mapped)
+            else:
+                continue
+        output = items
+    return output
 
 
 def _map_audio_url_to_input_item(url: str) -> ResponseInputFileParam | None:
