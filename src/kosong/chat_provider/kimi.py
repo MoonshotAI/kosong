@@ -294,7 +294,7 @@ class KimiStreamedMessage(StreamedMessage):
                     yield ThinkPart(think=reasoning_content)
 
                 # convert text content
-                if delta.content is not None:
+                if delta.content:
                     yield TextPart(text=delta.content)
 
                 # convert tool calls
