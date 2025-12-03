@@ -116,7 +116,7 @@ class OpenAILegacy:
                 messages=messages,
                 tools=(tool_to_openai(tool) for tool in tools),
                 stream=self.stream,
-                stream_options={"include_usage": True},
+                stream_options={"include_usage": True} if self.stream else omit,
                 reasoning_effort=self._reasoning_effort,
                 **generation_kwargs,
             )

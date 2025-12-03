@@ -5,7 +5,7 @@ from collections.abc import AsyncIterator, Sequence
 from typing import TYPE_CHECKING, Any, Self, TypedDict, Unpack, cast
 
 import httpx
-from openai import AsyncOpenAI, AsyncStream, OpenAIError
+from openai import AsyncOpenAI, AsyncStream, OpenAIError, omit
 from openai.types.chat import (
     ChatCompletion,
     ChatCompletionChunk,
@@ -128,7 +128,7 @@ class Kimi(ChatProvider):
                 messages=messages,
                 tools=(tool_to_kimi(tool) for tool in tools),
                 stream=self.stream,
-                stream_options={"include_usage": True},
+                stream_options={"include_usage": True} if self.stream else omit,
                 **generation_kwargs,
             )
             return KimiStreamedMessage(response)
