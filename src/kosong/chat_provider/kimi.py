@@ -128,7 +128,7 @@ class Kimi(ChatProvider):
                 messages=messages,
                 tools=(tool_to_kimi(tool) for tool in tools),
                 stream=self.stream,
-                stream_options={"include_usage": True},
+                stream_options={"include_usage": True} if self.stream else None,
                 **generation_kwargs,
             )
             return KimiStreamedMessage(response)
