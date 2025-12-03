@@ -429,11 +429,7 @@ def message_to_google_genai(message: Message) -> Content:
             raise ChatProviderError("Tool response is missing `tool_call_id`")
 
         # Convert content to Gemini function response format
-        if isinstance(message.content, str):
-            response_data = {"output": message.content}
-            tool_result_parts = None
-        else:
-            response_data, tool_result_parts = _tool_result_to_response_and_parts(message.content)
+        response_data, tool_result_parts = _tool_result_to_response_and_parts(message.content)
         return Content(
             role="user",
             parts=[
@@ -453,23 +449,19 @@ def message_to_google_genai(message: Message) -> Content:
     parts: list[Part] = []
 
     # Handle content parts
-    if isinstance(message.content, str):
-        if message.content:
-            parts.append(Part.from_text(text=message.content))
-    else:
-        for part in message.content:
-            if isinstance(part, TextPart):
-                parts.append(Part.from_text(text=part.text))
-            elif isinstance(part, ImageURLPart):
-                parts.append(_image_url_part_to_google_genai(part))
-            elif isinstance(part, AudioURLPart):
-                parts.append(_audio_url_part_to_google_genai(part))
-            elif isinstance(part, ThinkPart):
-                # Note: skip part.thought because it is synthetic
-                continue
-            else:
-                # Skip unsupported parts
-                continue
+    for part in message.content:
+        if isinstance(part, TextPart):
+            parts.append(Part.from_text(text=part.text))
+        elif isinstance(part, ImageURLPart):
+            parts.append(_image_url_part_to_google_genai(part))
+        elif isinstance(part, AudioURLPart):
+            parts.append(_audio_url_part_to_google_genai(part))
+        elif isinstance(part, ThinkPart):
+            # Note: skip part.thought because it is synthetic
+            continue
+        else:
+            # Skip unsupported parts
+            continue
 
     # Handle tool calls for assistant messages
     for tool_call in message.tool_calls or []:

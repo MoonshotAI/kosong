@@ -198,28 +198,31 @@ class ToolCallPart(BaseModel, MergeableMixin):
         return True
 
 
+type Role = Literal[
+    # for OpenAI API, this should be converted to `developer`
+    # OpenAI & Kimi support system messages in the middle of the conversation.
+    # Anthropic only support system messages at the beginning https://docs.claude.com/en/api/messages#body-messages
+    # In this case, we map `system` message to a `user` message wrapped in `<system></system>` tags.
+    "system",
+    "user",
+    "assistant",
+    "tool",
+]
+"""The role of a message sender."""
+
+
 class Message(BaseModel):
     """A message in a conversation."""
 
-    role: Literal[
-        # for OpenAI API, this should be converted to `developer`
-        # OpenAI & Kimi support system messages in the middle of the conversation.
-        # Anthropic only support system messages at the beginning https://docs.claude.com/en/api/messages#body-messages
-        # In this case, we map `system` message to a `user` message wrapped in `<system></system>`
-        # tags.
-        "system",
-        "user",
-        "assistant",
-        "tool",
-    ]
+    role: Role
     """The role of the message sender."""
 
     name: str | None = None
 
-    content: str | list[ContentPart]
+    content: list[ContentPart]
     """
     The content of the message.
-    Empty string `""` or list `[]` will be interpreted as no content.
+    Empty list `[]` will be interpreted as no content.
     """
 
     tool_calls: list[ToolCall] | None = None
@@ -231,18 +234,43 @@ class Message(BaseModel):
     partial: bool | None = None
 
     @field_serializer("content")
-    def _serialize_content(
-        self, content: str | list[ContentPart]
-    ) -> str | list[dict[str, Any]] | None:
+    def _serialize_content(self, content: list[ContentPart]) -> str | list[dict[str, Any]] | None:
         if not content:
             return None
-        if isinstance(content, str):
-            return content
+        if len(content) == 1 and isinstance(content[0], TextPart):
+            return content[0].text
         return [part.model_dump() for part in content]
 
     @field_validator("content", mode="before")
     @classmethod
-    def _coerce_none_content(cls, v: Any | None) -> Any:
-        if v is None:
+    def _coerce_none_content(cls, value: Any) -> Any:
+        if value is None:
             return []
-        return v
+        if isinstance(value, str):
+            return [TextPart(text=value)]
+        return value
+
+    def __init__(
+        self,
+        *,
+        role: Role,
+        content: list[ContentPart] | ContentPart | str,
+        tool_calls: list[ToolCall] | None = None,
+        tool_call_id: str | None = None,
+        **data: Any,
+    ) -> None:
+        if isinstance(content, str):
+            content = [TextPart(text=content)]
+        elif isinstance(content, ContentPart):
+            content = [content]
+        super().__init__(
+            role=role,
+            content=content,
+            tool_calls=tool_calls,
+            tool_call_id=tool_call_id,
+            **data,
+        )
+
+    def extract_text(self, sep: str = "") -> str:
+        """Extract and concatenate all text parts in the message content."""
+        return sep.join(part.text for part in self.content if isinstance(part, TextPart))

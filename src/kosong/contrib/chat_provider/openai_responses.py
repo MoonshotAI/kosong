@@ -217,15 +217,11 @@ def message_to_openai(
     """
 
     role = message.role
-    content = message.content
 
     # tool role → function_call_output (return value from a prior tool call)
     if role == "tool":
         call_id = message.tool_call_id or ""
-        if isinstance(content, str):
-            output: str | ResponseFunctionCallOutputItemListParam = content
-        else:
-            output = _content_parts_to_function_output_items(content)
+        output = _content_parts_to_function_output_items(message.content)
 
         return [
             {
@@ -238,18 +234,7 @@ def message_to_openai(
     result: list[ResponseInputItemParam] = []
 
     # user/system/assistant → message input item
-    if isinstance(content, str):
-        result.append(
-            {
-                # for openai, we should use `developer` role, although `system` is still accepted
-                # See https://cdn.openai.com/spec/model-spec-2024-05-08.html#definitions
-                # for other non-OpenAI models not supporting `developer` role, we keep `system` role
-                "role": role if (role != "system" or not is_openai_model) else "developer",
-                "type": "message",
-                "content": content,
-            }
-        )
-    elif len(content) > 0:
+    if len(message.content) > 0:
         # Split into two kinds of blocks: contiguous non-ThinkPart message blocks, and
         # contiguous ThinkPart groups (grouped by the same `encrypted` value)
         pending_parts: list[ContentPart] = []
@@ -280,9 +265,9 @@ def message_to_openai(
             pending_parts.clear()
 
         i = 0
-        n = len(content)
+        n = len(message.content)
         while i < n:
-            part = content[i]
+            part = message.content[i]
             if isinstance(part, ThinkPart):
                 # Flush accumulated non-reasoning parts first
                 flush_pending_parts()
@@ -291,7 +276,7 @@ def message_to_openai(
                 summaries = [{"type": "summary_text", "text": part.think or ""}]
                 i += 1
                 while i < n:
-                    next_part = content[i]
+                    next_part = message.content[i]
                     if not isinstance(next_part, ThinkPart):
                         break
                     if next_part.encrypted != encrypted_value:
