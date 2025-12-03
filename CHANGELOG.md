@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.31.0] - 2025-12-03
+
+- Fix OpenAI Responses provider not mapping `role="system"` to `developer`
+- Improve the compatibility of OpenAI Responses and Anthropic providers against some third-party APIs
+
 ## [0.30.0] - 2025-12-03
 
 - Serialize empty content as an empty list instead of `None`
