@@ -26,13 +26,35 @@ from kosong.chat_provider import (
     ThinkingEffort,
     TokenUsage,
 )
-from kosong.message import ContentPart, Message, TextPart, ThinkPart, ToolCall, ToolCallPart
+from kosong.message import (
+    AudioURLPart,
+    ContentPart,
+    ImageURLPart,
+    Message,
+    TextPart,
+    ThinkPart,
+    ToolCall,
+    ToolCallPart,
+)
 from kosong.tooling import Tool
 
 if TYPE_CHECKING:
 
     def type_check(openai_legacy: "OpenAILegacy"):
         _: ChatProvider = openai_legacy
+
+
+def _infer_reasoning_key(
+    model: str, base_url: str | None, provided_reasoning_key: str | None
+) -> str | None:
+    if provided_reasoning_key:
+        return provided_reasoning_key
+
+    base_url_lower = str(base_url).lower() if base_url else ""
+    if "deepseek" in model.lower() or "deepseek" in base_url_lower:
+        return "reasoning_content"
+
+    return None
 
 
 class OpenAILegacy:
@@ -78,6 +100,7 @@ class OpenAILegacy:
 
         To support OpenAI-compatible APIs that inject reasoning content in a extra field in
         the message, such as `{"reasoning": ...}`, `reasoning_key` can be set to the key name.
+        If omitted, it defaults to `reasoning_content` for DeepSeek-compatible endpoints.
         """
         self.model = model
         self.stream = stream
@@ -88,12 +111,16 @@ class OpenAILegacy:
         )
         """The underlying `AsyncOpenAI` client."""
         self._reasoning_effort: ReasoningEffort | Omit = omit
-        self._reasoning_key = reasoning_key
+        self._reasoning_key = _infer_reasoning_key(model, base_url, reasoning_key)
         self._generation_kwargs: OpenAILegacy.GenerationKwargs = {}
 
     @property
     def model_name(self) -> str:
         return self.model
+
+    @property
+    def reasoning_key(self) -> str | None:
+        return self._reasoning_key
 
     async def generate(
         self,
@@ -162,6 +189,25 @@ def message_to_openai(message: Message, reasoning_key: str | None) -> ChatComple
     # So we use `system` role here. OpenAIResponses will use `developer` role.
     # See https://cdn.openai.com/spec/model-spec-2024-05-08.html#definitions
     message = message.model_copy(deep=True)
+
+    serialized_tool_content: str | None = None
+    # Tool messages must use string content for DeepSeek APIs
+    # See https://github.com/MoonshotAI/kosong/pull/29
+    if message.role == "tool" and isinstance(message.content, list):
+        serialized_parts: list[str] = []
+        for part in message.content:
+            if isinstance(part, TextPart):
+                if part.text:
+                    serialized_parts.append(str(part.model_dump()))
+            elif isinstance(part, (ImageURLPart, AudioURLPart)):
+                serialized_parts.append(str(part.model_dump()))
+            else:
+                # Skip ThinkPart and other unsupported parts to avoid noisy tool messages
+                continue
+        serialized_tool_content = "\n".join(serialized_parts) or None
+        # Reset content before model_dump; we'll inject serialized_tool_content later.
+        message.content = []
+
     reasoning_content: str = ""
     content: list[ContentPart] = []
     for part in message.content:
@@ -171,8 +217,13 @@ def message_to_openai(message: Message, reasoning_key: str | None) -> ChatComple
             content.append(part)
     message.content = content
     dumped_message = message.model_dump(exclude_none=True)
+    if serialized_tool_content is not None:
+        dumped_message["content"] = serialized_tool_content
     if reasoning_content:
         assert reasoning_key, "reasoning_key must not be empty if reasoning_content exists"
+        dumped_message[reasoning_key] = reasoning_content
+    elif reasoning_key and message.role == "assistant":
+        # Some providers (e.g. DeepSeek thinking models) require the field even when empty
         dumped_message[reasoning_key] = reasoning_content
     return cast(ChatCompletionMessageParam, dumped_message)
 
