@@ -113,6 +113,8 @@ class Anthropic:
         api_key: str | None = None,
         base_url: str | None = None,
         stream: bool = True,
+        # Whether tool result content must be passed in string format
+        enforce_tool_result_string: bool = False,
         # Must provide a max_tokens. Can be overridden by .with_generation_kwargs()
         default_max_tokens: int,
         **client_kwargs: Any,
@@ -120,6 +122,7 @@ class Anthropic:
         self._model = model
         self._stream = stream
         self._client = AsyncAnthropic(api_key=api_key, base_url=base_url, **client_kwargs)
+        self._enforce_tool_result_string = enforce_tool_result_string
         self._generation_kwargs: Anthropic.GenerationKwargs = {
             "max_tokens": default_max_tokens,
             "beta_features": ["interleaved-thinking-2025-05-14"],
@@ -150,7 +153,7 @@ class Anthropic:
         )
         messages: list[MessageParam] = []
         for m in history:
-            messages.append(message_to_anthropic(m))
+            messages.append(message_to_anthropic(m, self._enforce_tool_result_string))
         if messages:
             last_message = messages[-1]
             last_content = last_message["content"]
@@ -362,7 +365,9 @@ def tool_to_anthropic(tool: Tool) -> ToolParam:
     }
 
 
-def message_to_anthropic(message: Message) -> MessageParam:
+def message_to_anthropic(
+    message: Message, enforce_tool_result_string: bool = False
+) -> MessageParam:
     """Convert a single internal message into Anthropic wire format."""
     role = message.role
 
@@ -378,7 +383,7 @@ def message_to_anthropic(message: Message) -> MessageParam:
             ],
         )
     elif role == "tool":
-        block = _tool_result_message_to_block(message)
+        block = _tool_result_message_to_block(message, enforce_tool_result_string)
         return MessageParam(role="user", content=[block])
 
     assert role in ("user", "assistant")
@@ -422,14 +427,16 @@ def message_to_anthropic(message: Message) -> MessageParam:
     return MessageParam(role=role, content=blocks)
 
 
-def _tool_result_message_to_block(message: Message) -> ToolResultBlockParam:
+def _tool_result_message_to_block(
+    message: Message, enforce_tool_result_string: bool = False
+) -> ToolResultBlockParam:
     if message.tool_call_id is None:
         raise ChatProviderError("Tool response is missing `tool_call_id`")
 
     content: str | list[ToolResultContent]
-    # If content has only one part and the part is a TextPart, use the text directly
-    if len(message.content) == 1 and isinstance(message.content[0], TextPart):
-        content = message.content[0].text
+    # If enforce_tool_result_string is True, we join all text parts into one string
+    if enforce_tool_result_string:
+        content = message.extract_text(sep="\n")
     else:
         # Otherwise, map parts to content blocks
         blocks: list[ToolResultContent] = []

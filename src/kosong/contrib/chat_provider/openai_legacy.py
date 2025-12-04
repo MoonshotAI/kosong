@@ -71,6 +71,8 @@ class OpenAILegacy:
         base_url: str | None = None,
         stream: bool = True,
         reasoning_key: str | None = None,
+        # Whether tool result content must be passed in string format
+        enforce_tool_result_string: bool = False,
         **client_kwargs: Any,
     ):
         """
@@ -89,6 +91,7 @@ class OpenAILegacy:
         """The underlying `AsyncOpenAI` client."""
         self._reasoning_effort: ReasoningEffort | Omit = omit
         self._reasoning_key = reasoning_key
+        self._enforce_tool_result_string = enforce_tool_result_string
         self._generation_kwargs: OpenAILegacy.GenerationKwargs = {}
 
     @property
@@ -105,7 +108,10 @@ class OpenAILegacy:
         if system_prompt:
             # `system` vs `developer`: see `message_to_openai` comments
             messages.append({"role": "system", "content": system_prompt})
-        messages.extend(message_to_openai(message, self._reasoning_key) for message in history)
+        messages.extend(
+            message_to_openai(message, self._reasoning_key, self._enforce_tool_result_string)
+            for message in history
+        )
 
         generation_kwargs: dict[str, Any] = {}
         generation_kwargs.update(self._generation_kwargs)
@@ -155,7 +161,9 @@ class OpenAILegacy:
         return model_parameters
 
 
-def message_to_openai(message: Message, reasoning_key: str | None) -> ChatCompletionMessageParam:
+def message_to_openai(
+    message: Message, reasoning_key: str | None = None, enforce_tool_result_string: bool = False
+) -> ChatCompletionMessageParam:
     """Convert a single message to OpenAI message format."""
     # Note: for openai, `developer` role is more standard, but `system` is still accepted.
     # And many openai-compatible models do not accept `developer` role.
@@ -169,7 +177,12 @@ def message_to_openai(message: Message, reasoning_key: str | None) -> ChatComple
             reasoning_content += part.think
         else:
             content.append(part)
-    message.content = content
+    # if tool message and enforce_tool_result_string is True, patch all text parts into one
+    # so that we can make use of the serialization process of `Message` to output string
+    if message.role == "tool" and enforce_tool_result_string:
+        message.content = [TextPart(text=message.extract_text(sep="\n"))]
+    else:
+        message.content = content
     dumped_message = message.model_dump(exclude_none=True)
     if reasoning_content:
         assert reasoning_key, "reasoning_key must not be empty if reasoning_content exists"

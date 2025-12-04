@@ -111,10 +111,12 @@ class OpenAIResponses:
         api_key: str | None = None,
         base_url: str | None = None,
         stream: bool = True,
+        enforce_tool_result_string: bool = False,
         **client_kwargs: Any,
     ):
         self._model = model
         self._stream = stream
+        self._enforce_tool_result_string = enforce_tool_result_string
         self._client = AsyncOpenAI(
             api_key=api_key,
             base_url=base_url,
@@ -205,7 +207,7 @@ def tool_to_openai(tool: Tool) -> ToolParam:
 
 
 def message_to_openai(
-    message: Message, is_openai_model: bool = False
+    message: Message, is_openai_model: bool = False, enforce_tool_result_string: bool = False
 ) -> list[ResponseInputItemParam]:
     """Convert a single message to OpenAI Responses input format.
 
@@ -223,7 +225,7 @@ def message_to_openai(
     # tool role → function_call_output (return value from a prior tool call)
     if role == "tool":
         call_id = message.tool_call_id or ""
-        output = _content_parts_to_function_output_items(message.content)
+        output = _message_content_to_function_output_items(message, enforce_tool_result_string)
 
         return [
             {
@@ -355,17 +357,17 @@ def _content_parts_to_output_items(parts: list[ContentPart]) -> list[ResponseOut
     return items
 
 
-def _content_parts_to_function_output_items(
-    parts: list[ContentPart],
+def _message_content_to_function_output_items(
+    message: Message, enforce_tool_result_string: bool = False
 ) -> str | ResponseFunctionCallOutputItemListParam:
     """Map ContentPart list → ResponseFunctionCallOutputItemListParam items."""
     output: str | ResponseFunctionCallOutputItemListParam
-    # If content has only one part and the part is a TextPart, use the text directly
-    if len(parts) == 1 and isinstance(parts[0], TextPart):
-        output = parts[0].text
+    # If enforce_tool_result_string is True, patch all text parts into one string
+    if enforce_tool_result_string:
+        output = message.extract_text(sep="\n")
     else:
         items: ResponseFunctionCallOutputItemListParam = []
-        for part in parts:
+        for part in message.content:
             if isinstance(part, TextPart):
                 if part.text:
                     items.append({"type": "input_text", "text": part.text})
