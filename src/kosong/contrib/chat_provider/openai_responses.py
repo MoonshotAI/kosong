@@ -143,7 +143,11 @@ class OpenAIResponses:
         # The `Message` type is OpenAI-compatible for Responses API `input` messages.
 
         for m in history:
-            inputs.extend(message_to_openai(m, is_openai_model(self.model_name)))
+            inputs.extend(
+                message_to_openai(
+                    m, is_openai_model(self.model_name), self._enforce_tool_result_string
+                )
+            )
 
         generation_kwargs: dict[str, Any] = {}
         generation_kwargs.update(self._generation_kwargs)
