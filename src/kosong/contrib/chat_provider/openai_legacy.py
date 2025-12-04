@@ -28,6 +28,7 @@ from kosong.chat_provider import (
 )
 from kosong.message import ContentPart, Message, TextPart, ThinkPart, ToolCall, ToolCallPart
 from kosong.tooling import Tool
+from kosong.utils.typing import ToolResultProcess
 
 if TYPE_CHECKING:
 
@@ -71,8 +72,8 @@ class OpenAILegacy:
         base_url: str | None = None,
         stream: bool = True,
         reasoning_key: str | None = None,
-        # Whether tool result content must be passed in string format
-        enforce_tool_result_string: bool = False,
+        # which process should we apply on tool result
+        tool_result_process: ToolResultProcess = "raw",
         **client_kwargs: Any,
     ):
         """
@@ -91,7 +92,7 @@ class OpenAILegacy:
         """The underlying `AsyncOpenAI` client."""
         self._reasoning_effort: ReasoningEffort | Omit = omit
         self._reasoning_key = reasoning_key
-        self._enforce_tool_result_string = enforce_tool_result_string
+        self._tool_result_process: ToolResultProcess = tool_result_process
         self._generation_kwargs: OpenAILegacy.GenerationKwargs = {}
 
     @property
@@ -109,7 +110,7 @@ class OpenAILegacy:
             # `system` vs `developer`: see `message_to_openai` comments
             messages.append({"role": "system", "content": system_prompt})
         messages.extend(
-            message_to_openai(message, self._reasoning_key, self._enforce_tool_result_string)
+            message_to_openai(message, self._reasoning_key, self._tool_result_process)
             for message in history
         )
 
@@ -162,7 +163,9 @@ class OpenAILegacy:
 
 
 def message_to_openai(
-    message: Message, reasoning_key: str | None = None, enforce_tool_result_string: bool = False
+    message: Message,
+    reasoning_key: str | None = None,
+    tool_result_process: ToolResultProcess = "raw",
 ) -> ChatCompletionMessageParam:
     """Convert a single message to OpenAI message format."""
     # Note: for openai, `developer` role is more standard, but `system` is still accepted.
@@ -177,9 +180,9 @@ def message_to_openai(
             reasoning_content += part.think
         else:
             content.append(part)
-    # if tool message and enforce_tool_result_string is True, patch all text parts into one
+    # if tool message and tool_result_process is `extract_text`, patch all text parts into one
     # so that we can make use of the serialization process of `Message` to output string
-    if message.role == "tool" and enforce_tool_result_string:
+    if message.role == "tool" and tool_result_process == "extract_text":
         message.content = [TextPart(text=message.extract_text(sep="\n"))]
     else:
         message.content = content

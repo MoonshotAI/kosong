@@ -46,6 +46,7 @@ from kosong.message import (
     ToolCallPart,
 )
 from kosong.tooling import Tool
+from kosong.utils.typing import ToolResultProcess
 
 if TYPE_CHECKING:
 
@@ -111,12 +112,13 @@ class OpenAIResponses:
         api_key: str | None = None,
         base_url: str | None = None,
         stream: bool = True,
-        enforce_tool_result_string: bool = False,
+        # which process should we apply on tool result
+        tool_result_process: ToolResultProcess = "raw",
         **client_kwargs: Any,
     ):
         self._model = model
         self._stream = stream
-        self._enforce_tool_result_string = enforce_tool_result_string
+        self._tool_result_process: ToolResultProcess = tool_result_process
         self._client = AsyncOpenAI(
             api_key=api_key,
             base_url=base_url,
@@ -144,9 +146,7 @@ class OpenAIResponses:
 
         for m in history:
             inputs.extend(
-                message_to_openai(
-                    m, is_openai_model(self.model_name), self._enforce_tool_result_string
-                )
+                message_to_openai(m, is_openai_model(self.model_name), self._tool_result_process)
             )
 
         generation_kwargs: dict[str, Any] = {}
@@ -211,7 +211,7 @@ def tool_to_openai(tool: Tool) -> ToolParam:
 
 
 def message_to_openai(
-    message: Message, is_openai_model: bool = False, enforce_tool_result_string: bool = False
+    message: Message, is_openai_model: bool = False, tool_result_process: ToolResultProcess = "raw"
 ) -> list[ResponseInputItemParam]:
     """Convert a single message to OpenAI Responses input format.
 
@@ -229,7 +229,7 @@ def message_to_openai(
     # tool role → function_call_output (return value from a prior tool call)
     if role == "tool":
         call_id = message.tool_call_id or ""
-        output = _message_content_to_function_output_items(message, enforce_tool_result_string)
+        output = _message_content_to_function_output_items(message, tool_result_process)
 
         return [
             {
@@ -362,12 +362,12 @@ def _content_parts_to_output_items(parts: list[ContentPart]) -> list[ResponseOut
 
 
 def _message_content_to_function_output_items(
-    message: Message, enforce_tool_result_string: bool = False
+    message: Message, tool_result_process: ToolResultProcess = "raw"
 ) -> str | ResponseFunctionCallOutputItemListParam:
     """Map ContentPart list → ResponseFunctionCallOutputItemListParam items."""
     output: str | ResponseFunctionCallOutputItemListParam
-    # If enforce_tool_result_string is True, patch all text parts into one string
-    if enforce_tool_result_string:
+    # If tool_result_process is `extract_text`, patch all text parts into one string
+    if tool_result_process == "extract_text":
         output = message.extract_text(sep="\n")
     else:
         items: ResponseFunctionCallOutputItemListParam = []
