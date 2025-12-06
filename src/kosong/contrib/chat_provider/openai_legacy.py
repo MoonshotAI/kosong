@@ -20,9 +20,9 @@ from kosong.chat_provider.openai_common import (
     thinking_effort_to_reasoning_effort,
     tool_to_openai,
 )
+from kosong.contrib.chat_provider.common import ToolMessageConversion
 from kosong.message import ContentPart, Message, TextPart, ThinkPart, ToolCall, ToolCallPart
 from kosong.tooling import Tool
-from kosong.utils.typing import ToolResultProcess
 
 if TYPE_CHECKING:
 
@@ -66,8 +66,7 @@ class OpenAILegacy:
         base_url: str | None = None,
         stream: bool = True,
         reasoning_key: str | None = None,
-        # which process should we apply on tool result
-        tool_result_process: ToolResultProcess = "raw",
+        tool_message_conversion: ToolMessageConversion | None = None,
         **client_kwargs: Any,
     ):
         """
@@ -86,7 +85,7 @@ class OpenAILegacy:
         """The underlying `AsyncOpenAI` client."""
         self._reasoning_effort: ReasoningEffort | Omit = omit
         self._reasoning_key = reasoning_key
-        self._tool_result_process: ToolResultProcess = tool_result_process
+        self._tool_message_conversion: ToolMessageConversion | None = tool_message_conversion
         self._generation_kwargs: OpenAILegacy.GenerationKwargs = {}
 
     @property
@@ -103,10 +102,7 @@ class OpenAILegacy:
         if system_prompt:
             # `system` vs `developer`: see `message_to_openai` comments
             messages.append({"role": "system", "content": system_prompt})
-        messages.extend(
-            message_to_openai(message, self._reasoning_key, self._tool_result_process)
-            for message in history
-        )
+        messages.extend(self._convert_message(message) for message in history)
 
         generation_kwargs: dict[str, Any] = {}
         generation_kwargs.update(self._generation_kwargs)
@@ -155,36 +151,33 @@ class OpenAILegacy:
             model_parameters["reasoning_effort"] = self._reasoning_effort
         return model_parameters
 
-
-def message_to_openai(
-    message: Message,
-    reasoning_key: str | None = None,
-    tool_result_process: ToolResultProcess = "raw",
-) -> ChatCompletionMessageParam:
-    """Convert a single message to OpenAI message format."""
-    # Note: for openai, `developer` role is more standard, but `system` is still accepted.
-    # And many openai-compatible models do not accept `developer` role.
-    # So we use `system` role here. OpenAIResponses will use `developer` role.
-    # See https://cdn.openai.com/spec/model-spec-2024-05-08.html#definitions
-    message = message.model_copy(deep=True)
-    reasoning_content: str = ""
-    content: list[ContentPart] = []
-    for part in message.content:
-        if isinstance(part, ThinkPart):
-            reasoning_content += part.think
+    def _convert_message(self, message: Message) -> ChatCompletionMessageParam:
+        """Convert a Kosong message to OpenAI message."""
+        # Note: for openai, `developer` role is more standard, but `system` is still accepted.
+        # And many openai-compatible models do not accept `developer` role.
+        # So we use `system` role here. OpenAIResponses will use `developer` role.
+        # See https://cdn.openai.com/spec/model-spec-2024-05-08.html#definitions
+        message = message.model_copy(deep=True)
+        reasoning_content: str = ""
+        content: list[ContentPart] = []
+        for part in message.content:
+            if isinstance(part, ThinkPart):
+                reasoning_content += part.think
+            else:
+                content.append(part)
+        # if tool message and `tool_result_conversion` is `extract_text`, patch all text parts into
+        # one so that we can make use of the serialization process of `Message` to output string
+        if message.role == "tool" and self._tool_message_conversion == "extract_text":
+            message.content = [TextPart(text=message.extract_text(sep="\n"))]
         else:
-            content.append(part)
-    # if tool message and tool_result_process is `extract_text`, patch all text parts into one
-    # so that we can make use of the serialization process of `Message` to output string
-    if message.role == "tool" and tool_result_process == "extract_text":
-        message.content = [TextPart(text=message.extract_text(sep="\n"))]
-    else:
-        message.content = content
-    dumped_message = message.model_dump(exclude_none=True)
-    if reasoning_content:
-        assert reasoning_key, "reasoning_key must not be empty if reasoning_content exists"
-        dumped_message[reasoning_key] = reasoning_content
-    return cast(ChatCompletionMessageParam, dumped_message)
+            message.content = content
+        dumped_message = message.model_dump(exclude_none=True)
+        if reasoning_content:
+            assert self._reasoning_key, (
+                "reasoning_key must not be empty if reasoning_content exists"
+            )
+            dumped_message[self._reasoning_key] = reasoning_content
+        return cast(ChatCompletionMessageParam, dumped_message)
 
 
 class OpenAILegacyStreamedMessage:
