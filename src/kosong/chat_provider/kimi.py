@@ -108,7 +108,7 @@ class Kimi(ChatProvider):
         messages: list[ChatCompletionMessageParam] = []
         if system_prompt:
             messages.append({"role": "system", "content": system_prompt})
-        messages.extend(message_to_kimi(message) for message in history)
+        messages.extend(_convert_message(message) for message in history)
 
         generation_kwargs: dict[str, Any] = {
             # default kimi generation kwargs
@@ -126,7 +126,7 @@ class Kimi(ChatProvider):
             response = await self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
-                tools=(_tool_to_kimi(tool) for tool in tools),
+                tools=(_convert_tool(tool) for tool in tools),
                 stream=self.stream,
                 stream_options={"include_usage": True} if self.stream else omit,
                 **generation_kwargs,
@@ -172,7 +172,7 @@ class Kimi(ChatProvider):
         return model_parameters
 
 
-def message_to_kimi(message: Message) -> ChatCompletionMessageParam:
+def _convert_message(message: Message) -> ChatCompletionMessageParam:
     message = message.model_copy(deep=True)
     reasoning_content: str = ""
     content: list[ContentPart] = []
@@ -188,7 +188,7 @@ def message_to_kimi(message: Message) -> ChatCompletionMessageParam:
     return cast(ChatCompletionMessageParam, dumped_message)
 
 
-def _tool_to_kimi(tool: Tool) -> ChatCompletionToolParam:
+def _convert_tool(tool: Tool) -> ChatCompletionToolParam:
     if tool.name.startswith("$"):
         # Kimi builtin functions start with `$`
         return cast(
