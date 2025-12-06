@@ -31,10 +31,8 @@ from openai.types.shared.reasoning_effort import ReasoningEffort
 from openai.types.shared_params.responses_model import ResponsesModel
 
 from kosong.chat_provider import ChatProvider, StreamedMessagePart, ThinkingEffort, TokenUsage
-from kosong.contrib.chat_provider.openai_legacy import (
-    convert_error,
-    thinking_effort_to_reasoning_effort,
-)
+from kosong.chat_provider.openai_common import convert_error, thinking_effort_to_reasoning_effort
+from kosong.contrib.chat_provider.common import ToolMessageConversion
 from kosong.message import (
     AudioURLPart,
     ContentPart,
@@ -111,10 +109,12 @@ class OpenAIResponses:
         api_key: str | None = None,
         base_url: str | None = None,
         stream: bool = True,
+        tool_message_conversion: ToolMessageConversion | None = None,
         **client_kwargs: Any,
     ):
         self._model = model
         self._stream = stream
+        self._tool_message_conversion: ToolMessageConversion | None = tool_message_conversion
         self._client = AsyncOpenAI(
             api_key=api_key,
             base_url=base_url,
@@ -140,8 +140,8 @@ class OpenAIResponses:
             inputs.append(system_message)
         # The `Message` type is OpenAI-compatible for Responses API `input` messages.
 
-        for m in history:
-            inputs.extend(message_to_openai(m, is_openai_model(self.model_name)))
+        for message in history:
+            inputs.extend(self._convert_message(message))
 
         generation_kwargs: dict[str, Any] = {}
         generation_kwargs.update(self._generation_kwargs)
@@ -156,7 +156,7 @@ class OpenAIResponses:
                 stream=self._stream,
                 model=self._model,
                 input=inputs,
-                tools=[tool_to_openai(tool) for tool in tools],
+                tools=[_convert_tool(tool) for tool in tools],
                 store=False,
                 **generation_kwargs,
             )
@@ -192,9 +192,121 @@ class OpenAIResponses:
         model_parameters.update(self._generation_kwargs)
         return model_parameters
 
+    def _convert_message(self, message: Message) -> list[ResponseInputItemParam]:
+        """Convert a single message to OpenAI Responses input format.
 
-def tool_to_openai(tool: Tool) -> ToolParam:
-    """Convert a single tool to the OpenAI Responses tool format."""
+        Rules:
+        - role in {user, assistant}: map to EasyInputMessageParam with role kept
+        role == system: map to role=developer for OpenAI models, otherwise kept
+        content: str kept; list[ContentPart] mapped to ResponseInputMessageContentListParam
+        - role == tool: map to FunctionCallOutput with call_id and output
+        """
+
+        role = message.role
+        if is_openai_model(self.model_name) and role == "system":
+            role = "developer"
+
+        # tool role → function_call_output (return value from a prior tool call)
+        if role == "tool":
+            call_id = message.tool_call_id or ""
+            if self._tool_message_conversion == "extract_text":
+                content = message.extract_text(sep="\n")
+            else:
+                content = message.content
+            output = _message_content_to_function_output_items(content)
+
+            return [
+                {
+                    "call_id": call_id,
+                    "output": output,
+                    "type": "function_call_output",
+                }
+            ]
+
+        result: list[ResponseInputItemParam] = []
+
+        # user/system/assistant → message input item
+        if len(message.content) > 0:
+            # Split into two kinds of blocks: contiguous non-ThinkPart message blocks, and
+            # contiguous ThinkPart groups (grouped by the same `encrypted` value)
+            pending_parts: list[ContentPart] = []
+
+            def flush_pending_parts() -> None:
+                if not pending_parts:
+                    return
+                if role == "assistant":
+                    # the "id" key is missing by purpose
+                    result.append(
+                        cast(
+                            ResponseOutputMessageParam,
+                            {
+                                "content": _content_parts_to_output_items(pending_parts),
+                                "role": role,
+                                "type": "message",
+                            },
+                        )
+                    )
+                else:
+                    result.append(
+                        {
+                            "content": _content_parts_to_input_items(pending_parts),
+                            "role": role,
+                            "type": "message",
+                        }
+                    )
+                pending_parts.clear()
+
+            i = 0
+            n = len(message.content)
+            while i < n:
+                part = message.content[i]
+                if isinstance(part, ThinkPart):
+                    # Flush accumulated non-reasoning parts first
+                    flush_pending_parts()
+                    # Aggregate consecutive ThinkPart items with the same `encrypted` value
+                    encrypted_value = part.encrypted
+                    summaries = [{"type": "summary_text", "text": part.think or ""}]
+                    i += 1
+                    while i < n:
+                        next_part = message.content[i]
+                        if not isinstance(next_part, ThinkPart):
+                            break
+                        if next_part.encrypted != encrypted_value:
+                            break
+                        summaries.append({"type": "summary_text", "text": next_part.think or ""})
+                        i += 1
+                    result.append(
+                        cast(
+                            ResponseReasoningItemParam,
+                            {
+                                "summary": summaries,
+                                "type": "reasoning",
+                                "encrypted_content": encrypted_value,
+                            },
+                        )
+                    )
+                else:
+                    pending_parts.append(part)
+                    i += 1
+
+            # Handle remaining trailing non-reasoning parts
+            flush_pending_parts()
+
+        for tool_call in message.tool_calls or []:
+            result.append(
+                {
+                    "arguments": tool_call.function.arguments or "{}",
+                    "call_id": tool_call.id,
+                    "name": tool_call.function.name,
+                    "type": "function_call",
+                }
+            )
+
+        return result
+
+
+def _convert_tool(tool: Tool) -> ToolParam:
+    """Convert a Kosong tool to an OpenAI Responses tool."""
     return {
         "type": "function",
         "name": tool.name,
@@ -202,117 +314,6 @@ def tool_to_openai(tool: Tool) -> ToolParam:
         "parameters": tool.parameters,
         "strict": False,
     }
-
-
-def message_to_openai(
-    message: Message, is_openai_model: bool = False
-) -> list[ResponseInputItemParam]:
-    """Convert a single message to OpenAI Responses input format.
-
-    Rules:
-    - role in {user, assistant}: map to EasyInputMessageParam with role kept
-      role == system: map to role=developer for OpenAI models, otherwise kept
-      content: str kept; list[ContentPart] mapped to ResponseInputMessageContentListParam
-    - role == tool: map to FunctionCallOutput with call_id and output
-    """
-
-    role = message.role
-    if is_openai_model and role == "system":
-        role = "developer"
-
-    # tool role → function_call_output (return value from a prior tool call)
-    if role == "tool":
-        call_id = message.tool_call_id or ""
-        output = _content_parts_to_function_output_items(message.content)
-
-        return [
-            {
-                "call_id": call_id,
-                "output": output,
-                "type": "function_call_output",
-            }
-        ]
-
-    result: list[ResponseInputItemParam] = []
-
-    # user/system/assistant → message input item
-    if len(message.content) > 0:
-        # Split into two kinds of blocks: contiguous non-ThinkPart message blocks, and
-        # contiguous ThinkPart groups (grouped by the same `encrypted` value)
-        pending_parts: list[ContentPart] = []
-
-        def flush_pending_parts() -> None:
-            if not pending_parts:
-                return
-            if role == "assistant":
-                # the "id" key is missing by purpose
-                result.append(
-                    cast(
-                        ResponseOutputMessageParam,
-                        {
-                            "content": _content_parts_to_output_items(pending_parts),
-                            "role": role,
-                            "type": "message",
-                        },
-                    )
-                )
-            else:
-                result.append(
-                    {
-                        "content": _content_parts_to_input_items(pending_parts),
-                        "role": role,
-                        "type": "message",
-                    }
-                )
-            pending_parts.clear()
-
-        i = 0
-        n = len(message.content)
-        while i < n:
-            part = message.content[i]
-            if isinstance(part, ThinkPart):
-                # Flush accumulated non-reasoning parts first
-                flush_pending_parts()
-                # Aggregate consecutive ThinkPart items with the same `encrypted` value
-                encrypted_value = part.encrypted
-                summaries = [{"type": "summary_text", "text": part.think or ""}]
-                i += 1
-                while i < n:
-                    next_part = message.content[i]
-                    if not isinstance(next_part, ThinkPart):
-                        break
-                    if next_part.encrypted != encrypted_value:
-                        break
-                    summaries.append({"type": "summary_text", "text": next_part.think or ""})
-                    i += 1
-                result.append(
-                    cast(
-                        ResponseReasoningItemParam,
-                        {
-                            "summary": summaries,
-                            "type": "reasoning",
-                            "encrypted_content": encrypted_value,
-                        },
-                    )
-                )
-            else:
-                pending_parts.append(part)
-                i += 1
-
-        # Handle remaining trailing non-reasoning parts
-        flush_pending_parts()
-
-    for tool_call in message.tool_calls or []:
-        result.append(
-            {
-                "arguments": tool_call.function.arguments or "{}",
-                "call_id": tool_call.id,
-                "name": tool_call.function.name,
-                "type": "function_call",
-            }
-        )
-
-    return result
 
 
 def _content_parts_to_input_items(parts: list[ContentPart]) -> ResponseInputMessageContentListParam:
@@ -355,17 +356,17 @@ def _content_parts_to_output_items(parts: list[ContentPart]) -> list[ResponseOut
     return items
 
 
-def _content_parts_to_function_output_items(
-    parts: list[ContentPart],
+def _message_content_to_function_output_items(
+    content: str | list[ContentPart],
 ) -> str | ResponseFunctionCallOutputItemListParam:
     """Map ContentPart list → ResponseFunctionCallOutputItemListParam items."""
     output: str | ResponseFunctionCallOutputItemListParam
-    # If content has only one part and the part is a TextPart, use the text directly
-    if len(parts) == 1 and isinstance(parts[0], TextPart):
-        output = parts[0].text
+    # If tool_result_process is `extract_text`, patch all text parts into one string
+    if isinstance(content, str):
+        output = content
     else:
         items: ResponseFunctionCallOutputItemListParam = []
-        for part in parts:
+        for part in content:
             if isinstance(part, TextPart):
                 if part.text:
                     items.append({"type": "input_text", "text": part.text})

@@ -65,7 +65,9 @@ from kosong.chat_provider import (
     ThinkingEffort,
     TokenUsage,
 )
+from kosong.contrib.chat_provider.common import ToolMessageConversion
 from kosong.message import (
+    ContentPart,
     ImageURLPart,
     Message,
     TextPart,
@@ -113,6 +115,8 @@ class Anthropic:
         api_key: str | None = None,
         base_url: str | None = None,
         stream: bool = True,
+        # which process should we apply on tool result
+        tool_message_conversion: ToolMessageConversion | None = None,
         # Must provide a max_tokens. Can be overridden by .with_generation_kwargs()
         default_max_tokens: int,
         **client_kwargs: Any,
@@ -120,6 +124,7 @@ class Anthropic:
         self._model = model
         self._stream = stream
         self._client = AsyncAnthropic(api_key=api_key, base_url=base_url, **client_kwargs)
+        self._tool_message_conversion: ToolMessageConversion | None = tool_message_conversion
         self._generation_kwargs: Anthropic.GenerationKwargs = {
             "max_tokens": default_max_tokens,
             "beta_features": ["interleaved-thinking-2025-05-14"],
@@ -149,8 +154,8 @@ class Anthropic:
             else omit
         )
         messages: list[MessageParam] = []
-        for m in history:
-            messages.append(message_to_anthropic(m))
+        for message in history:
+            messages.append(self._convert_message(message))
         if messages:
             last_message = messages[-1]
             last_content = last_message["content"]
@@ -182,7 +187,7 @@ class Anthropic:
             **(generation_kwargs.pop("extra_headers", {})),
         }
 
-        tools_ = [tool_to_anthropic(tool) for tool in tools]
+        tools_ = [_convert_tool(tool) for tool in tools]
         if tools:
             tools_[-1]["cache_control"] = CacheControlEphemeralParam(type="ephemeral")
         try:
@@ -236,6 +241,71 @@ class Anthropic:
         model_parameters: dict[str, Any] = {"base_url": str(self._client.base_url)}
         model_parameters.update(self._generation_kwargs)
         return model_parameters
+
+    def _convert_message(self, message: Message) -> MessageParam:
+        """Convert a single internal message into Anthropic wire format."""
+        role = message.role
+
+        if role == "system":
+            # Anthropic does not support system messages in the conversation.
+            # We map it to a special user message.
+            return MessageParam(
+                role="user",
+                content=[
+                    TextBlockParam(
+                        type="text", text=f"<system>{message.extract_text(sep='\n')}</system>"
+                    )
+                ],
+            )
+        elif role == "tool":
+            if message.tool_call_id is None:
+                raise ChatProviderError("Tool message missing `tool_call_id`.")
+            if self._tool_message_conversion == "extract_text":
+                content = message.extract_text(sep="\n")
+            else:
+                content = message.content
+            block = _tool_result_message_to_block(message.tool_call_id, content)
+            return MessageParam(role="user", content=[block])
+
+        assert role in ("user", "assistant")
+        blocks: list[ContentBlockParam] = []
+        for part in message.content:
+            if isinstance(part, TextPart):
+                blocks.append(TextBlockParam(type="text", text=part.text))
+            elif isinstance(part, ImageURLPart):
+                blocks.append(_image_url_part_to_anthropic(part))
+            elif isinstance(part, ThinkPart):
+                if part.encrypted is None:
+                    # missing signature, strip this thinking block.
+                    continue
+                else:
+                    blocks.append(
+                        ThinkingBlockParam(
+                            type="thinking", thinking=part.think, signature=part.encrypted
+                        )
+                    )
+            else:
+                continue
+        for tool_call in message.tool_calls or []:
+            if tool_call.function.arguments:
+                try:
+                    parsed_arguments = json.loads(tool_call.function.arguments)
+                except json.JSONDecodeError as exc:  # pragma: no cover - defensive guard
+                    raise ChatProviderError("Tool call arguments must be valid JSON.") from exc
+                if not isinstance(parsed_arguments, dict):
+                    raise ChatProviderError("Tool call arguments must be a JSON object.")
+                tool_input = cast(dict[str, object], parsed_arguments)
+            else:
+                tool_input = {}
+            blocks.append(
+                ToolUseBlockParam(
+                    type="tool_use",
+                    id=tool_call.id,
+                    name=tool_call.function.name,
+                    input=tool_input,
+                )
+            )
+        return MessageParam(role=role, content=blocks)
 
 
 class AnthropicStreamedMessage:
@@ -354,7 +424,7 @@ class AnthropicStreamedMessage:
             raise _convert_error(exc) from exc
 
 
-def tool_to_anthropic(tool: Tool) -> ToolParam:
+def _convert_tool(tool: Tool) -> ToolParam:
     return {
         "name": tool.name,
         "description": tool.description,
@@ -362,78 +432,17 @@ def tool_to_anthropic(tool: Tool) -> ToolParam:
     }
 
 
-def message_to_anthropic(message: Message) -> MessageParam:
-    """Convert a single internal message into Anthropic wire format."""
-    role = message.role
-
-    if role == "system":
-        # Anthropic does not support system messages in the conversation.
-        # We map it to a special user message.
-        return MessageParam(
-            role="user",
-            content=[
-                TextBlockParam(
-                    type="text", text=f"<system>{message.extract_text(sep='\n')}</system>"
-                )
-            ],
-        )
-    elif role == "tool":
-        block = _tool_result_message_to_block(message)
-        return MessageParam(role="user", content=[block])
-
-    assert role in ("user", "assistant")
-    blocks: list[ContentBlockParam] = []
-    for part in message.content:
-        if isinstance(part, TextPart):
-            blocks.append(TextBlockParam(type="text", text=part.text))
-        elif isinstance(part, ImageURLPart):
-            blocks.append(_image_url_part_to_anthropic(part))
-        elif isinstance(part, ThinkPart):
-            if part.encrypted is None:
-                # missing signature, strip this thinking block.
-                continue
-            else:
-                blocks.append(
-                    ThinkingBlockParam(
-                        type="thinking", thinking=part.think, signature=part.encrypted
-                    )
-                )
-        else:
-            continue
-    for tool_call in message.tool_calls or []:
-        if tool_call.function.arguments:
-            try:
-                parsed_arguments = json.loads(tool_call.function.arguments)
-            except json.JSONDecodeError as exc:  # pragma: no cover - defensive guard
-                raise ChatProviderError("Tool call arguments must be valid JSON.") from exc
-            if not isinstance(parsed_arguments, dict):
-                raise ChatProviderError("Tool call arguments must be a JSON object.")
-            tool_input = cast(dict[str, object], parsed_arguments)
-        else:
-            tool_input = {}
-        blocks.append(
-            ToolUseBlockParam(
-                type="tool_use",
-                id=tool_call.id,
-                name=tool_call.function.name,
-                input=tool_input,
-            )
-        )
-    return MessageParam(role=role, content=blocks)
-
-
-def _tool_result_message_to_block(message: Message) -> ToolResultBlockParam:
-    if message.tool_call_id is None:
-        raise ChatProviderError("Tool response is missing `tool_call_id`")
-
-    content: str | list[ToolResultContent]
-    # If content has only one part and the part is a TextPart, use the text directly
-    if len(message.content) == 1 and isinstance(message.content[0], TextPart):
-        content = message.content[0].text
+def _tool_result_message_to_block(
+    tool_call_id: str, content: str | list[ContentPart]
+) -> ToolResultBlockParam:
+    block_content: str | list[ToolResultContent]
+    # If tool_result_process is `extract_text`, we join all text parts into one string
+    if isinstance(content, str):
+        block_content = content
     else:
         # Otherwise, map parts to content blocks
         blocks: list[ToolResultContent] = []
-        for part in message.content:
+        for part in content:
             if isinstance(part, TextPart):
                 if part.text:
                     blocks.append(TextBlockParam(type="text", text=part.text))
@@ -445,12 +454,12 @@ def _tool_result_message_to_block(message: Message) -> ToolResultBlockParam:
                 raise ChatProviderError(
                     f"Anthropic API does not support {type(part)} in tool result"
                 )
-        content = blocks
+        block_content = blocks
 
     return ToolResultBlockParam(
         type="tool_result",
-        tool_use_id=message.tool_call_id,
-        content=content,
+        tool_use_id=tool_call_id,
+        content=block_content,
     )
 
 

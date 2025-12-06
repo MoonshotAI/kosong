@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased]
+
+- Introduce `ToolMessageConversion` to customize how tool messages are converted in chat providers
+
 ## [0.31.0] - 2025-12-03
 
 - Fix OpenAI Responses provider not mapping `role="system"` to `developer`

@@ -4,7 +4,6 @@ from collections.abc import AsyncIterator, Sequence
 from typing import TYPE_CHECKING, Any, Self, Unpack, cast
 
 import httpx
-import openai
 from openai import AsyncOpenAI, AsyncStream, Omit, OpenAIError, omit
 from openai.types import CompletionUsage, ReasoningEffort
 from openai.types.chat import (
@@ -12,20 +11,16 @@ from openai.types.chat import (
     ChatCompletionChunk,
     ChatCompletionMessageFunctionToolCall,
     ChatCompletionMessageParam,
-    ChatCompletionToolParam,
 )
 from typing_extensions import TypedDict
 
-from kosong.chat_provider import (
-    APIConnectionError,
-    APIStatusError,
-    APITimeoutError,
-    ChatProvider,
-    ChatProviderError,
-    StreamedMessagePart,
-    ThinkingEffort,
-    TokenUsage,
+from kosong.chat_provider import ChatProvider, StreamedMessagePart, ThinkingEffort, TokenUsage
+from kosong.chat_provider.openai_common import (
+    convert_error,
+    thinking_effort_to_reasoning_effort,
+    tool_to_openai,
 )
+from kosong.contrib.chat_provider.common import ToolMessageConversion
 from kosong.message import ContentPart, Message, TextPart, ThinkPart, ToolCall, ToolCallPart
 from kosong.tooling import Tool
 
@@ -71,6 +66,7 @@ class OpenAILegacy:
         base_url: str | None = None,
         stream: bool = True,
         reasoning_key: str | None = None,
+        tool_message_conversion: ToolMessageConversion | None = None,
         **client_kwargs: Any,
     ):
         """
@@ -89,6 +85,7 @@ class OpenAILegacy:
         """The underlying `AsyncOpenAI` client."""
         self._reasoning_effort: ReasoningEffort | Omit = omit
         self._reasoning_key = reasoning_key
+        self._tool_message_conversion: ToolMessageConversion | None = tool_message_conversion
         self._generation_kwargs: OpenAILegacy.GenerationKwargs = {}
 
     @property
@@ -105,7 +102,7 @@ class OpenAILegacy:
         if system_prompt:
             # `system` vs `developer`: see `message_to_openai` comments
             messages.append({"role": "system", "content": system_prompt})
-        messages.extend(message_to_openai(message, self._reasoning_key) for message in history)
+        messages.extend(self._convert_message(message) for message in history)
 
         generation_kwargs: dict[str, Any] = {}
         generation_kwargs.update(self._generation_kwargs)
@@ -154,40 +151,33 @@ class OpenAILegacy:
             model_parameters["reasoning_effort"] = self._reasoning_effort
         return model_parameters
 
-
-def message_to_openai(message: Message, reasoning_key: str | None) -> ChatCompletionMessageParam:
-    """Convert a single message to OpenAI message format."""
-    # Note: for openai, `developer` role is more standard, but `system` is still accepted.
-    # And many openai-compatible models do not accept `developer` role.
-    # So we use `system` role here. OpenAIResponses will use `developer` role.
-    # See https://cdn.openai.com/spec/model-spec-2024-05-08.html#definitions
-    message = message.model_copy(deep=True)
-    reasoning_content: str = ""
-    content: list[ContentPart] = []
-    for part in message.content:
-        if isinstance(part, ThinkPart):
-            reasoning_content += part.think
+    def _convert_message(self, message: Message) -> ChatCompletionMessageParam:
+        """Convert a Kosong message to OpenAI message."""
+        # Note: for openai, `developer` role is more standard, but `system` is still accepted.
+        # And many openai-compatible models do not accept `developer` role.
+        # So we use `system` role here. OpenAIResponses will use `developer` role.
+        # See https://cdn.openai.com/spec/model-spec-2024-05-08.html#definitions
+        message = message.model_copy(deep=True)
+        reasoning_content: str = ""
+        content: list[ContentPart] = []
+        for part in message.content:
+            if isinstance(part, ThinkPart):
+                reasoning_content += part.think
+            else:
+                content.append(part)
+        # if tool message and `tool_result_conversion` is `extract_text`, patch all text parts into
+        # one so that we can make use of the serialization process of `Message` to output string
+        if message.role == "tool" and self._tool_message_conversion == "extract_text":
+            message.content = [TextPart(text=message.extract_text(sep="\n"))]
         else:
-            content.append(part)
-    message.content = content
-    dumped_message = message.model_dump(exclude_none=True)
-    if reasoning_content:
-        assert reasoning_key, "reasoning_key must not be empty if reasoning_content exists"
-        dumped_message[reasoning_key] = reasoning_content
-    return cast(ChatCompletionMessageParam, dumped_message)
-
-
-def tool_to_openai(tool: Tool) -> ChatCompletionToolParam:
-    """Convert a single tool to OpenAI tool format."""
-    # simply `model_dump` because the `Tool` type is OpenAI-compatible
-    return {
-        "type": "function",
-        "function": {
-            "name": tool.name,
-            "description": tool.description,
-            "parameters": tool.parameters,
-        },
-    }
+            message.content = content
+        dumped_message = message.model_dump(exclude_none=True)
+        if reasoning_content:
+            assert self._reasoning_key, (
+                "reasoning_key must not be empty if reasoning_content exists"
+            )
+            dumped_message[self._reasoning_key] = reasoning_content
+        return cast(ChatCompletionMessageParam, dumped_message)
 
 
 class OpenAILegacyStreamedMessage:
@@ -302,36 +292,6 @@ class OpenAILegacyStreamedMessage:
                         pass
         except (OpenAIError, httpx.HTTPError) as e:
             raise convert_error(e) from e
-
-
-def convert_error(error: OpenAIError | httpx.HTTPError) -> ChatProviderError:
-    match error:
-        case openai.APIStatusError():
-            return APIStatusError(error.status_code, error.message)
-        case openai.APIConnectionError():
-            return APIConnectionError(error.message)
-        case openai.APITimeoutError():
-            return APITimeoutError(error.message)
-        case httpx.TimeoutException():
-            return APITimeoutError(str(error))
-        case httpx.NetworkError():
-            return APIConnectionError(str(error))
-        case httpx.HTTPStatusError():
-            return APIStatusError(error.response.status_code, str(error))
-        case _:
-            return ChatProviderError(f"Error: {error}")
-
-
-def thinking_effort_to_reasoning_effort(effort: ThinkingEffort) -> ReasoningEffort:
-    match effort:
-        case "off":
-            return None
-        case "low":
-            return "low"
-        case "medium":
-            return "medium"
-        case "high":
-            return "high"
 
 
 if __name__ == "__main__":
