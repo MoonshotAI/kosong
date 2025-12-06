@@ -31,10 +31,7 @@ from openai.types.shared.reasoning_effort import ReasoningEffort
 from openai.types.shared_params.responses_model import ResponsesModel
 
 from kosong.chat_provider import ChatProvider, StreamedMessagePart, ThinkingEffort, TokenUsage
-from kosong.contrib.chat_provider.openai_legacy import (
-    convert_error,
-    thinking_effort_to_reasoning_effort,
-)
+from kosong.chat_provider.openai_common import convert_error, thinking_effort_to_reasoning_effort
 from kosong.message import (
     AudioURLPart,
     ContentPart,

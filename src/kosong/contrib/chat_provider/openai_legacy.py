@@ -4,7 +4,6 @@ from collections.abc import AsyncIterator, Sequence
 from typing import TYPE_CHECKING, Any, Self, Unpack, cast
 
 import httpx
-import openai
 from openai import AsyncOpenAI, AsyncStream, Omit, OpenAIError, omit
 from openai.types import CompletionUsage, ReasoningEffort
 from openai.types.chat import (
@@ -12,19 +11,14 @@ from openai.types.chat import (
     ChatCompletionChunk,
     ChatCompletionMessageFunctionToolCall,
     ChatCompletionMessageParam,
-    ChatCompletionToolParam,
 )
 from typing_extensions import TypedDict
 
-from kosong.chat_provider import (
-    APIConnectionError,
-    APIStatusError,
-    APITimeoutError,
-    ChatProvider,
-    ChatProviderError,
-    StreamedMessagePart,
-    ThinkingEffort,
-    TokenUsage,
+from kosong.chat_provider import ChatProvider, StreamedMessagePart, ThinkingEffort, TokenUsage
+from kosong.chat_provider.openai_common import (
+    convert_error,
+    thinking_effort_to_reasoning_effort,
+    tool_to_openai,
 )
 from kosong.message import ContentPart, Message, TextPart, ThinkPart, ToolCall, ToolCallPart
 from kosong.tooling import Tool
@@ -193,19 +187,6 @@ def message_to_openai(
     return cast(ChatCompletionMessageParam, dumped_message)
 
 
-def tool_to_openai(tool: Tool) -> ChatCompletionToolParam:
-    """Convert a single tool to OpenAI tool format."""
-    # simply `model_dump` because the `Tool` type is OpenAI-compatible
-    return {
-        "type": "function",
-        "function": {
-            "name": tool.name,
-            "description": tool.description,
-            "parameters": tool.parameters,
-        },
-    }
-
-
 class OpenAILegacyStreamedMessage:
     def __init__(
         self, response: ChatCompletion | AsyncStream[ChatCompletionChunk], reasoning_key: str | None
@@ -318,36 +299,6 @@ class OpenAILegacyStreamedMessage:
                         pass
         except (OpenAIError, httpx.HTTPError) as e:
             raise convert_error(e) from e
-
-
-def convert_error(error: OpenAIError | httpx.HTTPError) -> ChatProviderError:
-    match error:
-        case openai.APIStatusError():
-            return APIStatusError(error.status_code, error.message)
-        case openai.APIConnectionError():
-            return APIConnectionError(error.message)
-        case openai.APITimeoutError():
-            return APITimeoutError(error.message)
-        case httpx.TimeoutException():
-            return APITimeoutError(str(error))
-        case httpx.NetworkError():
-            return APIConnectionError(str(error))
-        case httpx.HTTPStatusError():
-            return APIStatusError(error.response.status_code, str(error))
-        case _:
-            return ChatProviderError(f"Error: {error}")
-
-
-def thinking_effort_to_reasoning_effort(effort: ThinkingEffort) -> ReasoningEffort:
-    match effort:
-        case "off":
-            return None
-        case "low":
-            return "low"
-        case "medium":
-            return "medium"
-        case "high":
-            return "high"
 
 
 if __name__ == "__main__":

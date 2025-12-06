@@ -23,7 +23,7 @@ from kosong.chat_provider import (
     ThinkingEffort,
     TokenUsage,
 )
-from kosong.contrib.chat_provider.openai_legacy import convert_error, tool_to_openai
+from kosong.chat_provider.openai_common import convert_error, tool_to_openai
 from kosong.message import ContentPart, Message, TextPart, ThinkPart, ToolCall, ToolCallPart
 from kosong.tooling import Tool
 
@@ -126,7 +126,7 @@ class Kimi(ChatProvider):
             response = await self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
-                tools=(tool_to_kimi(tool) for tool in tools),
+                tools=(_tool_to_kimi(tool) for tool in tools),
                 stream=self.stream,
                 stream_options={"include_usage": True} if self.stream else omit,
                 **generation_kwargs,
@@ -188,7 +188,7 @@ def message_to_kimi(message: Message) -> ChatCompletionMessageParam:
     return cast(ChatCompletionMessageParam, dumped_message)
 
 
-def tool_to_kimi(tool: Tool) -> ChatCompletionToolParam:
+def _tool_to_kimi(tool: Tool) -> ChatCompletionToolParam:
     if tool.name.startswith("$"):
         # Kimi builtin functions start with `$`
         return cast(
