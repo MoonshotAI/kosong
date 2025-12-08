@@ -1,0 +1,13 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "build": {
+    "env": {
+      "PIP_IGNORE_REQUIRES_PYTHON": "1"
+    }
+  },
+  "functions": {
+    "api/**/*.py": {
+      "excludeFiles": "{out/**,public/**,src/**,node_modules/**}"
+    }
+  }
+}
