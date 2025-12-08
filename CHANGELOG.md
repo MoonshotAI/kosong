@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [0.32.0] - 2025-12-08
 
 - Introduce `ToolMessageConversion` to customize how tool messages are converted in chat providers
 
