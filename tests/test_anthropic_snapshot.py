@@ -50,6 +50,7 @@ def anthropic_provider():
         model="claude-sonnet-4-20250514",
         api_key="test-api-key",
         default_max_tokens=1024,
+        stream=False,  # Use non-streaming for simpler response mocking
     )
 
 
@@ -504,3 +505,5 @@ async def test_with_thinking_config(anthropic_mock, anthropic_provider):
 
     body = get_request_body(anthropic_mock)
     assert body["thinking"] == snapshot({"type": "enabled", "budget_tokens": 32000})
+
+
