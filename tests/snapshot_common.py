@@ -6,12 +6,56 @@ from typing import Any, Protocol
 
 import respx
 
-from kosong.message import ImageURLPart, Message, TextPart, ThinkPart, ToolCall
+from kosong.message import ImageURLPart, Message, TextPart, ToolCall
 from kosong.tooling import Tool
+
+__all__ = [
+    "ADD_TOOL",
+    "B64_PNG",
+    "COMMON_CASES",
+    "MUL_TOOL",
+    "capture_request",
+    "make_anthropic_response",
+    "make_chat_completion_response",
+    "run_test_cases",
+]
 
 
 class ChatProvider(Protocol):
-    async def generate(self, system: str, tools: Sequence[Tool], history: list[Message]): ...
+    async def generate(
+        self, system: str, tools: Sequence[Tool], history: list[Message]
+    ): ...
+
+
+def make_anthropic_response(model: str = "claude-sonnet-4-20250514") -> dict:
+    """Common response for Anthropic Messages API."""
+    return {
+        "id": "msg_test_123",
+        "type": "message",
+        "role": "assistant",
+        "model": model,
+        "content": [{"type": "text", "text": "Hello"}],
+        "stop_reason": "end_turn",
+        "usage": {"input_tokens": 10, "output_tokens": 5},
+    }
+
+
+def make_chat_completion_response(model: str = "test-model") -> dict:
+    """Common response for OpenAI-compatible chat completion APIs."""
+    return {
+        "id": "chatcmpl-test123",
+        "object": "chat.completion",
+        "created": 1234567890,
+        "model": model,
+        "choices": [
+            {
+                "index": 0,
+                "message": {"role": "assistant", "content": "Hello"},
+                "finish_reason": "stop",
+            }
+        ],
+        "usage": {"prompt_tokens": 10, "completion_tokens": 5, "total_tokens": 15},
+    }
 
 
 B64_PNG = (
@@ -22,6 +66,19 @@ B64_PNG = (
 ADD_TOOL = Tool(
     name="add",
     description="Add two integers.",
+    parameters={
+        "type": "object",
+        "properties": {
+            "a": {"type": "integer", "description": "First number"},
+            "b": {"type": "integer", "description": "Second number"},
+        },
+        "required": ["a", "b"],
+    },
+)
+
+MUL_TOOL = Tool(
+    name="multiply",
+    description="Multiply two integers.",
     parameters={
         "type": "object",
         "properties": {
@@ -45,6 +102,14 @@ COMMON_CASES: dict[str, dict[str, Any]] = {
             Message(role="user", content="And 3+3?"),
         ],
     },
+    "multi_turn_with_system": {
+        "system": "You are a math tutor.",
+        "history": [
+            Message(role="user", content="What is 2+2?"),
+            Message(role="assistant", content="2+2 equals 4."),
+            Message(role="user", content="And 3+3?"),
+        ],
+    },
     "tool_definition": {
         "history": [Message(role="user", content="Add 2 and 3")],
         "tools": [ADD_TOOL],
@@ -56,7 +121,12 @@ COMMON_CASES: dict[str, dict[str, Any]] = {
                 role="assistant",
                 content="I'll add those numbers for you.",
                 tool_calls=[
-                    ToolCall(id="call_abc123", function=ToolCall.FunctionBody(name="add", arguments='{"a": 2, "b": 3}'))
+                    ToolCall(
+                        id="call_abc123",
+                        function=ToolCall.FunctionBody(
+                            name="add", arguments='{"a": 2, "b": 3}'
+                        ),
+                    )
                 ],
             ),
         ],
@@ -68,7 +138,12 @@ COMMON_CASES: dict[str, dict[str, Any]] = {
                 role="assistant",
                 content="",
                 tool_calls=[
-                    ToolCall(id="call_abc123", function=ToolCall.FunctionBody(name="add", arguments='{"a": 2, "b": 3}'))
+                    ToolCall(
+                        id="call_abc123",
+                        function=ToolCall.FunctionBody(
+                            name="add", arguments='{"a": 2, "b": 3}'
+                        ),
+                    )
                 ],
             ),
             Message(role="tool", content="5", tool_call_id="call_abc123"),
@@ -80,9 +155,39 @@ COMMON_CASES: dict[str, dict[str, Any]] = {
                 role="user",
                 content=[
                     TextPart(text="What's in this image?"),
-                    ImageURLPart(image_url=ImageURLPart.ImageURL(url="https://example.com/image.png")),
+                    ImageURLPart(
+                        image_url=ImageURLPart.ImageURL(
+                            url="https://example.com/image.png"
+                        )
+                    ),
                 ],
             )
+        ],
+    },
+    "parallel_tool_calls": {
+        "tools": [ADD_TOOL, MUL_TOOL],
+        "history": [
+            Message(role="user", content="Calculate 2+3 and 4*5"),
+            Message(
+                role="assistant",
+                content="I'll calculate both.",
+                tool_calls=[
+                    ToolCall(
+                        id="call_add",
+                        function=ToolCall.FunctionBody(
+                            name="add", arguments='{"a": 2, "b": 3}'
+                        ),
+                    ),
+                    ToolCall(
+                        id="call_mul",
+                        function=ToolCall.FunctionBody(
+                            name="multiply", arguments='{"a": 4, "b": 5}'
+                        ),
+                    ),
+                ],
+            ),
+            Message(role="tool", content="5", tool_call_id="call_add"),
+            Message(role="tool", content="20", tool_call_id="call_mul"),
         ],
     },
 }
@@ -111,6 +216,12 @@ async def run_test_cases(
     """Run all test cases and return results dict for snapshot comparison."""
     results = {}
     for name, case in cases.items():
-        body = await capture_request(mock, provider, case.get("system", ""), case.get("tools", []), case["history"])
+        body = await capture_request(
+            mock,
+            provider,
+            case.get("system", ""),
+            case.get("tools", []),
+            case["history"],
+        )
         results[name] = {k: v for k, v in body.items() if k in extract_keys}
     return results
