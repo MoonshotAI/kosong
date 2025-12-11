@@ -3,7 +3,7 @@ name = "kosong"
 version = "0.32.0"
 description = "The LLM abstraction layer for modern AI agent applications."
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.12"
 dependencies = [
     "anthropic>=0.75.0",
     "google-genai>=1.53.0",
