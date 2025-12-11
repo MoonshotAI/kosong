@@ -6,12 +6,12 @@ Kosong is an LLM abstraction layer designed for modern AI agent applications. It
 
 ## Installation
 
-Kosong requires Python 3.13 or higher. We recommend using uv as the package manager.
+Kosong requires Python 3.12 or higher. We recommend using uv as the package manager.
 
 Init your project with:
 
 ```bash
-uv init --python 3.13
+uv init --python 3.12  # or higher
 ```
 
 Then add Kosong as a dependency:
