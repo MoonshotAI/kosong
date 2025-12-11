@@ -49,9 +49,7 @@ TEST_CASES: dict[str, dict[str, Any]] = {
                 content=[
                     TextPart(text="Describe:"),
                     ImageURLPart(
-                        image_url=ImageURLPart.ImageURL(
-                            url=f"data:image/png;base64,{B64_PNG}"
-                        )
+                        image_url=ImageURLPart.ImageURL(url=f"data:image/png;base64,{B64_PNG}")
                     ),
                 ],
             )
@@ -76,18 +74,14 @@ TEST_CASES: dict[str, dict[str, Any]] = {
 @pytest.mark.asyncio
 async def test_anthropic_message_conversion():
     with respx.mock(base_url="https://api.anthropic.com") as mock:
-        mock.post("/v1/messages").mock(
-            return_value=Response(200, json=make_anthropic_response())
-        )
+        mock.post("/v1/messages").mock(return_value=Response(200, json=make_anthropic_response()))
         provider = Anthropic(
             model="claude-sonnet-4-20250514",
             api_key="test-key",
             default_max_tokens=1024,
             stream=False,
         )
-        results = await run_test_cases(
-            mock, provider, TEST_CASES, ("messages", "system", "tools")
-        )
+        results = await run_test_cases(mock, provider, TEST_CASES, ("messages", "system", "tools"))
 
         assert results == snapshot(
             {
@@ -112,46 +106,55 @@ async def test_anthropic_message_conversion():
                         }
                     ],
                     "tools": [],
-                }, "multi_turn_conversation": {
-    "messages": [
-        {"role": "user", "content": [{"type": "text", "text": "What is 2+2?"}]},
-        {"role": "assistant", "content": [{"type": "text", "text": "2+2 equals 4."}]},
-        {
-            "role": "user",
-            "content": [
-                {
-                    "type": "text",
-                    "text": "And 3+3?",
-                    "cache_control": {"type": "ephemeral"},
-                }
-            ],
-        },
-    ],
-    "tools": [],
-}, "multi_turn_with_system": {
-    "messages": [
-        {"role": "user", "content": [{"type": "text", "text": "What is 2+2?"}]},
-        {"role": "assistant", "content": [{"type": "text", "text": "2+2 equals 4."}]},
-        {
-            "role": "user",
-            "content": [
-                {
-                    "type": "text",
-                    "text": "And 3+3?",
-                    "cache_control": {"type": "ephemeral"},
-                }
-            ],
-        },
-    ],
-    "system": [
-        {
-            "text": "You are a math tutor.",
-            "type": "text",
-            "cache_control": {"type": "ephemeral"},
-        }
-    ],
-    "tools": [],
-}, "tool_definition": {
+                },
+                "multi_turn_conversation": {
+                    "messages": [
+                        {"role": "user", "content": [{"type": "text", "text": "What is 2+2?"}]},
+                        {
+                            "role": "assistant",
+                            "content": [{"type": "text", "text": "2+2 equals 4."}],
+                        },
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "And 3+3?",
+                                    "cache_control": {"type": "ephemeral"},
+                                }
+                            ],
+                        },
+                    ],
+                    "tools": [],
+                },
+                "multi_turn_with_system": {
+                    "messages": [
+                        {"role": "user", "content": [{"type": "text", "text": "What is 2+2?"}]},
+                        {
+                            "role": "assistant",
+                            "content": [{"type": "text", "text": "2+2 equals 4."}],
+                        },
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "And 3+3?",
+                                    "cache_control": {"type": "ephemeral"},
+                                }
+                            ],
+                        },
+                    ],
+                    "system": [
+                        {
+                            "text": "You are a math tutor.",
+                            "type": "text",
+                            "cache_control": {"type": "ephemeral"},
+                        }
+                    ],
+                    "tools": [],
+                },
+                "tool_definition": {
                     "messages": [
                         {
                             "role": "user",
@@ -308,30 +311,33 @@ async def test_anthropic_message_conversion():
                             ],
                         },
                     ],
-                    "tools": [{
-    "name": "add",
-    "description": "Add two integers.",
-    "input_schema": {
-        "type": "object",
-        "properties": {
-            "a": {"type": "integer", "description": "First number"},
-            "b": {"type": "integer", "description": "Second number"},
-        },
-        "required": ["a", "b"],
-    },
-}, {
-    "name": "multiply",
-    "description": "Multiply two integers.",
-    "input_schema": {
-        "type": "object",
-        "properties": {
-            "a": {"type": "integer", "description": "First number"},
-            "b": {"type": "integer", "description": "Second number"},
-        },
-        "required": ["a", "b"],
-    },
-    "cache_control": {"type": "ephemeral"},
-}],
+                    "tools": [
+                        {
+                            "name": "add",
+                            "description": "Add two integers.",
+                            "input_schema": {
+                                "type": "object",
+                                "properties": {
+                                    "a": {"type": "integer", "description": "First number"},
+                                    "b": {"type": "integer", "description": "Second number"},
+                                },
+                                "required": ["a", "b"],
+                            },
+                        },
+                        {
+                            "name": "multiply",
+                            "description": "Multiply two integers.",
+                            "input_schema": {
+                                "type": "object",
+                                "properties": {
+                                    "a": {"type": "integer", "description": "First number"},
+                                    "b": {"type": "integer", "description": "Second number"},
+                                },
+                                "required": ["a", "b"],
+                            },
+                            "cache_control": {"type": "ephemeral"},
+                        },
+                    ],
                 },
                 "assistant_with_thinking": {
                     "messages": [
@@ -443,18 +449,14 @@ async def test_anthropic_message_conversion():
 @pytest.mark.asyncio
 async def test_anthropic_generation_kwargs():
     with respx.mock(base_url="https://api.anthropic.com") as mock:
-        mock.post("/v1/messages").mock(
-            return_value=Response(200, json=make_anthropic_response())
-        )
+        mock.post("/v1/messages").mock(return_value=Response(200, json=make_anthropic_response()))
         provider = Anthropic(
             model="claude-sonnet-4-20250514",
             api_key="test-key",
             default_max_tokens=1024,
             stream=False,
         ).with_generation_kwargs(temperature=0.7, top_p=0.9, max_tokens=2048)
-        stream = await provider.generate(
-            "", [], [Message(role="user", content="Hi")]
-        )
+        stream = await provider.generate("", [], [Message(role="user", content="Hi")])
         async for _ in stream:
             pass
         body = json.loads(mock.calls.last.request.content.decode())
@@ -466,21 +468,15 @@ async def test_anthropic_generation_kwargs():
 @pytest.mark.asyncio
 async def test_anthropic_with_thinking():
     with respx.mock(base_url="https://api.anthropic.com") as mock:
-        mock.post("/v1/messages").mock(
-            return_value=Response(200, json=make_anthropic_response())
-        )
+        mock.post("/v1/messages").mock(return_value=Response(200, json=make_anthropic_response()))
         provider = Anthropic(
             model="claude-sonnet-4-20250514",
             api_key="test-key",
             default_max_tokens=1024,
             stream=False,
         ).with_thinking("high")
-        stream = await provider.generate(
-            "", [], [Message(role="user", content="Think")]
-        )
+        stream = await provider.generate("", [], [Message(role="user", content="Think")])
         async for _ in stream:
             pass
         body = json.loads(mock.calls.last.request.content.decode())
-        assert body["thinking"] == snapshot(
-            {"type": "enabled", "budget_tokens": 32000}
-        )
+        assert body["thinking"] == snapshot({"type": "enabled", "budget_tokens": 32000})

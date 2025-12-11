@@ -22,9 +22,7 @@ __all__ = [
 
 
 class ChatProvider(Protocol):
-    async def generate(
-        self, system: str, tools: Sequence[Tool], history: list[Message]
-    ): ...
+    async def generate(self, system: str, tools: Sequence[Tool], history: list[Message]): ...
 
 
 def make_anthropic_response(model: str = "claude-sonnet-4-20250514") -> dict:
@@ -123,9 +121,7 @@ COMMON_CASES: dict[str, dict[str, Any]] = {
                 tool_calls=[
                     ToolCall(
                         id="call_abc123",
-                        function=ToolCall.FunctionBody(
-                            name="add", arguments='{"a": 2, "b": 3}'
-                        ),
+                        function=ToolCall.FunctionBody(name="add", arguments='{"a": 2, "b": 3}'),
                     )
                 ],
             ),
@@ -140,9 +136,7 @@ COMMON_CASES: dict[str, dict[str, Any]] = {
                 tool_calls=[
                     ToolCall(
                         id="call_abc123",
-                        function=ToolCall.FunctionBody(
-                            name="add", arguments='{"a": 2, "b": 3}'
-                        ),
+                        function=ToolCall.FunctionBody(name="add", arguments='{"a": 2, "b": 3}'),
                     )
                 ],
             ),
@@ -156,9 +150,7 @@ COMMON_CASES: dict[str, dict[str, Any]] = {
                 content=[
                     TextPart(text="What's in this image?"),
                     ImageURLPart(
-                        image_url=ImageURLPart.ImageURL(
-                            url="https://example.com/image.png"
-                        )
+                        image_url=ImageURLPart.ImageURL(url="https://example.com/image.png")
                     ),
                 ],
             )
@@ -174,9 +166,7 @@ COMMON_CASES: dict[str, dict[str, Any]] = {
                 tool_calls=[
                     ToolCall(
                         id="call_add",
-                        function=ToolCall.FunctionBody(
-                            name="add", arguments='{"a": 2, "b": 3}'
-                        ),
+                        function=ToolCall.FunctionBody(name="add", arguments='{"a": 2, "b": 3}'),
                     ),
                     ToolCall(
                         id="call_mul",

@@ -32,22 +32,25 @@ async def test_openai_legacy_message_conversion():
                         {"role": "user", "content": "Hello!"},
                     ],
                     "tools": [],
-                }, "multi_turn_conversation": {
-    "messages": [
-        {"role": "user", "content": "What is 2+2?"},
-        {"role": "assistant", "content": "2+2 equals 4."},
-        {"role": "user", "content": "And 3+3?"},
-    ],
-    "tools": [],
-}, "multi_turn_with_system": {
-    "messages": [
-        {"role": "system", "content": "You are a math tutor."},
-        {"role": "user", "content": "What is 2+2?"},
-        {"role": "assistant", "content": "2+2 equals 4."},
-        {"role": "user", "content": "And 3+3?"},
-    ],
-    "tools": [],
-}, "tool_definition": {
+                },
+                "multi_turn_conversation": {
+                    "messages": [
+                        {"role": "user", "content": "What is 2+2?"},
+                        {"role": "assistant", "content": "2+2 equals 4."},
+                        {"role": "user", "content": "And 3+3?"},
+                    ],
+                    "tools": [],
+                },
+                "multi_turn_with_system": {
+                    "messages": [
+                        {"role": "system", "content": "You are a math tutor."},
+                        {"role": "user", "content": "What is 2+2?"},
+                        {"role": "assistant", "content": "2+2 equals 4."},
+                        {"role": "user", "content": "And 3+3?"},
+                    ],
+                    "tools": [],
+                },
+                "tool_definition": {
                     "messages": [{"role": "user", "content": "Add 2 and 3"}],
                     "tools": [
                         {
@@ -160,35 +163,38 @@ async def test_openai_legacy_message_conversion():
                         {"role": "tool", "content": "5", "tool_call_id": "call_add"},
                         {"role": "tool", "content": "20", "tool_call_id": "call_mul"},
                     ],
-                    "tools": [{
-    "type": "function",
-    "function": {
-        "name": "add",
-        "description": "Add two integers.",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "a": {"type": "integer", "description": "First number"},
-                "b": {"type": "integer", "description": "Second number"},
-            },
-            "required": ["a", "b"],
-        },
-    },
-}, {
-    "type": "function",
-    "function": {
-        "name": "multiply",
-        "description": "Multiply two integers.",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "a": {"type": "integer", "description": "First number"},
-                "b": {"type": "integer", "description": "Second number"},
-            },
-            "required": ["a", "b"],
-        },
-    },
-}],
+                    "tools": [
+                        {
+                            "type": "function",
+                            "function": {
+                                "name": "add",
+                                "description": "Add two integers.",
+                                "parameters": {
+                                    "type": "object",
+                                    "properties": {
+                                        "a": {"type": "integer", "description": "First number"},
+                                        "b": {"type": "integer", "description": "Second number"},
+                                    },
+                                    "required": ["a", "b"],
+                                },
+                            },
+                        },
+                        {
+                            "type": "function",
+                            "function": {
+                                "name": "multiply",
+                                "description": "Multiply two integers.",
+                                "parameters": {
+                                    "type": "object",
+                                    "properties": {
+                                        "a": {"type": "integer", "description": "First number"},
+                                        "b": {"type": "integer", "description": "Second number"},
+                                    },
+                                    "required": ["a", "b"],
+                                },
+                            },
+                        },
+                    ],
                 },
             }
         )
@@ -240,9 +246,7 @@ async def test_openai_legacy_generation_kwargs():
         provider = OpenAILegacy(
             model="gpt-4.1", api_key="test-key", stream=False
         ).with_generation_kwargs(temperature=0.7, max_tokens=2048)
-        stream = await provider.generate(
-            "", [], [Message(role="user", content="Hi")]
-        )
+        stream = await provider.generate("", [], [Message(role="user", content="Hi")])
         async for _ in stream:
             pass
         body = json.loads(mock.calls.last.request.content.decode())
@@ -255,12 +259,10 @@ async def test_openai_legacy_with_thinking():
         mock.post("/v1/chat/completions").mock(
             return_value=Response(200, json=make_chat_completion_response())
         )
-        provider = OpenAILegacy(
-            model="gpt-4.1", api_key="test-key", stream=False
-        ).with_thinking("high")
-        stream = await provider.generate(
-            "", [], [Message(role="user", content="Think")]
+        provider = OpenAILegacy(model="gpt-4.1", api_key="test-key", stream=False).with_thinking(
+            "high"
         )
+        stream = await provider.generate("", [], [Message(role="user", content="Think")])
         async for _ in stream:
             pass
         body = json.loads(mock.calls.last.request.content.decode())

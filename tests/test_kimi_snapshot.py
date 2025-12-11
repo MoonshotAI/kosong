@@ -58,22 +58,25 @@ async def test_kimi_message_conversion():
                         {"role": "user", "content": "Hello!"},
                     ],
                     "tools": [],
-                }, "multi_turn_conversation": {
-    "messages": [
-        {"role": "user", "content": "What is 2+2?"},
-        {"role": "assistant", "content": "2+2 equals 4."},
-        {"role": "user", "content": "And 3+3?"},
-    ],
-    "tools": [],
-}, "multi_turn_with_system": {
-    "messages": [
-        {"role": "system", "content": "You are a math tutor."},
-        {"role": "user", "content": "What is 2+2?"},
-        {"role": "assistant", "content": "2+2 equals 4."},
-        {"role": "user", "content": "And 3+3?"},
-    ],
-    "tools": [],
-}, "tool_definition": {
+                },
+                "multi_turn_conversation": {
+                    "messages": [
+                        {"role": "user", "content": "What is 2+2?"},
+                        {"role": "assistant", "content": "2+2 equals 4."},
+                        {"role": "user", "content": "And 3+3?"},
+                    ],
+                    "tools": [],
+                },
+                "multi_turn_with_system": {
+                    "messages": [
+                        {"role": "system", "content": "You are a math tutor."},
+                        {"role": "user", "content": "What is 2+2?"},
+                        {"role": "assistant", "content": "2+2 equals 4."},
+                        {"role": "user", "content": "And 3+3?"},
+                    ],
+                    "tools": [],
+                },
+                "tool_definition": {
                     "messages": [{"role": "user", "content": "Add 2 and 3"}],
                     "tools": [
                         {
@@ -186,35 +189,38 @@ async def test_kimi_message_conversion():
                         {"role": "tool", "content": "5", "tool_call_id": "call_add"},
                         {"role": "tool", "content": "20", "tool_call_id": "call_mul"},
                     ],
-                    "tools": [{
-    "type": "function",
-    "function": {
-        "name": "add",
-        "description": "Add two integers.",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "a": {"type": "integer", "description": "First number"},
-                "b": {"type": "integer", "description": "Second number"},
-            },
-            "required": ["a", "b"],
-        },
-    },
-}, {
-    "type": "function",
-    "function": {
-        "name": "multiply",
-        "description": "Multiply two integers.",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "a": {"type": "integer", "description": "First number"},
-                "b": {"type": "integer", "description": "Second number"},
-            },
-            "required": ["a", "b"],
-        },
-    },
-}],
+                    "tools": [
+                        {
+                            "type": "function",
+                            "function": {
+                                "name": "add",
+                                "description": "Add two integers.",
+                                "parameters": {
+                                    "type": "object",
+                                    "properties": {
+                                        "a": {"type": "integer", "description": "First number"},
+                                        "b": {"type": "integer", "description": "Second number"},
+                                    },
+                                    "required": ["a", "b"],
+                                },
+                            },
+                        },
+                        {
+                            "type": "function",
+                            "function": {
+                                "name": "multiply",
+                                "description": "Multiply two integers.",
+                                "parameters": {
+                                    "type": "object",
+                                    "properties": {
+                                        "a": {"type": "integer", "description": "First number"},
+                                        "b": {"type": "integer", "description": "Second number"},
+                                    },
+                                    "required": ["a", "b"],
+                                },
+                            },
+                        },
+                    ],
                 },
                 "builtin_tool": {
                     "messages": [{"role": "user", "content": "Search for something"}],
@@ -250,9 +256,7 @@ async def test_kimi_generation_kwargs():
         provider = Kimi(
             model="kimi-k2-turbo-preview", api_key="test-key", stream=False
         ).with_generation_kwargs(temperature=0.7, max_tokens=2048)
-        stream = await provider.generate(
-            "", [], [Message(role="user", content="Hi")]
-        )
+        stream = await provider.generate("", [], [Message(role="user", content="Hi")])
         async for _ in stream:
             pass
         body = json.loads(mock.calls.last.request.content.decode())
@@ -268,12 +272,8 @@ async def test_kimi_with_thinking():
         provider = Kimi(
             model="kimi-k2-turbo-preview", api_key="test-key", stream=False
         ).with_thinking("high")
-        stream = await provider.generate(
-            "", [], [Message(role="user", content="Think")]
-        )
+        stream = await provider.generate("", [], [Message(role="user", content="Think")])
         async for _ in stream:
             pass
         body = json.loads(mock.calls.last.request.content.decode())
-        assert (body["reasoning_effort"], body["temperature"]) == snapshot(
-            ("high", 1.0)
-        )
+        assert (body["reasoning_effort"], body["temperature"]) == snapshot(("high", 1.0))

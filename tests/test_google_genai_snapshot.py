@@ -42,9 +42,7 @@ TEST_CASES["tool_call_with_thought_signature"] = {
             tool_calls=[
                 ToolCall(
                     id="add_call_sig",
-                    function=ToolCall.FunctionBody(
-                        name="add", arguments='{"a": 2, "b": 3}'
-                    ),
+                    function=ToolCall.FunctionBody(name="add", arguments='{"a": 2, "b": 3}'),
                     extras={"thought_signature_b64": "dGhvdWdodF9zaWduYXR1cmVfZGF0YQ=="},
                 )
             ],
@@ -56,12 +54,10 @@ TEST_CASES["tool_call_with_thought_signature"] = {
 @pytest.mark.asyncio
 async def test_google_genai_message_conversion():
     with respx.mock(base_url="https://generativelanguage.googleapis.com") as mock:
-        mock.route(
-            method="POST", path__regex=r"/v1beta/models/.+:generateContent"
-        ).mock(return_value=Response(200, json=make_response()))
-        provider = GoogleGenAI(
-            model="gemini-2.5-flash", api_key="test-key", stream=False
+        mock.route(method="POST", path__regex=r"/v1beta/models/.+:generateContent").mock(
+            return_value=Response(200, json=make_response())
         )
+        provider = GoogleGenAI(model="gemini-2.5-flash", api_key="test-key", stream=False)
         results = await run_test_cases(
             mock, provider, TEST_CASES, ("contents", "systemInstruction", "tools")
         )
@@ -74,21 +70,27 @@ async def test_google_genai_message_conversion():
                         "parts": [{"text": "You are helpful."}],
                         "role": "user",
                     },
-                }, "multi_turn_conversation": {
-    "contents": [
-        {"parts": [{"text": "What is 2+2?"}], "role": "user"},
-        {"parts": [{"text": "2+2 equals 4."}], "role": "model"},
-        {"parts": [{"text": "And 3+3?"}], "role": "user"},
-    ],
-    "systemInstruction": {"parts": [{"text": ""}], "role": "user"},
-}, "multi_turn_with_system": {
-    "contents": [
-        {"parts": [{"text": "What is 2+2?"}], "role": "user"},
-        {"parts": [{"text": "2+2 equals 4."}], "role": "model"},
-        {"parts": [{"text": "And 3+3?"}], "role": "user"},
-    ],
-    "systemInstruction": {"parts": [{"text": "You are a math tutor."}], "role": "user"},
-}, "tool_definition": {
+                },
+                "multi_turn_conversation": {
+                    "contents": [
+                        {"parts": [{"text": "What is 2+2?"}], "role": "user"},
+                        {"parts": [{"text": "2+2 equals 4."}], "role": "model"},
+                        {"parts": [{"text": "And 3+3?"}], "role": "user"},
+                    ],
+                    "systemInstruction": {"parts": [{"text": ""}], "role": "user"},
+                },
+                "multi_turn_with_system": {
+                    "contents": [
+                        {"parts": [{"text": "What is 2+2?"}], "role": "user"},
+                        {"parts": [{"text": "2+2 equals 4."}], "role": "model"},
+                        {"parts": [{"text": "And 3+3?"}], "role": "user"},
+                    ],
+                    "systemInstruction": {
+                        "parts": [{"text": "You are a math tutor."}],
+                        "role": "user",
+                    },
+                },
+                "tool_definition": {
                     "contents": [{"parts": [{"text": "Add 2 and 3"}], "role": "user"}],
                     "systemInstruction": {"parts": [{"text": ""}], "role": "user"},
                     "tools": [
@@ -217,36 +219,44 @@ async def test_google_genai_message_conversion():
                             "role": "user",
                         },
                     ],
-                    "systemInstruction": {"parts": [{"text": ""}], "role": "user"}, "tools": [
-    {
-        "functionDeclarations": [
-            {
-                "description": "Add two integers.",
-                "name": "add",
-                "parameters": {
-                    "properties": {
-                        "a": {"description": "First number", "type": "INTEGER"},
-                        "b": {"description": "Second number", "type": "INTEGER"},
-                    },
-                    "required": ["a", "b"],
-                    "type": "OBJECT",
+                    "systemInstruction": {"parts": [{"text": ""}], "role": "user"},
+                    "tools": [
+                        {
+                            "functionDeclarations": [
+                                {
+                                    "description": "Add two integers.",
+                                    "name": "add",
+                                    "parameters": {
+                                        "properties": {
+                                            "a": {"description": "First number", "type": "INTEGER"},
+                                            "b": {
+                                                "description": "Second number",
+                                                "type": "INTEGER",
+                                            },
+                                        },
+                                        "required": ["a", "b"],
+                                        "type": "OBJECT",
+                                    },
+                                },
+                                {
+                                    "description": "Multiply two integers.",
+                                    "name": "multiply",
+                                    "parameters": {
+                                        "properties": {
+                                            "a": {"description": "First number", "type": "INTEGER"},
+                                            "b": {
+                                                "description": "Second number",
+                                                "type": "INTEGER",
+                                            },
+                                        },
+                                        "required": ["a", "b"],
+                                        "type": "OBJECT",
+                                    },
+                                },
+                            ]
+                        }
+                    ],
                 },
-            },
-            {
-                "description": "Multiply two integers.",
-                "name": "multiply",
-                "parameters": {
-                    "properties": {
-                        "a": {"description": "First number", "type": "INTEGER"},
-                        "b": {"description": "Second number", "type": "INTEGER"},
-                    },
-                    "required": ["a", "b"],
-                    "type": "OBJECT",
-                },
-            },
-        ]
-    }
-]},
                 "tool_call_with_thought_signature": {
                     "contents": [
                         {"parts": [{"text": "Add 2 and 3"}], "role": "user"},
@@ -274,36 +284,30 @@ async def test_google_genai_message_conversion():
 @pytest.mark.asyncio
 async def test_google_genai_generation_kwargs():
     with respx.mock(base_url="https://generativelanguage.googleapis.com") as mock:
-        mock.route(
-            method="POST", path__regex=r"/v1beta/models/.+:generateContent"
-        ).mock(return_value=Response(200, json=make_response()))
+        mock.route(method="POST", path__regex=r"/v1beta/models/.+:generateContent").mock(
+            return_value=Response(200, json=make_response())
+        )
         provider = GoogleGenAI(
             model="gemini-2.5-flash", api_key="test-key", stream=False
         ).with_generation_kwargs(temperature=0.7, max_output_tokens=2048)
-        stream = await provider.generate(
-            "", [], [Message(role="user", content="Hi")]
-        )
+        stream = await provider.generate("", [], [Message(role="user", content="Hi")])
         async for _ in stream:
             pass
         body = json.loads(mock.calls.last.request.content.decode())
         config = body.get("generationConfig", {})
-        assert (config.get("temperature"), config.get("maxOutputTokens")) == snapshot(
-            (0.7, 2048)
-        )
+        assert (config.get("temperature"), config.get("maxOutputTokens")) == snapshot((0.7, 2048))
 
 
 @pytest.mark.asyncio
 async def test_google_genai_with_thinking():
     with respx.mock(base_url="https://generativelanguage.googleapis.com") as mock:
-        mock.route(
-            method="POST", path__regex=r"/v1beta/models/.+:generateContent"
-        ).mock(return_value=Response(200, json=make_response()))
+        mock.route(method="POST", path__regex=r"/v1beta/models/.+:generateContent").mock(
+            return_value=Response(200, json=make_response())
+        )
         provider = GoogleGenAI(
             model="gemini-2.5-flash", api_key="test-key", stream=False
         ).with_thinking("high")
-        stream = await provider.generate(
-            "", [], [Message(role="user", content="Think")]
-        )
+        stream = await provider.generate("", [], [Message(role="user", content="Think")])
         async for _ in stream:
             pass
         body = json.loads(mock.calls.last.request.content.decode())

@@ -53,9 +53,7 @@ TEST_CASES: dict[str, dict[str, Any]] = {
 @pytest.mark.asyncio
 async def test_openai_responses_message_conversion():
     with respx.mock(base_url="https://api.openai.com") as mock:
-        mock.post("/v1/responses").mock(
-            return_value=Response(200, json=make_response())
-        )
+        mock.post("/v1/responses").mock(return_value=Response(200, json=make_response()))
         provider = OpenAIResponses(model="gpt-4.1", api_key="test-key", stream=False)
         results = await run_test_cases(mock, provider, TEST_CASES, ("input", "tools"))
 
@@ -71,50 +69,53 @@ async def test_openai_responses_message_conversion():
                         },
                     ],
                     "tools": [],
-                }, "multi_turn_conversation": {
-    "input": [
-        {
-            "content": [{"type": "input_text", "text": "What is 2+2?"}],
-            "role": "user",
-            "type": "message",
-        },
-        {
-            "content": [
-                {"type": "output_text", "text": "2+2 equals 4.", "annotations": []}
-            ],
-            "role": "assistant",
-            "type": "message",
-        },
-        {
-            "content": [{"type": "input_text", "text": "And 3+3?"}],
-            "role": "user",
-            "type": "message",
-        },
-    ],
-    "tools": [],
-}, "multi_turn_with_system": {
-    "input": [
-        {"role": "developer", "content": "You are a math tutor."},
-        {
-            "content": [{"type": "input_text", "text": "What is 2+2?"}],
-            "role": "user",
-            "type": "message",
-        },
-        {
-            "content": [
-                {"type": "output_text", "text": "2+2 equals 4.", "annotations": []}
-            ],
-            "role": "assistant",
-            "type": "message",
-        },
-        {
-            "content": [{"type": "input_text", "text": "And 3+3?"}],
-            "role": "user",
-            "type": "message",
-        },
-    ],
-    "tools": [],
-}, "tool_definition": {
+                },
+                "multi_turn_conversation": {
+                    "input": [
+                        {
+                            "content": [{"type": "input_text", "text": "What is 2+2?"}],
+                            "role": "user",
+                            "type": "message",
+                        },
+                        {
+                            "content": [
+                                {"type": "output_text", "text": "2+2 equals 4.", "annotations": []}
+                            ],
+                            "role": "assistant",
+                            "type": "message",
+                        },
+                        {
+                            "content": [{"type": "input_text", "text": "And 3+3?"}],
+                            "role": "user",
+                            "type": "message",
+                        },
+                    ],
+                    "tools": [],
+                },
+                "multi_turn_with_system": {
+                    "input": [
+                        {"role": "developer", "content": "You are a math tutor."},
+                        {
+                            "content": [{"type": "input_text", "text": "What is 2+2?"}],
+                            "role": "user",
+                            "type": "message",
+                        },
+                        {
+                            "content": [
+                                {"type": "output_text", "text": "2+2 equals 4.", "annotations": []}
+                            ],
+                            "role": "assistant",
+                            "type": "message",
+                        },
+                        {
+                            "content": [{"type": "input_text", "text": "And 3+3?"}],
+                            "role": "user",
+                            "type": "message",
+                        },
+                    ],
+                    "tools": [],
+                },
+                "tool_definition": {
                     "input": [
                         {
                             "content": [{"type": "input_text", "text": "Add 2 and 3"}],
@@ -214,9 +215,7 @@ async def test_openai_responses_message_conversion():
                 "parallel_tool_calls": {
                     "input": [
                         {
-                            "content": [
-                                {"type": "input_text", "text": "Calculate 2+3 and 4*5"}
-                            ],
+                            "content": [{"type": "input_text", "text": "Calculate 2+3 and 4*5"}],
                             "role": "user",
                             "type": "message",
                         },
@@ -254,33 +253,36 @@ async def test_openai_responses_message_conversion():
                             "type": "function_call_output",
                         },
                     ],
-                    "tools": [{
-    "type": "function",
-    "name": "add",
-    "description": "Add two integers.",
-    "parameters": {
-        "type": "object",
-        "properties": {
-            "a": {"type": "integer", "description": "First number"},
-            "b": {"type": "integer", "description": "Second number"},
-        },
-        "required": ["a", "b"],
-    },
-    "strict": False,
-}, {
-    "type": "function",
-    "name": "multiply",
-    "description": "Multiply two integers.",
-    "parameters": {
-        "type": "object",
-        "properties": {
-            "a": {"type": "integer", "description": "First number"},
-            "b": {"type": "integer", "description": "Second number"},
-        },
-        "required": ["a", "b"],
-    },
-    "strict": False,
-}],
+                    "tools": [
+                        {
+                            "type": "function",
+                            "name": "add",
+                            "description": "Add two integers.",
+                            "parameters": {
+                                "type": "object",
+                                "properties": {
+                                    "a": {"type": "integer", "description": "First number"},
+                                    "b": {"type": "integer", "description": "Second number"},
+                                },
+                                "required": ["a", "b"],
+                            },
+                            "strict": False,
+                        },
+                        {
+                            "type": "function",
+                            "name": "multiply",
+                            "description": "Multiply two integers.",
+                            "parameters": {
+                                "type": "object",
+                                "properties": {
+                                    "a": {"type": "integer", "description": "First number"},
+                                    "b": {"type": "integer", "description": "Second number"},
+                                },
+                                "required": ["a", "b"],
+                            },
+                            "strict": False,
+                        },
+                    ],
                 },
                 "assistant_with_reasoning": {
                     "input": [
@@ -320,35 +322,25 @@ async def test_openai_responses_message_conversion():
 @pytest.mark.asyncio
 async def test_openai_responses_generation_kwargs():
     with respx.mock(base_url="https://api.openai.com") as mock:
-        mock.post("/v1/responses").mock(
-            return_value=Response(200, json=make_response())
-        )
+        mock.post("/v1/responses").mock(return_value=Response(200, json=make_response()))
         provider = OpenAIResponses(
             model="gpt-4.1", api_key="test-key", stream=False
         ).with_generation_kwargs(temperature=0.7, max_output_tokens=2048)
-        stream = await provider.generate(
-            "", [], [Message(role="user", content="Hi")]
-        )
+        stream = await provider.generate("", [], [Message(role="user", content="Hi")])
         async for _ in stream:
             pass
         body = json.loads(mock.calls.last.request.content.decode())
-        assert (body["temperature"], body["max_output_tokens"]) == snapshot(
-            (0.7, 2048)
-        )
+        assert (body["temperature"], body["max_output_tokens"]) == snapshot((0.7, 2048))
 
 
 @pytest.mark.asyncio
 async def test_openai_responses_with_thinking():
     with respx.mock(base_url="https://api.openai.com") as mock:
-        mock.post("/v1/responses").mock(
-            return_value=Response(200, json=make_response())
+        mock.post("/v1/responses").mock(return_value=Response(200, json=make_response()))
+        provider = OpenAIResponses(model="gpt-4.1", api_key="test-key", stream=False).with_thinking(
+            "high"
         )
-        provider = OpenAIResponses(
-            model="gpt-4.1", api_key="test-key", stream=False
-        ).with_thinking("high")
-        stream = await provider.generate(
-            "", [], [Message(role="user", content="Think")]
-        )
+        stream = await provider.generate("", [], [Message(role="user", content="Think")])
         async for _ in stream:
             pass
         body = json.loads(mock.calls.last.request.content.decode())
