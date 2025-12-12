@@ -1,18 +1,17 @@
 """Snapshot tests for OpenAI Legacy (Chat Completions API) chat provider."""
 
 import json
-from typing import Any
 
 import pytest
 import respx
-from common import COMMON_CASES, make_chat_completion_response, run_test_cases
+from common import COMMON_CASES, Case, make_chat_completion_response, run_test_cases
 from httpx import Response
 from inline_snapshot import snapshot
 
 from kosong.contrib.chat_provider.openai_legacy import OpenAILegacy
 from kosong.message import Message, TextPart, ThinkPart
 
-TEST_CASES: dict[str, dict[str, Any]] = {**COMMON_CASES}
+TEST_CASES: dict[str, Case] = {**COMMON_CASES}
 
 
 @pytest.mark.asyncio

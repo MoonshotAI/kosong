@@ -1,18 +1,17 @@
 """Snapshot tests for Anthropic chat provider."""
 
 import json
-from typing import Any
 
 import pytest
 import respx
-from common import B64_PNG, COMMON_CASES, make_anthropic_response, run_test_cases
+from common import B64_PNG, COMMON_CASES, Case, make_anthropic_response, run_test_cases
 from httpx import Response
 from inline_snapshot import snapshot
 
 from kosong.contrib.chat_provider.anthropic import Anthropic
 from kosong.message import ImageURLPart, Message, TextPart, ThinkPart
 
-TEST_CASES: dict[str, dict[str, Any]] = {
+TEST_CASES: dict[str, Case] = {
     **COMMON_CASES,
     "assistant_with_thinking": {
         "history": [

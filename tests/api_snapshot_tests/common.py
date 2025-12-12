@@ -2,7 +2,7 @@
 
 import json
 from collections.abc import Sequence
-from typing import Any
+from typing import Any, TypedDict
 
 import respx
 
@@ -84,8 +84,20 @@ MUL_TOOL = Tool(
     },
 )
 
+
+class Case(TypedDict, total=False):
+    """A test case for chat providers."""
+
+    system: str
+    """The system prompt."""
+    tools: list[Tool]
+    """The list of tools."""
+    history: list[Message]
+    """The message history."""
+
+
 # Common test cases shared across providers
-COMMON_CASES: dict[str, dict[str, Any]] = {
+COMMON_CASES: dict[str, Case] = {
     "simple_user_message": {
         "system": "You are helpful.",
         "history": [Message(role="user", content="Hello!")],
@@ -223,7 +235,7 @@ async def capture_request(
 async def run_test_cases(
     mock: respx.MockRouter,
     provider: ChatProvider,
-    cases: dict[str, dict[str, Any]],
+    cases: dict[str, Case],
     extract_keys: tuple[str, ...],
 ) -> dict[str, dict[str, Any]]:
     """Run all test cases and return results dict for snapshot comparison."""
@@ -234,7 +246,7 @@ async def run_test_cases(
             provider,
             case.get("system", ""),
             case.get("tools", []),
-            case["history"],
+            case.get("history", []),
         )
         results[name] = {k: v for k, v in body.items() if k in extract_keys}
     return results

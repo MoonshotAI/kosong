@@ -1,11 +1,10 @@
 """Snapshot tests for Kimi chat provider."""
 
 import json
-from typing import Any
 
 import pytest
 import respx
-from common import COMMON_CASES, make_chat_completion_response, run_test_cases
+from common import COMMON_CASES, Case, make_chat_completion_response, run_test_cases
 from httpx import Response
 from inline_snapshot import snapshot
 
@@ -19,7 +18,7 @@ BUILTIN_TOOL = Tool(
     parameters={"type": "object", "properties": {}},
 )
 
-TEST_CASES: dict[str, dict[str, Any]] = {
+TEST_CASES: dict[str, Case] = {
     **COMMON_CASES,
     "builtin_tool": {
         "history": [Message(role="user", content="Search for something")],

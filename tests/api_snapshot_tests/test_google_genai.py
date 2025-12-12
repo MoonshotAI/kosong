@@ -5,7 +5,7 @@ from typing import Any
 
 import pytest
 import respx
-from common import COMMON_CASES, run_test_cases
+from common import COMMON_CASES, Case, run_test_cases
 from httpx import Response
 from inline_snapshot import snapshot
 
@@ -30,7 +30,7 @@ def make_response() -> dict[str, Any]:
     }
 
 
-TEST_CASES = {
+TEST_CASES: dict[str, Case] = {
     # Google GenAI doesn't support image_url in the same way, use subset of common cases
     **{k: v for k, v in COMMON_CASES.items() if "image" not in k},
     "tool_call_with_thought_signature": {

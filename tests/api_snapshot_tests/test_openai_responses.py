@@ -5,7 +5,7 @@ from typing import Any
 
 import pytest
 import respx
-from common import COMMON_CASES, run_test_cases
+from common import COMMON_CASES, Case, run_test_cases
 from httpx import Response
 from inline_snapshot import snapshot
 
@@ -32,7 +32,7 @@ def make_response() -> dict[str, Any]:
     }
 
 
-TEST_CASES: dict[str, dict[str, Any]] = {
+TEST_CASES: dict[str, Case] = {
     **COMMON_CASES,
     "assistant_with_reasoning": {
         "history": [
