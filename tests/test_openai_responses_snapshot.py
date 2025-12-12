@@ -13,7 +13,7 @@ from kosong.contrib.chat_provider.openai_responses import OpenAIResponses
 from kosong.message import Message, TextPart, ThinkPart
 
 
-def make_response() -> dict:
+def make_response() -> dict[str, Any]:
     return {
         "id": "resp_test123",
         "object": "response",

@@ -1,6 +1,7 @@
 """Snapshot tests for Google GenAI (Gemini) chat provider."""
 
 import json
+from typing import Any
 
 import pytest
 import respx
@@ -12,7 +13,7 @@ from kosong.contrib.chat_provider.google_genai import GoogleGenAI
 from kosong.message import Message, TextPart, ToolCall
 
 
-def make_response() -> dict:
+def make_response() -> dict[str, Any]:
     return {
         "candidates": [
             {

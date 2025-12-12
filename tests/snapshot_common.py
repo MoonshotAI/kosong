@@ -1,7 +1,7 @@
 """Common test cases and utilities for snapshot tests."""
 
 import json
-from collections.abc import Sequence
+from collections.abc import AsyncIterator, Sequence
 from typing import Any, Protocol
 
 import respx
@@ -22,10 +22,15 @@ __all__ = [
 
 
 class ChatProvider(Protocol):
-    async def generate(self, system: str, tools: Sequence[Tool], history: list[Message]): ...
+    async def generate(
+        self,
+        system_prompt: str,
+        tools: Sequence[Tool],
+        history: Sequence[Message],
+    ) -> AsyncIterator[Any]: ...
 
 
-def make_anthropic_response(model: str = "claude-sonnet-4-20250514") -> dict:
+def make_anthropic_response(model: str = "claude-sonnet-4-20250514") -> dict[str, Any]:
     """Common response for Anthropic Messages API."""
     return {
         "id": "msg_test_123",
@@ -38,7 +43,7 @@ def make_anthropic_response(model: str = "claude-sonnet-4-20250514") -> dict:
     }
 
 
-def make_chat_completion_response(model: str = "test-model") -> dict:
+def make_chat_completion_response(model: str = "test-model") -> dict[str, Any]:
     """Common response for OpenAI-compatible chat completion APIs."""
     return {
         "id": "chatcmpl-test123",
@@ -189,12 +194,14 @@ async def capture_request(
     system: str,
     tools: Sequence[Tool],
     history: list[Message],
-) -> dict:
+) -> dict[str, Any]:
     """Generate and capture the request body."""
     stream = await provider.generate(system, tools, history)
     async for _ in stream:
         pass
-    return json.loads(mock.calls.last.request.content.decode())
+    request = mock.calls.last.request
+    assert request.content is not None
+    return json.loads(request.content.decode())
 
 
 async def run_test_cases(
@@ -202,9 +209,9 @@ async def run_test_cases(
     provider: ChatProvider,
     cases: dict[str, dict[str, Any]],
     extract_keys: tuple[str, ...],
-) -> dict[str, dict]:
+) -> dict[str, dict[str, Any]]:
     """Run all test cases and return results dict for snapshot comparison."""
-    results = {}
+    results: dict[str, dict[str, Any]] = {}
     for name, case in cases.items():
         body = await capture_request(
             mock,
