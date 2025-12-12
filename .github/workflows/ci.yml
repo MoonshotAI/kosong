@@ -34,9 +34,13 @@ jobs:
         run: uv sync --frozen --all-extras
 
       - name: Run checks
+        env:
+          UV_PYTHON: ${{ steps.setup-python.outputs.python-path }}
         run: make check
 
       - name: Run tests
+        env:
+          UV_PYTHON: ${{ steps.setup-python.outputs.python-path }}
         run: make test
 
   docs:
