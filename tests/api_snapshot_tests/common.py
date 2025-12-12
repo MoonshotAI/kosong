@@ -1,11 +1,12 @@
 """Common test cases and utilities for snapshot tests."""
 
 import json
-from collections.abc import AsyncIterator, Sequence
-from typing import Any, Protocol
+from collections.abc import Sequence
+from typing import Any
 
 import respx
 
+from kosong.chat_provider import ChatProvider
 from kosong.message import ImageURLPart, Message, TextPart, ToolCall
 from kosong.tooling import Tool
 
@@ -19,15 +20,6 @@ __all__ = [
     "make_chat_completion_response",
     "run_test_cases",
 ]
-
-
-class ChatProvider(Protocol):
-    async def generate(
-        self,
-        system_prompt: str,
-        tools: Sequence[Tool],
-        history: Sequence[Message],
-    ) -> AsyncIterator[Any]: ...
 
 
 def make_anthropic_response(model: str = "claude-sonnet-4-20250514") -> dict[str, Any]:
@@ -113,11 +105,24 @@ COMMON_CASES: dict[str, dict[str, Any]] = {
             Message(role="user", content="And 3+3?"),
         ],
     },
+    "image_url": {
+        "history": [
+            Message(
+                role="user",
+                content=[
+                    TextPart(text="What's in this image?"),
+                    ImageURLPart(
+                        image_url=ImageURLPart.ImageURL(url="https://example.com/image.png")
+                    ),
+                ],
+            )
+        ],
+    },
     "tool_definition": {
         "history": [Message(role="user", content="Add 2 and 3")],
-        "tools": [ADD_TOOL],
+        "tools": [ADD_TOOL, MUL_TOOL],
     },
-    "assistant_with_tool_call": {
+    "tool_call": {
         "history": [
             Message(role="user", content="Add 2 and 3"),
             Message(
@@ -130,14 +135,15 @@ COMMON_CASES: dict[str, dict[str, Any]] = {
                     )
                 ],
             ),
+            Message(role="tool", content="5", tool_call_id="call_abc123"),
         ],
     },
-    "tool_result": {
+    "tool_call_with_image": {
         "history": [
             Message(role="user", content="Add 2 and 3"),
             Message(
                 role="assistant",
-                content="",
+                content="I'll add those numbers for you.",
                 tool_calls=[
                     ToolCall(
                         id="call_abc123",
@@ -145,20 +151,16 @@ COMMON_CASES: dict[str, dict[str, Any]] = {
                     )
                 ],
             ),
-            Message(role="tool", content="5", tool_call_id="call_abc123"),
-        ],
-    },
-    "image_url": {
-        "history": [
             Message(
-                role="user",
+                role="tool",
                 content=[
-                    TextPart(text="What's in this image?"),
+                    TextPart(text="5"),
                     ImageURLPart(
                         image_url=ImageURLPart.ImageURL(url="https://example.com/image.png")
                     ),
                 ],
-            )
+                tool_call_id="call_abc123",
+            ),
         ],
     },
     "parallel_tool_calls": {
@@ -181,8 +183,22 @@ COMMON_CASES: dict[str, dict[str, Any]] = {
                     ),
                 ],
             ),
-            Message(role="tool", content="5", tool_call_id="call_add"),
-            Message(role="tool", content="20", tool_call_id="call_mul"),
+            Message(
+                role="tool",
+                content=[
+                    TextPart(text="<system-reminder>This is a system reminder</system-reminder>"),
+                    TextPart(text="5"),
+                ],
+                tool_call_id="call_add",
+            ),
+            Message(
+                role="tool",
+                content=[
+                    TextPart(text="<system-reminder>This is a system reminder</system-reminder>"),
+                    TextPart(text="20"),
+                ],
+                tool_call_id="call_mul",
+            ),
         ],
     },
 }

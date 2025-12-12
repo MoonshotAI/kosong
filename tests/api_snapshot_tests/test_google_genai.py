@@ -30,25 +30,25 @@ def make_response() -> dict[str, Any]:
     }
 
 
-# Google GenAI doesn't support image_url in the same way, use subset of common cases
-TEST_CASES = {k: v for k, v in COMMON_CASES.items() if k != "image_url"}
-
-# Add Google GenAI specific test case for tool call with thought signature
-TEST_CASES["tool_call_with_thought_signature"] = {
-    "history": [
-        Message(role="user", content="Add 2 and 3"),
-        Message(
-            role="assistant",
-            content=[TextPart(text="I'll add those.")],
-            tool_calls=[
-                ToolCall(
-                    id="add_call_sig",
-                    function=ToolCall.FunctionBody(name="add", arguments='{"a": 2, "b": 3}'),
-                    extras={"thought_signature_b64": "dGhvdWdodF9zaWduYXR1cmVfZGF0YQ=="},
-                )
-            ],
-        ),
-    ],
+TEST_CASES = {
+    # Google GenAI doesn't support image_url in the same way, use subset of common cases
+    **{k: v for k, v in COMMON_CASES.items() if "image" not in k},
+    "tool_call_with_thought_signature": {
+        "history": [
+            Message(role="user", content="Add 2 and 3"),
+            Message(
+                role="assistant",
+                content=[TextPart(text="I'll add those.")],
+                tool_calls=[
+                    ToolCall(
+                        id="add_call_sig",
+                        function=ToolCall.FunctionBody(name="add", arguments='{"a": 2, "b": 3}'),
+                        extras={"thought_signature_b64": "dGhvdWdodF9zaWduYXR1cmVfZGF0YQ=="},
+                    )
+                ],
+            ),
+        ],
+    },
 }
 
 
@@ -114,12 +114,27 @@ async def test_google_genai_message_conversion():
                                         },
                                         "required": ["a", "b"],
                                     },
-                                }
+                                },
+                                {
+                                    "description": "Multiply two integers.",
+                                    "name": "multiply",
+                                    "parameters": {
+                                        "properties": {
+                                            "a": {"description": "First number", "type": "INTEGER"},
+                                            "b": {
+                                                "description": "Second number",
+                                                "type": "INTEGER",
+                                            },
+                                        },
+                                        "required": ["a", "b"],
+                                        "type": "OBJECT",
+                                    },
+                                },
                             ]
                         }
                     ],
                 },
-                "assistant_with_tool_call": {
+                "tool_call": {
                     "contents": [
                         {"parts": [{"text": "Add 2 and 3"}], "role": "user"},
                         {
@@ -128,27 +143,8 @@ async def test_google_genai_message_conversion():
                                 {
                                     "functionCall": {
                                         "id": "call_abc123",
-                                        "name": "add",
                                         "args": {"a": 2, "b": 3},
-                                    }
-                                },
-                            ],
-                            "role": "model",
-                        },
-                    ],
-                    "systemInstruction": {"parts": [{"text": ""}], "role": "user"},
-                },
-                "tool_result": {
-                    "contents": [
-                        {"parts": [{"text": "Add 2 and 3"}], "role": "user"},
-                        {
-                            "parts": [
-                                {"text": ""},
-                                {
-                                    "functionCall": {
-                                        "id": "call_abc123",
                                         "name": "add",
-                                        "args": {"a": 2, "b": 3},
                                     }
                                 },
                             ],
@@ -200,7 +196,10 @@ async def test_google_genai_message_conversion():
                                         "parts": [],
                                         "id": "call_add",
                                         "name": "call",
-                                        "response": {"output": "5"},
+                                        "response": {
+                                            "output": "<system-reminder>This is a system reminder"
+                                            "</system-reminder>5"
+                                        },
                                     }
                                 }
                             ],
@@ -213,7 +212,10 @@ async def test_google_genai_message_conversion():
                                         "parts": [],
                                         "id": "call_mul",
                                         "name": "call",
-                                        "response": {"output": "20"},
+                                        "response": {
+                                            "output": "<system-reminder>This is a system reminder"
+                                            "</system-reminder>20"
+                                        },
                                     }
                                 }
                             ],

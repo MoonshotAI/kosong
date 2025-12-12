@@ -115,6 +115,23 @@ async def test_openai_responses_message_conversion():
                     ],
                     "tools": [],
                 },
+                "image_url": {
+                    "input": [
+                        {
+                            "content": [
+                                {"type": "input_text", "text": "What's in this image?"},
+                                {
+                                    "type": "input_image",
+                                    "detail": "auto",
+                                    "image_url": "https://example.com/image.png",
+                                },
+                            ],
+                            "role": "user",
+                            "type": "message",
+                        }
+                    ],
+                    "tools": [],
+                },
                 "tool_definition": {
                     "input": [
                         {
@@ -143,10 +160,24 @@ async def test_openai_responses_message_conversion():
                                 "required": ["a", "b"],
                             },
                             "strict": False,
-                        }
+                        },
+                        {
+                            "type": "function",
+                            "name": "multiply",
+                            "description": "Multiply two integers.",
+                            "parameters": {
+                                "type": "object",
+                                "properties": {
+                                    "a": {"type": "integer", "description": "First number"},
+                                    "b": {"type": "integer", "description": "Second number"},
+                                },
+                                "required": ["a", "b"],
+                            },
+                            "strict": False,
+                        },
                     ],
                 },
-                "assistant_with_tool_call": {
+                "tool_call_with_image": {
                     "input": [
                         {
                             "content": [{"type": "input_text", "text": "Add 2 and 3"}],
@@ -170,17 +201,38 @@ async def test_openai_responses_message_conversion():
                             "name": "add",
                             "type": "function_call",
                         },
+                        {
+                            "call_id": "call_abc123",
+                            "output": [
+                                {"type": "input_text", "text": "5"},
+                                {
+                                    "type": "input_image",
+                                    "image_url": "https://example.com/image.png",
+                                },
+                            ],
+                            "type": "function_call_output",
+                        },
                     ],
                     "tools": [],
                 },
-                "tool_result": {
+                "tool_call": {
                     "input": [
                         {
                             "content": [{"type": "input_text", "text": "Add 2 and 3"}],
                             "role": "user",
                             "type": "message",
                         },
-                        {"content": [], "role": "assistant", "type": "message"},
+                        {
+                            "content": [
+                                {
+                                    "type": "output_text",
+                                    "text": "I'll add those numbers for you.",
+                                    "annotations": [],
+                                }
+                            ],
+                            "role": "assistant",
+                            "type": "message",
+                        },
                         {
                             "arguments": '{"a": 2, "b": 3}',
                             "call_id": "call_abc123",
@@ -192,23 +244,6 @@ async def test_openai_responses_message_conversion():
                             "output": [{"type": "input_text", "text": "5"}],
                             "type": "function_call_output",
                         },
-                    ],
-                    "tools": [],
-                },
-                "image_url": {
-                    "input": [
-                        {
-                            "content": [
-                                {"type": "input_text", "text": "What's in this image?"},
-                                {
-                                    "type": "input_image",
-                                    "detail": "auto",
-                                    "image_url": "https://example.com/image.png",
-                                },
-                            ],
-                            "role": "user",
-                            "type": "message",
-                        }
                     ],
                     "tools": [],
                 },
@@ -244,12 +279,26 @@ async def test_openai_responses_message_conversion():
                         },
                         {
                             "call_id": "call_add",
-                            "output": [{"type": "input_text", "text": "5"}],
+                            "output": [
+                                {
+                                    "type": "input_text",
+                                    "text": "<system-reminder>This is a system reminder"
+                                    "</system-reminder>",
+                                },
+                                {"type": "input_text", "text": "5"},
+                            ],
                             "type": "function_call_output",
                         },
                         {
                             "call_id": "call_mul",
-                            "output": [{"type": "input_text", "text": "20"}],
+                            "output": [
+                                {
+                                    "type": "input_text",
+                                    "text": "<system-reminder>This is a system reminder"
+                                    "</system-reminder>",
+                                },
+                                {"type": "input_text", "text": "20"},
+                            ],
                             "type": "function_call_output",
                         },
                     ],

@@ -149,6 +149,25 @@ async def test_anthropic_message_conversion():
                     ],
                     "tools": [],
                 },
+                "image_url": {
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": [
+                                {"type": "text", "text": "What's in this image?"},
+                                {
+                                    "type": "image",
+                                    "source": {
+                                        "type": "url",
+                                        "url": "https://example.com/image.png",
+                                    },
+                                    "cache_control": {"type": "ephemeral"},
+                                },
+                            ],
+                        }
+                    ],
+                    "tools": [],
+                },
                 "tool_definition": {
                     "messages": [
                         {
@@ -169,56 +188,72 @@ async def test_anthropic_message_conversion():
                             "input_schema": {
                                 "type": "object",
                                 "properties": {
-                                    "a": {
-                                        "type": "integer",
-                                        "description": "First number",
-                                    },
-                                    "b": {
-                                        "type": "integer",
-                                        "description": "Second number",
-                                    },
+                                    "a": {"type": "integer", "description": "First number"},
+                                    "b": {"type": "integer", "description": "Second number"},
+                                },
+                                "required": ["a", "b"],
+                            },
+                        },
+                        {
+                            "name": "multiply",
+                            "description": "Multiply two integers.",
+                            "input_schema": {
+                                "type": "object",
+                                "properties": {
+                                    "a": {"type": "integer", "description": "First number"},
+                                    "b": {"type": "integer", "description": "Second number"},
                                 },
                                 "required": ["a", "b"],
                             },
                             "cache_control": {"type": "ephemeral"},
-                        }
+                        },
                     ],
                 },
-                "assistant_with_tool_call": {
+                "tool_call_with_image": {
                     "messages": [
-                        {
-                            "role": "user",
-                            "content": [{"type": "text", "text": "Add 2 and 3"}],
-                        },
+                        {"role": "user", "content": [{"type": "text", "text": "Add 2 and 3"}]},
                         {
                             "role": "assistant",
                             "content": [
-                                {
-                                    "type": "text",
-                                    "text": "I'll add those numbers for you.",
-                                },
+                                {"type": "text", "text": "I'll add those numbers for you."},
                                 {
                                     "type": "tool_use",
                                     "id": "call_abc123",
                                     "name": "add",
                                     "input": {"a": 2, "b": 3},
-                                    "cache_control": {"type": "ephemeral"},
                                 },
+                            ],
+                        },
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "tool_result",
+                                    "tool_use_id": "call_abc123",
+                                    "content": [
+                                        {"type": "text", "text": "5"},
+                                        {
+                                            "type": "image",
+                                            "source": {
+                                                "type": "url",
+                                                "url": "https://example.com/image.png",
+                                            },
+                                        },
+                                    ],
+                                    "cache_control": {"type": "ephemeral"},
+                                }
                             ],
                         },
                     ],
                     "tools": [],
                 },
-                "tool_result": {
+                "tool_call": {
                     "messages": [
-                        {
-                            "role": "user",
-                            "content": [{"type": "text", "text": "Add 2 and 3"}],
-                        },
+                        {"role": "user", "content": [{"type": "text", "text": "Add 2 and 3"}]},
                         {
                             "role": "assistant",
                             "content": [
-                                {"type": "text", "text": ""},
+                                {"type": "text", "text": "I'll add those numbers for you."},
                                 {
                                     "type": "tool_use",
                                     "id": "call_abc123",
@@ -238,25 +273,6 @@ async def test_anthropic_message_conversion():
                                 }
                             ],
                         },
-                    ],
-                    "tools": [],
-                },
-                "image_url": {
-                    "messages": [
-                        {
-                            "role": "user",
-                            "content": [
-                                {"type": "text", "text": "What's in this image?"},
-                                {
-                                    "type": "image",
-                                    "source": {
-                                        "type": "url",
-                                        "url": "https://example.com/image.png",
-                                    },
-                                    "cache_control": {"type": "ephemeral"},
-                                },
-                            ],
-                        }
                     ],
                     "tools": [],
                 },
@@ -290,7 +306,14 @@ async def test_anthropic_message_conversion():
                                 {
                                     "type": "tool_result",
                                     "tool_use_id": "call_add",
-                                    "content": [{"type": "text", "text": "5"}],
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "<system-reminder>This is a system reminder"
+                                            "</system-reminder>",
+                                        },
+                                        {"type": "text", "text": "5"},
+                                    ],
                                 }
                             ],
                         },
@@ -300,7 +323,14 @@ async def test_anthropic_message_conversion():
                                 {
                                     "type": "tool_result",
                                     "tool_use_id": "call_mul",
-                                    "content": [{"type": "text", "text": "20"}],
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "<system-reminder>This is a system reminder"
+                                            "</system-reminder>",
+                                        },
+                                        {"type": "text", "text": "20"},
+                                    ],
                                     "cache_control": {"type": "ephemeral"},
                                 }
                             ],

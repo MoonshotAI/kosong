@@ -76,6 +76,24 @@ async def test_kimi_message_conversion():
                     ],
                     "tools": [],
                 },
+                "image_url": {
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": [
+                                {"type": "text", "text": "What's in this image?"},
+                                {
+                                    "type": "image_url",
+                                    "image_url": {
+                                        "url": "https://example.com/image.png",
+                                        "id": None,
+                                    },
+                                },
+                            ],
+                        }
+                    ],
+                    "tools": [],
+                },
                 "tool_definition": {
                     "messages": [{"role": "user", "content": "Add 2 and 3"}],
                     "tools": [
@@ -99,10 +117,25 @@ async def test_kimi_message_conversion():
                                     "required": ["a", "b"],
                                 },
                             },
-                        }
+                        },
+                        {
+                            "type": "function",
+                            "function": {
+                                "name": "multiply",
+                                "description": "Multiply two integers.",
+                                "parameters": {
+                                    "type": "object",
+                                    "properties": {
+                                        "a": {"type": "integer", "description": "First number"},
+                                        "b": {"type": "integer", "description": "Second number"},
+                                    },
+                                    "required": ["a", "b"],
+                                },
+                            },
+                        },
                     ],
                 },
-                "assistant_with_tool_call": {
+                "tool_call_with_image": {
                     "messages": [
                         {"role": "user", "content": "Add 2 and 3"},
                         {
@@ -112,43 +145,14 @@ async def test_kimi_message_conversion():
                                 {
                                     "type": "function",
                                     "id": "call_abc123",
-                                    "function": {
-                                        "name": "add",
-                                        "arguments": '{"a": 2, "b": 3}',
-                                    },
+                                    "function": {"name": "add", "arguments": '{"a": 2, "b": 3}'},
                                 }
                             ],
                         },
-                    ],
-                    "tools": [],
-                },
-                "tool_result": {
-                    "messages": [
-                        {"role": "user", "content": "Add 2 and 3"},
                         {
-                            "role": "assistant",
-                            "content": "",
-                            "tool_calls": [
-                                {
-                                    "type": "function",
-                                    "id": "call_abc123",
-                                    "function": {
-                                        "name": "add",
-                                        "arguments": '{"a": 2, "b": 3}',
-                                    },
-                                }
-                            ],
-                        },
-                        {"role": "tool", "content": "5", "tool_call_id": "call_abc123"},
-                    ],
-                    "tools": [],
-                },
-                "image_url": {
-                    "messages": [
-                        {
-                            "role": "user",
+                            "role": "tool",
                             "content": [
-                                {"type": "text", "text": "What's in this image?"},
+                                {"type": "text", "text": "5"},
                                 {
                                     "type": "image_url",
                                     "image_url": {
@@ -157,7 +161,26 @@ async def test_kimi_message_conversion():
                                     },
                                 },
                             ],
-                        }
+                            "tool_call_id": "call_abc123",
+                        },
+                    ],
+                    "tools": [],
+                },
+                "tool_call": {
+                    "messages": [
+                        {"role": "user", "content": "Add 2 and 3"},
+                        {
+                            "role": "assistant",
+                            "content": "I'll add those numbers for you.",
+                            "tool_calls": [
+                                {
+                                    "type": "function",
+                                    "id": "call_abc123",
+                                    "function": {"name": "add", "arguments": '{"a": 2, "b": 3}'},
+                                }
+                            ],
+                        },
+                        {"role": "tool", "content": "5", "tool_call_id": "call_abc123"},
                     ],
                     "tools": [],
                 },
@@ -186,8 +209,30 @@ async def test_kimi_message_conversion():
                                 },
                             ],
                         },
-                        {"role": "tool", "content": "5", "tool_call_id": "call_add"},
-                        {"role": "tool", "content": "20", "tool_call_id": "call_mul"},
+                        {
+                            "role": "tool",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "<system-reminder>This is a system reminder"
+                                    "</system-reminder>",
+                                },
+                                {"type": "text", "text": "5"},
+                            ],
+                            "tool_call_id": "call_add",
+                        },
+                        {
+                            "role": "tool",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "<system-reminder>This is a system reminder"
+                                    "</system-reminder>",
+                                },
+                                {"type": "text", "text": "20"},
+                            ],
+                            "tool_call_id": "call_mul",
+                        },
                     ],
                     "tools": [
                         {
