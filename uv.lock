@@ -415,14 +415,18 @@ name = "kosong"
 version = "0.32.0"
 source = { editable = "." }
 dependencies = [
-    { name = "anthropic" },
-    { name = "google-genai" },
     { name = "jsonschema" },
     { name = "loguru" },
     { name = "openai" },
     { name = "pydantic" },
     { name = "python-dotenv" },
     { name = "typing-extensions" },
+]
+
+[package.optional-dependencies]
+contrib = [
+    { name = "anthropic" },
+    { name = "google-genai" },
 ]
 
 [package.dev-dependencies]
@@ -437,8 +441,8 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "anthropic", specifier = ">=0.75.0" },
-    { name = "google-genai", specifier = ">=1.53.0" },
+    { name = "anthropic", marker = "extra == 'contrib'", specifier = ">=0.75.0" },
+    { name = "google-genai", marker = "extra == 'contrib'", specifier = ">=1.53.0" },
     { name = "jsonschema", specifier = ">=4.25.1" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "openai", specifier = ">=2.9.0,<2.10.0" },
@@ -446,6 +450,7 @@ requires-dist = [
     { name = "python-dotenv", specifier = ">=1.2.1" },
     { name = "typing-extensions", specifier = ">=4.15.0" },
 ]
+provides-extras = ["contrib"]
 
 [package.metadata.requires-dev]
 dev = [

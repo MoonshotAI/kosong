@@ -1,3 +1,11 @@
+try:
+    from google import genai as _  # noqa: F401
+except ModuleNotFoundError as exc:
+    raise ModuleNotFoundError(
+        "Google Gemini support requires the optional dependency 'google-genai'. "
+        'Install with `pip install "kosong[contrib]"`.'
+    ) from exc
+
 import base64
 import copy
 import json

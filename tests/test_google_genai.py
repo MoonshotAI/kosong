@@ -1,4 +1,7 @@
+import pytest
 from inline_snapshot import snapshot
+
+pytest.importorskip("google.genai", reason="Optional contrib dependency not installed")
 
 from kosong.contrib.chat_provider.google_genai import message_to_google_genai
 from kosong.message import Message, ToolCall

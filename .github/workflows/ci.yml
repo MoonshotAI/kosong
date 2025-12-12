@@ -31,7 +31,7 @@ jobs:
       - name: Install dependencies
         env:
           UV_PYTHON: ${{ steps.setup-python.outputs.python-path }}
-        run: uv sync --frozen
+        run: uv sync --frozen --all-extras
 
       - name: Run checks
         run: make check

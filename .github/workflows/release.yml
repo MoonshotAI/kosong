@@ -61,6 +61,9 @@ jobs:
         with:
           version: "0.8.5"
 
+      - name: Install dependencies
+        run: uv sync --frozen --all-extras
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v4
 
