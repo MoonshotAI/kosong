@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 - Lower the required Python version to 3.12
+- Make the `contrib` module an optional extra that can be installed with `uv add "kosong[contrib]"`
 
 ## [0.32.0] - 2025-12-08
 
