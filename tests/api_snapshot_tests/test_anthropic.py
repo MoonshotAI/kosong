@@ -8,6 +8,8 @@ from common import B64_PNG, COMMON_CASES, Case, make_anthropic_response, run_tes
 from httpx import Response
 from inline_snapshot import snapshot
 
+pytest.importorskip("anthropic", reason="Optional contrib dependency not installed")
+
 from kosong.contrib.chat_provider.anthropic import Anthropic
 from kosong.message import ImageURLPart, Message, TextPart, ThinkPart
 

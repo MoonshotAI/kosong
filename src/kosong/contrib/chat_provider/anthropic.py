@@ -1,3 +1,11 @@
+try:
+    import anthropic as _  # noqa: F401
+except ModuleNotFoundError as exc:
+    raise ModuleNotFoundError(
+        "Anthropic support requires the optional dependency 'anthropic'. "
+        'Install with `pip install "kosong[contrib]"`.'
+    ) from exc
+
 import copy
 import json
 from collections.abc import AsyncIterator, Mapping, Sequence

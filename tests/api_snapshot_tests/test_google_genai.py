@@ -9,6 +9,8 @@ from common import COMMON_CASES, Case, run_test_cases
 from httpx import Response
 from inline_snapshot import snapshot
 
+pytest.importorskip("google.genai", reason="Optional contrib dependency not installed")
+
 from kosong.contrib.chat_provider.google_genai import GoogleGenAI
 from kosong.message import Message, TextPart, ToolCall
 

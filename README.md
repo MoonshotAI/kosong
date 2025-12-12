@@ -20,6 +20,12 @@ Then add Kosong as a dependency:
 uv add kosong
 ```
 
+To enable chat providers other than Kimi (e.g. Anthropic and Google Gemini), install the optional extra:
+
+```bash
+uv add 'kosong[contrib]'
+```
+
 ## Examples
 
 ### Simple chat completion
@@ -160,4 +166,18 @@ export KIMI_BASE_URL="https://api.moonshot.ai/v1"
 export KIMI_API_KEY="your_kimi_api_key"
 
 uv run python -m kosong kimi --with-bash
+```
+
+## Development
+
+To set up a development environment, clone the repository and install the dependencies:
+
+```bash
+git clone https://github.com/MoonshotAI/kosong.git
+cd kosong
+uv sync --all-extras
+
+make check  # run lint and type checks
+make test   # run tests
+make format # format code
 ```
