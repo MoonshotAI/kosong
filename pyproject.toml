@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "anthropic>=0.75.0",
-    "google-genai>=1.53.0",
+    "google-genai>=1.55.0",
     "jsonschema>=4.25.1",
     "loguru>=0.7.3",
     "openai>=2.9.0,<2.10.0",
