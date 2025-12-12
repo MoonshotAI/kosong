@@ -5,14 +5,9 @@ from typing import Any
 
 import pytest
 import respx
+from common import B64_PNG, COMMON_CASES, make_anthropic_response, run_test_cases
 from httpx import Response
 from inline_snapshot import snapshot
-from snapshot_common import (
-    B64_PNG,
-    COMMON_CASES,
-    make_anthropic_response,
-    run_test_cases,
-)
 
 from kosong.contrib.chat_provider.anthropic import Anthropic
 from kosong.message import ImageURLPart, Message, TextPart, ThinkPart

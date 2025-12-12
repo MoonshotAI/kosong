@@ -1,53 +1,27 @@
-"""Snapshot tests for Kimi chat provider."""
+"""Snapshot tests for OpenAI Legacy (Chat Completions API) chat provider."""
 
 import json
 from typing import Any
 
 import pytest
 import respx
+from common import COMMON_CASES, make_chat_completion_response, run_test_cases
 from httpx import Response
 from inline_snapshot import snapshot
-from snapshot_common import COMMON_CASES, make_chat_completion_response, run_test_cases
 
-from kosong.chat_provider.kimi import Kimi
+from kosong.contrib.chat_provider.openai_legacy import OpenAILegacy
 from kosong.message import Message, TextPart, ThinkPart
-from kosong.tooling import Tool
 
-BUILTIN_TOOL = Tool(
-    name="$web_search",
-    description="Search the web",
-    parameters={"type": "object", "properties": {}},
-)
-
-TEST_CASES: dict[str, dict[str, Any]] = {
-    **COMMON_CASES,
-    "builtin_tool": {
-        "history": [Message(role="user", content="Search for something")],
-        "tools": [BUILTIN_TOOL],
-    },
-    "assistant_with_reasoning": {
-        "history": [
-            Message(role="user", content="What is 2+2?"),
-            Message(
-                role="assistant",
-                content=[
-                    ThinkPart(think="Let me think..."),
-                    TextPart(text="The answer is 4."),
-                ],
-            ),
-            Message(role="user", content="Thanks!"),
-        ],
-    },
-}
+TEST_CASES: dict[str, dict[str, Any]] = {**COMMON_CASES}
 
 
 @pytest.mark.asyncio
-async def test_kimi_message_conversion():
-    with respx.mock(base_url="https://api.moonshot.ai") as mock:
+async def test_openai_legacy_message_conversion():
+    with respx.mock(base_url="https://api.openai.com") as mock:
         mock.post("/v1/chat/completions").mock(
-            return_value=Response(200, json=make_chat_completion_response("kimi-k2"))
+            return_value=Response(200, json=make_chat_completion_response("gpt-4.1"))
         )
-        provider = Kimi(model="kimi-k2-turbo-preview", api_key="test-key", stream=False)
+        provider = OpenAILegacy(model="gpt-4.1", api_key="test-key", stream=False)
         results = await run_test_cases(mock, provider, TEST_CASES, ("messages", "tools"))
 
         assert results == snapshot(
@@ -110,8 +84,8 @@ async def test_kimi_message_conversion():
                             "content": "I'll add those numbers for you.",
                             "tool_calls": [
                                 {
-                                    "type": "function",
                                     "id": "call_abc123",
+                                    "type": "function",
                                     "function": {
                                         "name": "add",
                                         "arguments": '{"a": 2, "b": 3}',
@@ -130,8 +104,8 @@ async def test_kimi_message_conversion():
                             "content": "",
                             "tool_calls": [
                                 {
-                                    "type": "function",
                                     "id": "call_abc123",
+                                    "type": "function",
                                     "function": {
                                         "name": "add",
                                         "arguments": '{"a": 2, "b": 3}',
@@ -222,39 +196,55 @@ async def test_kimi_message_conversion():
                         },
                     ],
                 },
-                "builtin_tool": {
-                    "messages": [{"role": "user", "content": "Search for something"}],
-                    "tools": [
-                        {
-                            "type": "builtin_function",
-                            "function": {"name": "$web_search"},
-                        }
-                    ],
-                },
-                "assistant_with_reasoning": {
-                    "messages": [
-                        {"role": "user", "content": "What is 2+2?"},
-                        {
-                            "role": "assistant",
-                            "content": "The answer is 4.",
-                            "reasoning_content": "Let me think...",
-                        },
-                        {"role": "user", "content": "Thanks!"},
-                    ],
-                    "tools": [],
-                },
             }
         )
 
 
 @pytest.mark.asyncio
-async def test_kimi_generation_kwargs():
-    with respx.mock(base_url="https://api.moonshot.ai") as mock:
+async def test_openai_legacy_reasoning_content():
+    with respx.mock(base_url="https://api.openai.com") as mock:
         mock.post("/v1/chat/completions").mock(
             return_value=Response(200, json=make_chat_completion_response())
         )
-        provider = Kimi(
-            model="kimi-k2-turbo-preview", api_key="test-key", stream=False
+        provider = OpenAILegacy(
+            model="deepseek-reasoner",
+            api_key="test-key",
+            stream=False,
+            reasoning_key="reasoning_content",
+        )
+        history = [
+            Message(role="user", content="What is 2+2?"),
+            Message(
+                role="assistant",
+                content=[ThinkPart(think="Thinking..."), TextPart(text="4.")],
+            ),
+            Message(role="user", content="Thanks!"),
+        ]
+        stream = await provider.generate("", [], history)
+        async for _ in stream:
+            pass
+        body = json.loads(mock.calls.last.request.content.decode())
+        assert body["messages"] == snapshot(
+            [
+                {"role": "user", "content": "What is 2+2?"},
+                {
+                    "role": "assistant",
+                    "content": "4.",
+                    "reasoning_content": "Thinking...",
+                },
+                {"role": "user", "content": "Thanks!"},
+            ]
+        )
+
+
+@pytest.mark.asyncio
+async def test_openai_legacy_generation_kwargs():
+    with respx.mock(base_url="https://api.openai.com") as mock:
+        mock.post("/v1/chat/completions").mock(
+            return_value=Response(200, json=make_chat_completion_response())
+        )
+        provider = OpenAILegacy(
+            model="gpt-4.1", api_key="test-key", stream=False
         ).with_generation_kwargs(temperature=0.7, max_tokens=2048)
         stream = await provider.generate("", [], [Message(role="user", content="Hi")])
         async for _ in stream:
@@ -264,16 +254,16 @@ async def test_kimi_generation_kwargs():
 
 
 @pytest.mark.asyncio
-async def test_kimi_with_thinking():
-    with respx.mock(base_url="https://api.moonshot.ai") as mock:
+async def test_openai_legacy_with_thinking():
+    with respx.mock(base_url="https://api.openai.com") as mock:
         mock.post("/v1/chat/completions").mock(
             return_value=Response(200, json=make_chat_completion_response())
         )
-        provider = Kimi(
-            model="kimi-k2-turbo-preview", api_key="test-key", stream=False
-        ).with_thinking("high")
+        provider = OpenAILegacy(model="gpt-4.1", api_key="test-key", stream=False).with_thinking(
+            "high"
+        )
         stream = await provider.generate("", [], [Message(role="user", content="Think")])
         async for _ in stream:
             pass
         body = json.loads(mock.calls.last.request.content.decode())
-        assert (body["reasoning_effort"], body["temperature"]) == snapshot(("high", 1.0))
+        assert body["reasoning_effort"] == snapshot("high")
