@@ -86,6 +86,7 @@ class GoogleGenAI:
         api_key: str | None = None,
         base_url: str | None = None,
         stream: bool = True,
+        vertextai: bool = False,
         **client_kwargs: Any,
     ):
         self._model = model
@@ -94,8 +95,10 @@ class GoogleGenAI:
         self._client: genai_client.Client = genai.Client(
             http_options=HttpOptions(base_url=base_url),
             api_key=api_key,
+            vertexai=vertextai,
             **client_kwargs,
         )
+        self.vertextai = vertextai
         self._generation_kwargs: GoogleGenAI.GenerationKwargs = {}
 
     @property
@@ -108,7 +111,9 @@ class GoogleGenAI:
         tools: Sequence[KosongTool],
         history: Sequence[Message],
     ) -> "GoogleGenAIStreamedMessage":
-        contents = [message_to_google_genai(message) for message in history]
+        contents = [message_to_google_genai(message, self.vertextai) for message in history]
+        if self.vertextai:
+            contents = merge_function_responses(contents)
 
         config = GenerateContentConfig(**self._generation_kwargs)
         config.system_instruction = system_prompt
@@ -426,8 +431,14 @@ def _tool_result_to_response_and_parts(
     return {"output": response}, genai_parts
 
 
-def message_to_google_genai(message: Message) -> Content:
-    """Convert a single internal message into GoogleGenAI wire format."""
+def message_to_google_genai(message: Message, vertextai: bool = False) -> Content:
+    """Convert a single internal message into GoogleGenAI wire format.
+
+    Args:
+        message: The message to convert.
+        vertextai: Whether to use Vertex AI mode. In this case function_call and function_response
+         should not provide id.
+    """
     role = message.role
 
     # Tool responses are sent as user messages
@@ -438,18 +449,19 @@ def message_to_google_genai(message: Message) -> Content:
 
         # Convert content to Gemini function response format
         response_data, tool_result_parts = _tool_result_to_response_and_parts(message.content)
+        part = Part(
+            function_response=FunctionResponse(
+                name=message.tool_call_id.split("_", 1)[0],
+                response=response_data,
+                parts=tool_result_parts,
+            )
+        )
+        # Vertex AI should not provide id
+        if not vertextai and part.function_response:
+            part.function_response.id = message.tool_call_id
         return Content(
             role="user",
-            parts=[
-                Part(
-                    function_response=FunctionResponse(
-                        id=message.tool_call_id,
-                        name=message.tool_call_id.split("_", 1)[0],
-                        response=response_data,
-                        parts=tool_result_parts,
-                    )
-                ),
-            ],
+            parts=[part],
         )
 
     # GoogleGenAI uses: "user" and "model" (not "assistant")
@@ -485,10 +497,12 @@ def message_to_google_genai(message: Message) -> Content:
             args = {}
 
         function_call = FunctionCall(
-            id=tool_call.id,
             name=tool_call.function.name,
             args=args,
         )
+        # Vertex AI should not provide id
+        if not vertextai:
+            function_call.id = tool_call.id
         function_call_part = Part(function_call=function_call)
         # Add thought_signature back to function_call
         if tool_call.extras and "thought_signature_b64" in tool_call.extras:
@@ -498,6 +512,31 @@ def message_to_google_genai(message: Message) -> Content:
         parts.append(function_call_part)
 
     return Content(role=google_genai_role, parts=parts)
+
+
+def merge_function_responses(contents: list[Content]) -> list[Content]:
+    """Merge contiguous function responses parts into a single part."""
+    merged_contents: list[Content] = []
+    i = 0
+    while i < len(contents):
+        content = contents[i]
+        if content.role == "user" and content.parts and content.parts[0].function_response:
+            # Merge contiguous function responses
+            j = i + 1
+            function_response_parts: list[Part] = [content.parts[0]]
+            while j < len(contents):
+                next_content = contents[j]
+                if next_content.role == "user" and next_content.parts[0].function_response:
+                    j += 1
+                    function_response_parts.append(next_content.parts[0])
+                else:
+                    break
+            merged_contents.append(Content(role="user", parts=function_response_parts))
+            i = j
+        else:
+            merged_contents.append(content)
+            i += 1
+    return merged_contents
 
 
 def _convert_error(error: Exception) -> ChatProviderError:
