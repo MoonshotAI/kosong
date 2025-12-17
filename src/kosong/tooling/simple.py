@@ -69,6 +69,32 @@ class SimpleToolset:
         new_toolset += tool
         return new_toolset
 
+    def __isub__(self, tool: ToolType) -> Self:
+        """
+        @public
+        Remove a tool from the toolset.
+        """
+        return_annotation = inspect.signature(tool.__call__).return_annotation
+        if return_annotation is not ToolReturnValue:
+            raise TypeError(
+                f"Expected tool `{tool.name}` to return `ToolReturnValue`, "
+                f"but got `{return_annotation}`"
+            )
+        if tool.name not in self._tool_dict:
+            raise KeyError(f"Tool `{tool.name}` not found in the toolset.")
+        del self._tool_dict[tool.name]
+        return self
+
+    def __sub__(self, tool: ToolType) -> "SimpleToolset":
+        """
+        @public
+        Return a new toolset with the given tool removed.
+        """
+        new_toolset = SimpleToolset()
+        new_toolset._tool_dict = self._tool_dict.copy()
+        new_toolset -= tool
+        return new_toolset
+
     @property
     def tools(self) -> list[Tool]:
         return [tool.base for tool in self._tool_dict.values()]

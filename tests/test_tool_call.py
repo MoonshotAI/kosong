@@ -272,3 +272,24 @@ def test_callable_tool_2():
     )
     assert asyncio.run(tool.call({"a": 1})) == ToolOk(output="Test tool called with 1 and 0")
     assert isinstance(asyncio.run(tool.call({"b": 2})), ToolValidateError)
+
+
+
+def test_simple_toolset_sub():
+
+    class TestParams(BaseModel):
+        pass
+
+    class TestTool(CallableTool2[TestParams]):
+        name: str = "test"
+        description: str = "This is a test tool"
+        params: type[TestParams] = TestParams
+
+        @override
+        async def __call__(self, params: TestParams) -> ToolReturnValue:
+            return ToolOk(output=f"Test tool called")
+
+    toolset = SimpleToolset([TestTool()])
+    assert len(toolset.tools) == 1
+    toolset -= TestTool()
+    assert len(toolset.tools) == 0
