@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased]
+
+- Support Vertex AI in GoogleGenAI chat provider
+
 ## [0.33.0] - 2025-12-12
 
 - Lower the required Python version to 3.12

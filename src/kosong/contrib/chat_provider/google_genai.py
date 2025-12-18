@@ -53,6 +53,7 @@ from kosong.message import (
     ToolCall,
 )
 from kosong.tooling import Tool as KosongTool
+from kosong.tooling import ToolReturnValue
 
 if TYPE_CHECKING:
 
@@ -86,6 +87,7 @@ class GoogleGenAI:
         api_key: str | None = None,
         base_url: str | None = None,
         stream: bool = True,
+        vertexai: bool | None = None,
         **client_kwargs: Any,
     ):
         self._model = model
@@ -94,6 +96,7 @@ class GoogleGenAI:
         self._client: genai_client.Client = genai.Client(
             http_options=HttpOptions(base_url=base_url),
             api_key=api_key,
+            vertexai=vertexai,
             **client_kwargs,
         )
         self._generation_kwargs: GoogleGenAI.GenerationKwargs = {}
@@ -108,7 +111,7 @@ class GoogleGenAI:
         tools: Sequence[KosongTool],
         history: Sequence[Message],
     ) -> "GoogleGenAIStreamedMessage":
-        contents = [message_to_google_genai(message) for message in history]
+        contents = messages_to_google_genai_contents(history)
 
         config = GenerateContentConfig(**self._generation_kwargs)
         config.system_instruction = system_prompt
@@ -426,30 +429,167 @@ def _tool_result_to_response_and_parts(
     return {"output": response}, genai_parts
 
 
+def _tool_call_id_to_name(tool_call_id: str, tool_name_by_id: dict[str, str]) -> str:
+    """Resolve Gemini `FunctionResponse.name` from a tool_call_id."""
+    if tool_call_id in tool_name_by_id:
+        return tool_name_by_id[tool_call_id]
+    # Fallback for older ids of the form "{tool_name}_{id}".
+    return tool_call_id.split("_", 1)[0]
+
+
+def _tool_message_to_function_response_part(
+    message: Message,
+    *,
+    tool_name_by_id: dict[str, str],
+) -> Part:
+    if message.role != "tool":  # pragma: no cover - defensive guard
+        raise ChatProviderError("Expected a tool message.")
+    if message.tool_call_id is None:
+        raise ChatProviderError("Tool response is missing `tool_call_id`.")
+
+    response_data, tool_result_parts = _tool_result_to_response_and_parts(message.content)
+    return Part(
+        function_response=FunctionResponse(
+            id=message.tool_call_id,
+            name=_tool_call_id_to_name(message.tool_call_id, tool_name_by_id),
+            response=response_data,
+            parts=tool_result_parts,
+        )
+    )
+
+
+def _tool_messages_to_google_genai_content(
+    messages: Sequence[Message],
+    *,
+    tool_name_by_id: dict[str, str],
+    expected_tool_call_ids: Sequence[str] | None = None,
+    require_all_expected: bool = False,
+) -> Content:
+    """Pack one-or-more tool results into a single Gemini "user" turn.
+
+    VertexAI-backed Gemini enforces that, for a tool-calling turn, the next
+    turn contains the same number of `functionResponse` parts as the preceding
+    `functionCall` parts. Packing multiple tool results into a single "user"
+    Content keeps us compliant and avoids ordering issues from parallel tool
+    execution.
+    """
+    if not messages:
+        raise ChatProviderError("Expected at least one tool message.")
+
+    expected_index: dict[str, int] = (
+        {tool_call_id: i for i, tool_call_id in enumerate(expected_tool_call_ids)}
+        if expected_tool_call_ids is not None
+        else {}
+    )
+    seen_tool_call_ids: set[str] = set()
+    indexed_messages = list(enumerate(messages))
+    indexed_messages.sort(
+        key=lambda t: (expected_index.get(cast(str, t[1].tool_call_id), 10**9), t[0])
+    )
+
+    parts: list[Part] = []
+    actual_tool_call_ids: list[str] = []
+    for _, message in indexed_messages:
+        if message.tool_call_id is None:
+            raise ChatProviderError("Tool response is missing `tool_call_id`.")
+        if message.tool_call_id in seen_tool_call_ids:
+            raise ChatProviderError(f"Duplicate tool response for id: {message.tool_call_id}")
+        seen_tool_call_ids.add(message.tool_call_id)
+        actual_tool_call_ids.append(message.tool_call_id)
+        parts.append(
+            _tool_message_to_function_response_part(message, tool_name_by_id=tool_name_by_id)
+        )
+
+    if expected_tool_call_ids is not None and require_all_expected:
+        expected_set = set(expected_tool_call_ids)
+        missing = [
+            tool_call_id
+            for tool_call_id in expected_tool_call_ids
+            if tool_call_id not in seen_tool_call_ids
+        ]
+        extra = [
+            tool_call_id
+            for tool_call_id in actual_tool_call_ids
+            if tool_call_id not in expected_set
+        ]
+        if missing:
+            raise ChatProviderError(f"Missing tool responses for ids: {missing}")
+        if extra:
+            raise ChatProviderError(f"Unexpected tool responses for ids: {extra}")
+
+    return Content(role="user", parts=parts)
+
+
+def messages_to_google_genai_contents(messages: Sequence[Message]) -> list[Content]:
+    """Convert internal messages into a Gemini contents list.
+
+    Tool results for a tool-calling turn are packed into a single "user" message
+    with N `functionResponse` parts matching the preceding "model" message's
+    N `functionCall` parts. This avoids ordering issues from parallel tool
+    execution and satisfies VertexAI's stricter validation.
+    """
+    contents: list[Content] = []
+    tool_name_by_id: dict[str, str] = {}
+
+    i = 0
+    while i < len(messages):
+        message = messages[i]
+
+        if message.role == "assistant" and message.tool_calls:
+            contents.append(message_to_google_genai(message))
+            expected_tool_call_ids: list[str] = []
+            for tool_call in message.tool_calls:
+                tool_name_by_id[tool_call.id] = tool_call.function.name
+                expected_tool_call_ids.append(tool_call.id)
+
+            # Collect consecutive tool messages that correspond to this turn.
+            j = i + 1
+            tool_messages: list[Message] = []
+            while j < len(messages) and messages[j].role == "tool":
+                tool_messages.append(messages[j])
+                j += 1
+
+            if tool_messages:
+                contents.append(
+                    _tool_messages_to_google_genai_content(
+                        tool_messages,
+                        tool_name_by_id=tool_name_by_id,
+                        expected_tool_call_ids=expected_tool_call_ids,
+                        require_all_expected=True,
+                    )
+                )
+                i = j
+                continue
+
+            i += 1
+            continue
+
+        if message.role == "tool":
+            # Tool message without an immediately preceding tool-calling assistant
+            # message (e.g. truncated history). Convert it best-effort.
+            contents.append(
+                _tool_messages_to_google_genai_content([message], tool_name_by_id=tool_name_by_id)
+            )
+            i += 1
+            continue
+
+        contents.append(message_to_google_genai(message))
+        if message.role == "assistant" and message.tool_calls:
+            for tool_call in message.tool_calls:
+                tool_name_by_id[tool_call.id] = tool_call.function.name
+        i += 1
+
+    return contents
+
+
 def message_to_google_genai(message: Message) -> Content:
     """Convert a single internal message into GoogleGenAI wire format."""
     role = message.role
 
-    # Tool responses are sent as user messages
     if role == "tool":
-        google_genai_role = "user"  # Tool responses are sent as user messages
-        if message.tool_call_id is None:
-            raise ChatProviderError("Tool response is missing `tool_call_id`")
-
-        # Convert content to Gemini function response format
-        response_data, tool_result_parts = _tool_result_to_response_and_parts(message.content)
-        return Content(
-            role="user",
-            parts=[
-                Part(
-                    function_response=FunctionResponse(
-                        id=message.tool_call_id,
-                        name=message.tool_call_id.split("_", 1)[0],
-                        response=response_data,
-                        parts=tool_result_parts,
-                    )
-                ),
-            ],
+        raise ChatProviderError(
+            "Tool messages must be converted via messages_to_google_genai_contents "
+            "to preserve tool-call ordering and tool-response packing."
         )
 
     # GoogleGenAI uses: "user" and "model" (not "assistant")
@@ -531,34 +671,57 @@ def _convert_error(error: Exception) -> ChatProviderError:
 if __name__ == "__main__":
 
     async def main():
+        import os
+        from typing import override
+
+        from pydantic import BaseModel
+
         import kosong
+        from kosong.tooling import CallableTool2, ToolOk
+        from kosong.tooling.simple import SimpleToolset
 
-        chat = GoogleGenAI(model="gemini-3-pro-preview").with_thinking("high")
+        chat = GoogleGenAI(
+            model="gemini-3-pro-preview",
+            vertexai=True,
+            api_key=os.getenv("VERTEXAI_API_KEY"),
+        ).with_thinking("high")
         system_prompt = "You are a helpful assistant."
-        history = [Message(role="user", content="Hello, how are you?")]
-        async for part in await chat.generate(system_prompt, [], history):
-            print(part.model_dump(exclude_none=True))
 
-        tools = [
-            kosong.tooling.Tool(
-                name="get_weather",
-                description="Get the weather",
-                parameters={
-                    "type": "object",
-                    "properties": {
-                        "city": {
-                            "type": "string",
-                            "description": "The city to get the weather for.",
-                        },
-                    },
-                },
+        class GetWeatherParams(BaseModel):
+            city: str
+
+        class GetWeather(CallableTool2[GetWeatherParams]):
+            name: str = "get_weather"
+            description: str = "Get the weather of a city"
+            params: type[GetWeatherParams] = GetWeatherParams
+
+            @override
+            async def __call__(self, params: GetWeatherParams) -> ToolReturnValue:
+                return ToolOk(output="Sunny")
+
+        toolset = SimpleToolset()
+        toolset += GetWeather()
+        history = [
+            Message(
+                role="user",
+                content=(
+                    "What's the weather like in Beijing and Shanghai? "
+                    "Spawn parallel tool calls to get the answer."
+                ),
             )
         ]
-        history = [Message(role="user", content="What's the weather in Beijing?")]
-        stream = await chat.generate(system_prompt, tools, history)
-        async for part in stream:
+        result = await kosong.step(chat, system_prompt, toolset, history)
+        tool_results = await result.tool_results()
+
+        assistant_message = result.message
+        tool_messages = [
+            Message(role="tool", content=tr.return_value.output, tool_call_id=tr.tool_call_id)
+            for tr in tool_results
+        ]
+        history.extend([assistant_message] + tool_messages)
+
+        async for part in await chat.generate(system_prompt, toolset.tools, history):
             print(part.model_dump(exclude_none=True))
-        print("usage:", stream.usage)
 
     import asyncio
 
