@@ -53,6 +53,7 @@ from kosong.message import (
     ToolCall,
 )
 from kosong.tooling import Tool as KosongTool
+from kosong.tooling import ToolReturnValue
 
 if TYPE_CHECKING:
 
@@ -671,6 +672,13 @@ if __name__ == "__main__":
 
     async def main():
         import os
+        from typing import override
+
+        from pydantic import BaseModel
+
+        import kosong
+        from kosong.tooling import CallableTool2, ToolOk
+        from kosong.tooling.simple import SimpleToolset
 
         chat = GoogleGenAI(
             model="gemini-3-pro-preview",
@@ -678,43 +686,41 @@ if __name__ == "__main__":
             api_key=os.getenv("VERTEXAI_API_KEY"),
         ).with_thinking("high")
         system_prompt = "You are a helpful assistant."
+
+        class GetWeatherParams(BaseModel):
+            city: str
+
+        class GetWeather(CallableTool2[GetWeatherParams]):
+            name: str = "get_weather"
+            description: str = "Get the weather of a city"
+            params: type[GetWeatherParams] = GetWeatherParams
+
+            @override
+            async def __call__(self, params: GetWeatherParams) -> ToolReturnValue:
+                return ToolOk(output="Sunny")
+
+        toolset = SimpleToolset()
+        toolset += GetWeather()
         history = [
             Message(
                 role="user",
-                content="Call 2 parallel Shell tool, sleep 1 and 2 seconds respectively",
-            ),
-            Message(
-                role="assistant",
-                content=[],
-                tool_calls=[
-                    ToolCall(
-                        id="shell1",
-                        function=ToolCall.FunctionBody(
-                            name="shell",
-                            arguments='{"command":"sleep 1"}',
-                        ),
-                    ),
-                    ToolCall(
-                        id="shell2",
-                        function=ToolCall.FunctionBody(
-                            name="shell",
-                            arguments='{"command":"sleep 2"}',
-                        ),
-                    ),
-                ],
-            ),
-            Message(
-                role="tool",
-                tool_call_id="shell1",
-                content="Command executed successfully.",
-            ),
-            Message(
-                role="tool",
-                tool_call_id="shell2",
-                content="Command executed successfully.",
-            ),
+                content=(
+                    "What's the weather like in Beijing and Shanghai? "
+                    "Spawn parallel tool calls to get the answer."
+                ),
+            )
         ]
-        async for part in await chat.generate(system_prompt, [], history):
+        result = await kosong.step(chat, system_prompt, toolset, history)
+        tool_results = await result.tool_results()
+
+        assistant_message = result.message
+        tool_messages = [
+            Message(role="tool", content=tr.return_value.output, tool_call_id=tr.tool_call_id)
+            for tr in tool_results
+        ]
+        history.extend([assistant_message] + tool_messages)
+
+        async for part in await chat.generate(system_prompt, toolset.tools, history):
             print(part.model_dump(exclude_none=True))
 
     import asyncio
