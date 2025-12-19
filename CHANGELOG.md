@@ -3,6 +3,8 @@
 ## [Unreleased]
 
 - Support Vertex AI in GoogleGenAI chat provider
+- Support `extra_body` for Kimi, OpenAILegacy, OpenAIResponses, Anthropic chat providers
+- Kimi thinking config now passed as `extra_body`
 
 ## [0.33.0] - 2025-12-12
 

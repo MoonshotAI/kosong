@@ -320,4 +320,24 @@ async def test_kimi_with_thinking():
         async for _ in stream:
             pass
         body = json.loads(mock.calls.last.request.content.decode())
-        assert (body["reasoning_effort"], body["temperature"]) == snapshot(("high", 1.0))
+        assert (body["thinking"]["type"], body["temperature"]) == snapshot(("enabled", 1.0))
+
+
+@pytest.mark.asyncio
+async def test_kimi_with_thinking_merges_extra_body():
+    with respx.mock(base_url="https://api.moonshot.ai") as mock:
+        mock.post("/v1/chat/completions").mock(
+            return_value=Response(200, json=make_chat_completion_response())
+        )
+        provider = (
+            Kimi(model="kimi-k2-turbo-preview", api_key="test-key", stream=False)
+            .with_generation_kwargs(extra_body={"user_metadata": {"foo": "bar"}})
+            .with_thinking("high")
+        )
+        stream = await provider.generate("", [], [Message(role="user", content="Think")])
+        async for _ in stream:
+            pass
+        body = json.loads(mock.calls.last.request.content.decode())
+        assert (body["user_metadata"], body["thinking"]["type"]) == snapshot(
+            ({"foo": "bar"}, "enabled")
+        )

@@ -298,6 +298,22 @@ async def test_openai_legacy_generation_kwargs():
 
 
 @pytest.mark.asyncio
+async def test_openai_legacy_extra_body():
+    with respx.mock(base_url="https://api.openai.com") as mock:
+        mock.post("/v1/chat/completions").mock(
+            return_value=Response(200, json=make_chat_completion_response())
+        )
+        provider = OpenAILegacy(
+            model="gpt-4.1", api_key="test-key", stream=False
+        ).with_generation_kwargs(extra_body={"metadata": {"trace_id": "t-123"}})
+        stream = await provider.generate("", [], [Message(role="user", content="Hi")])
+        async for _ in stream:
+            pass
+        body = json.loads(mock.calls.last.request.content.decode())
+        assert body["metadata"] == snapshot({"trace_id": "t-123"})
+
+
+@pytest.mark.asyncio
 async def test_openai_legacy_with_thinking():
     with respx.mock(base_url="https://api.openai.com") as mock:
         mock.post("/v1/chat/completions").mock(

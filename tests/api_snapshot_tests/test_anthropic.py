@@ -492,6 +492,23 @@ async def test_anthropic_generation_kwargs():
 
 
 @pytest.mark.asyncio
+async def test_anthropic_extra_body():
+    with respx.mock(base_url="https://api.anthropic.com") as mock:
+        mock.post("/v1/messages").mock(return_value=Response(200, json=make_anthropic_response()))
+        provider = Anthropic(
+            model="claude-sonnet-4-20250514",
+            api_key="test-key",
+            default_max_tokens=1024,
+            stream=False,
+        ).with_generation_kwargs(extra_body={"metadata": {"trace_id": "t-123"}})
+        stream = await provider.generate("", [], [Message(role="user", content="Hi")])
+        async for _ in stream:
+            pass
+        body = json.loads(mock.calls.last.request.content.decode())
+        assert body["metadata"] == snapshot({"trace_id": "t-123"})
+
+
+@pytest.mark.asyncio
 async def test_anthropic_with_thinking():
     with respx.mock(base_url="https://api.anthropic.com") as mock:
         mock.post("/v1/messages").mock(return_value=Response(200, json=make_anthropic_response()))

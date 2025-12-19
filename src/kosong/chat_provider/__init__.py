@@ -4,6 +4,7 @@ from typing import Literal, Protocol, Self, runtime_checkable
 
 from kosong.message import ContentPart, Message, ToolCall, ToolCallPart
 from kosong.tooling import Tool
+from kosong.utils.typing import JsonType
 
 
 @runtime_checkable
@@ -95,6 +96,9 @@ class TokenUsage:
 
 type ThinkingEffort = Literal["off", "low", "medium", "high"]
 """The effort level for thinking."""
+
+type ExtraBody = dict[str, JsonType]
+"""Arbitrary provider-specific request fields to be merged into the HTTP request body."""
 
 
 class ChatProviderError(Exception):

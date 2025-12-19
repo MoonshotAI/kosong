@@ -69,6 +69,7 @@ from kosong.chat_provider import (
     APITimeoutError,
     ChatProvider,
     ChatProviderError,
+    ExtraBody,
     StreamedMessagePart,
     ThinkingEffort,
     TokenUsage,
@@ -115,6 +116,7 @@ class Anthropic:
 
         beta_features: list[BetaFeatures] | None
         extra_headers: Mapping[str, str] | None
+        extra_body: ExtraBody | None
 
     def __init__(
         self,
@@ -194,6 +196,7 @@ class Anthropic:
             **{"anthropic-beta": ",".join(str(e) for e in betas)},
             **(generation_kwargs.pop("extra_headers", {})),
         }
+        extra_body: ExtraBody | None = generation_kwargs.pop("extra_body", None)
 
         tools_ = [_convert_tool(tool) for tool in tools]
         if tools:
@@ -206,6 +209,7 @@ class Anthropic:
                 tools=tools_,
                 stream=self._stream,
                 extra_headers=extra_headers,
+                extra_body=extra_body,
                 **generation_kwargs,
             )
             return AnthropicStreamedMessage(response)

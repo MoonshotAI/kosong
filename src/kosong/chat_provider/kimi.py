@@ -2,7 +2,7 @@ import copy
 import os
 import uuid
 from collections.abc import AsyncIterator, Sequence
-from typing import TYPE_CHECKING, Any, Self, TypedDict, Unpack, cast
+from typing import TYPE_CHECKING, Any, Literal, Self, TypedDict, Unpack, cast
 
 import httpx
 from openai import AsyncOpenAI, AsyncStream, OpenAIError, omit
@@ -18,6 +18,7 @@ from openai.types.completion_usage import CompletionUsage
 from kosong.chat_provider import (
     ChatProvider,
     ChatProviderError,
+    ExtraBody,
     StreamedMessage,
     StreamedMessagePart,
     ThinkingEffort,
@@ -31,6 +32,9 @@ if TYPE_CHECKING:
 
     def type_check(kimi: "Kimi"):
         _: ChatProvider = kimi
+
+
+type KimiThinkingType = Literal["enabled", "disabled"]
 
 
 class Kimi(ChatProvider):
@@ -53,6 +57,10 @@ class Kimi(ChatProvider):
     class GenerationKwargs(TypedDict, total=False):
         """
         See https://platform.moonshot.ai/docs/api/chat#request-body.
+
+        Notes:
+            `thinking` is a Kimi-specific request field. It is injected into the request body via
+            OpenAI SDK's `extra_body`, because it is not part of the upstream OpenAI schema.
         """
 
         max_tokens: int | None
@@ -63,7 +71,8 @@ class Kimi(ChatProvider):
         frequency_penalty: float | None
         stop: str | list[str] | None
         prompt_cache_key: str | None
-        reasoning_effort: str | None
+        thinking: KimiThinkingType | None
+        extra_body: ExtraBody | None
 
     def __init__(
         self,
@@ -115,20 +124,32 @@ class Kimi(ChatProvider):
             "max_tokens": 32000,
         }
         generation_kwargs.update(self._generation_kwargs)
+
+        thinking: KimiThinkingType | None = generation_kwargs.pop("thinking", None)
+        extra_body: ExtraBody | None = generation_kwargs.pop("extra_body", None)
+
         if "temperature" not in generation_kwargs:
+            thinking_enabled: bool = thinking == "enabled" or (
+                thinking is None and "kimi-k2-thinking" in self.model
+            )
             # set default temperature based on model name
-            if "kimi-k2-thinking" in self.model or self._generation_kwargs.get("reasoning_effort"):
+            if thinking_enabled:
                 generation_kwargs["temperature"] = 1.0
             elif "kimi-k2-" in self.model:
                 generation_kwargs["temperature"] = 0.6
 
         try:
+            extra_body = dict(extra_body) if extra_body is not None else {}
+            if thinking is not None:
+                extra_body["thinking"] = {"type": thinking}
+
             response = await self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
                 tools=(_convert_tool(tool) for tool in tools),
                 stream=self.stream,
                 stream_options={"include_usage": True} if self.stream else omit,
+                extra_body=extra_body,
                 **generation_kwargs,
             )
             return KimiStreamedMessage(response)
@@ -138,14 +159,10 @@ class Kimi(ChatProvider):
     def with_thinking(self, effort: ThinkingEffort) -> Self:
         match effort:
             case "off":
-                reasoning_effort = None
-            case "low":
-                reasoning_effort = "low"
-            case "medium":
-                reasoning_effort = "medium"
-            case "high":
-                reasoning_effort = "high"
-        return self.with_generation_kwargs(reasoning_effort=reasoning_effort)
+                thinking: KimiThinkingType = "disabled"
+            case "low" | "medium" | "high":
+                thinking = "enabled"
+        return self.with_generation_kwargs(thinking=thinking)
 
     def with_generation_kwargs(self, **kwargs: Unpack[GenerationKwargs]) -> Self:
         """
