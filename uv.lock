@@ -448,7 +448,7 @@ dev = [
 requires-dist = [
     { name = "anthropic", specifier = ">=0.75.0" },
     { name = "anthropic", marker = "extra == 'contrib'", specifier = ">=0.75.0" },
-    { name = "google-genai", specifier = ">=1.55.0" },
+    { name = "google-genai", specifier = ">=1.56.0" },
     { name = "google-genai", marker = "extra == 'contrib'", specifier = ">=1.55.0" },
     { name = "jsonschema", specifier = ">=4.25.1" },
     { name = "loguru", specifier = ">=0.7.3" },
