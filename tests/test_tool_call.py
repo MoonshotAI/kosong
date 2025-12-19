@@ -153,7 +153,7 @@ def test_simple_toolset():
     toolset = SimpleToolset([PlusTool()])
     toolset += CompareTool()
     toolset += RaiseTool()
-    toolset += ErrorTool()
+    toolset.add(ErrorTool())
     assert toolset.tools[0].name == "plus"
     assert toolset.tools[1].name == "compare"
     assert toolset.tools[2].name == "raise"
@@ -289,5 +289,5 @@ def test_simple_toolset_sub():
 
     toolset = SimpleToolset([TestTool()])
     assert len(toolset.tools) == 1
-    toolset -= TestTool.name
+    toolset.remove(TestTool.name)
     assert len(toolset.tools) == 0

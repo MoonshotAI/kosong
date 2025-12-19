@@ -69,7 +69,14 @@ class SimpleToolset:
         new_toolset += tool
         return new_toolset
 
-    def __isub__(self, tool_name: str) -> Self:
+    def add(self, tool: ToolType) -> None:
+        """
+        @public
+        Add a tool to the toolset.
+        """
+        self += tool
+
+    def remove(self, tool_name: str) -> None:
         """
         @public
         Remove a tool from the toolset.
@@ -77,17 +84,6 @@ class SimpleToolset:
         if tool_name not in self._tool_dict:
             raise KeyError(f"Tool `{tool_name}` not found in the toolset.")
         del self._tool_dict[tool_name]
-        return self
-
-    def __sub__(self, tool_name: str) -> "SimpleToolset":
-        """
-        @public
-        Return a new toolset with the given tool removed.
-        """
-        new_toolset = SimpleToolset()
-        new_toolset._tool_dict = self._tool_dict.copy()
-        new_toolset -= tool_name
-        return new_toolset
 
     @property
     def tools(self) -> list[Tool]:
