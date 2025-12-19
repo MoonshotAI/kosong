@@ -452,7 +452,7 @@ requires-dist = [
     { name = "google-genai", marker = "extra == 'contrib'", specifier = ">=1.55.0" },
     { name = "jsonschema", specifier = ">=4.25.1" },
     { name = "loguru", specifier = ">=0.7.3" },
-    { name = "openai", specifier = ">=2.9.0,<2.15.0" },
+    { name = "openai", specifier = ">=2.14.0,<2.15.0" },
     { name = "pydantic", specifier = ">=2.12.5" },
     { name = "python-dotenv", specifier = ">=1.2.1" },
     { name = "typing-extensions", specifier = ">=4.15.0" },
