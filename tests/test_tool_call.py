@@ -289,5 +289,5 @@ def test_simple_toolset_sub():
 
     toolset = SimpleToolset([TestTool()])
     assert len(toolset.tools) == 1
-    toolset -= TestTool()
+    toolset -= TestTool.name
     assert len(toolset.tools) == 0
