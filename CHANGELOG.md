@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 - Support Vertex AI in GoogleGenAI chat provider
+- Add `SimpleToolset.add()` and `SimpleToolset.remove()` methods to add or remove tools from the toolset
 
 ## [0.33.0] - 2025-12-12
 
