@@ -27,7 +27,7 @@ dev = [
     "pytest>=9.0.2",
     "pytest-asyncio>=1.3.0",
     "respx>=0.22.0",
-    "ruff>=0.14.9",
+    "ruff>=0.14.10",
     "inline-snapshot[black]>=0.31.1",
     "pdoc>=16.0.0",
 ]
