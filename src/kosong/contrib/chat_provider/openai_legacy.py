@@ -14,7 +14,13 @@ from openai.types.chat import (
 )
 from typing_extensions import TypedDict
 
-from kosong.chat_provider import ChatProvider, StreamedMessagePart, ThinkingEffort, TokenUsage
+from kosong.chat_provider import (
+    ChatProvider,
+    ExtraBody,
+    StreamedMessagePart,
+    ThinkingEffort,
+    TokenUsage,
+)
 from kosong.chat_provider.openai_common import (
     convert_error,
     thinking_effort_to_reasoning_effort,
@@ -57,6 +63,7 @@ class OpenAILegacy:
         frequency_penalty: float | None
         stop: str | list[str] | None
         prompt_cache_key: str | None
+        extra_body: ExtraBody | None
 
     def __init__(
         self,
@@ -106,6 +113,7 @@ class OpenAILegacy:
 
         generation_kwargs: dict[str, Any] = {}
         generation_kwargs.update(self._generation_kwargs)
+        extra_body: ExtraBody | None = generation_kwargs.pop("extra_body", None)
 
         try:
             response = await self.client.chat.completions.create(
@@ -115,6 +123,7 @@ class OpenAILegacy:
                 stream=self.stream,
                 stream_options={"include_usage": True} if self.stream else omit,
                 reasoning_effort=self._reasoning_effort,
+                extra_body=extra_body,
                 **generation_kwargs,
             )
             return OpenAILegacyStreamedMessage(response, self._reasoning_key)

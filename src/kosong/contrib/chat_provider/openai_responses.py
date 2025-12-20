@@ -30,7 +30,13 @@ from openai.types.shared.reasoning import Reasoning
 from openai.types.shared.reasoning_effort import ReasoningEffort
 from openai.types.shared_params.responses_model import ResponsesModel
 
-from kosong.chat_provider import ChatProvider, StreamedMessagePart, ThinkingEffort, TokenUsage
+from kosong.chat_provider import (
+    ChatProvider,
+    ExtraBody,
+    StreamedMessagePart,
+    ThinkingEffort,
+    TokenUsage,
+)
 from kosong.chat_provider.openai_common import convert_error, thinking_effort_to_reasoning_effort
 from kosong.contrib.chat_provider.common import ToolMessageConversion
 from kosong.message import (
@@ -101,6 +107,7 @@ class OpenAIResponses:
         top_logprobs: float | None
         top_p: float | None
         user: str | None
+        extra_body: ExtraBody | None
 
     def __init__(
         self,
@@ -145,6 +152,7 @@ class OpenAIResponses:
 
         generation_kwargs: dict[str, Any] = {}
         generation_kwargs.update(self._generation_kwargs)
+        extra_body: ExtraBody | None = generation_kwargs.pop("extra_body", None)
         generation_kwargs["reasoning"] = Reasoning(
             effort=generation_kwargs.pop("reasoning_effort", None),
             summary="auto",
@@ -158,6 +166,7 @@ class OpenAIResponses:
                 input=inputs,
                 tools=[_convert_tool(tool) for tool in tools],
                 store=False,
+                extra_body=extra_body,
                 **generation_kwargs,
             )
             return OpenAIResponsesStreamedMessage(response)
