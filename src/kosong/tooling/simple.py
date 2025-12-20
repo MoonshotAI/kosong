@@ -69,6 +69,22 @@ class SimpleToolset:
         new_toolset += tool
         return new_toolset
 
+    def add(self, tool: ToolType) -> None:
+        """
+        @public
+        Add a tool to the toolset.
+        """
+        self += tool
+
+    def remove(self, tool_name: str) -> None:
+        """
+        @public
+        Remove a tool from the toolset.
+        """
+        if tool_name not in self._tool_dict:
+            raise KeyError(f"Tool `{tool_name}` not found in the toolset.")
+        del self._tool_dict[tool_name]
+
     @property
     def tools(self) -> list[Tool]:
         return [tool.base for tool in self._tool_dict.values()]
