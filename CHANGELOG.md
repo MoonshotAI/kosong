@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.34.1] - 2025-12-22
+
+- Add `convert_mcp_content` util to convert MCP content type to kosong content type
+
 ## [0.34.0] - 2025-12-19
 
 - Support Vertex AI in GoogleGenAI chat provider
