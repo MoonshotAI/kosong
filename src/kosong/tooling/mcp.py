@@ -4,6 +4,11 @@ import kosong.message
 
 
 def convert_mcp_content(part: mcp.types.ContentBlock) -> kosong.message.ContentPart:
+    """Convert MCP content block to kosong message content part.
+
+    Raises:
+        ValueError: If the content type or mime type is not supported.
+    """
     match part:
         case mcp.types.TextContent(text=text):
             return kosong.message.TextPart(text=text)
