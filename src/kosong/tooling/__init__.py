@@ -1,11 +1,12 @@
 from abc import ABC, abstractmethod
 from asyncio import Future
-from typing import Any, Literal, Protocol, Self, override, runtime_checkable
+from typing import Any, ClassVar, Protocol, Self, cast, override, runtime_checkable
 
 import jsonschema
 import pydantic
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, GetCoreSchemaHandler, model_validator
 from pydantic.json_schema import GenerateJsonSchema
+from pydantic_core import core_schema
 
 from kosong.message import ContentPart, ToolCall
 from kosong.utils.jsonschema import deref_json_schema
@@ -32,20 +33,65 @@ class Tool(BaseModel):
         return self
 
 
-class DisplayBlock(BaseModel):
-    """A block of content to be displayed to the user."""
+class DisplayBlock(BaseModel, ABC):
+    """
+    A block of content to be displayed to the user.
 
-    type: Literal["brief"] | str
-    """The type of the display block."""
+    Similar to ContentPart, but scoped to tool return display payloads (user-facing UI).
+    ContentPart is for model-facing message content; DisplayBlock is for tool/UI extensions.
+    """
 
-    data: JsonType
-    """The content of the display block."""
+    __display_block_registry: ClassVar[dict[str, type["DisplayBlock"]]] = {}
 
-    @model_validator(mode="after")
-    def _validate_data(self) -> Self:
-        if self.type == "brief" and not isinstance(self.data, str):
-            raise ValueError("DisplayBlock of type 'brief' must have string data")
-        return self
+    type: str
+    ...  # to be added by subclasses
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+
+        invalid_subclass_error_msg = (
+            f"DisplayBlock subclass {cls.__name__} must have a `type` field of type `str`"
+        )
+
+        type_value = getattr(cls, "type", None)
+        if type_value is None or not isinstance(type_value, str):
+            raise ValueError(invalid_subclass_error_msg)
+
+        cls.__display_block_registry[type_value] = cls
+
+    @classmethod
+    def __get_pydantic_core_schema__(
+        cls, source_type: Any, handler: GetCoreSchemaHandler
+    ) -> core_schema.CoreSchema:
+        # If we're dealing with the base DisplayBlock class, use custom validation
+        if cls.__name__ == "DisplayBlock":
+
+            def validate_display_block(value: Any) -> Any:
+                # if it's already an instance of a DisplayBlock subclass, return it
+                if hasattr(value, "__class__") and issubclass(value.__class__, cls):
+                    return value
+
+                # if it's a dict with a type field, dispatch to the appropriate subclass
+                if isinstance(value, dict) and "type" in value:
+                    type_value: Any | None = cast(dict[str, Any], value).get("type")
+                    if not isinstance(type_value, str):
+                        raise ValueError(f"Cannot validate {value} as DisplayBlock")
+                    target_class = cls.__display_block_registry[type_value]
+                    return target_class.model_validate(value)
+
+                raise ValueError(f"Cannot validate {value} as DisplayBlock")
+
+            return core_schema.no_info_plain_validator_function(validate_display_block)
+
+        # for subclasses, use the default schema
+        return handler(source_type)
+
+
+class BriefDisplayBlock(DisplayBlock):
+    """A brief display block with plain string content."""
+
+    type: str = "brief"
+    text: str
 
 
 class ToolReturnValue(BaseModel):
@@ -71,8 +117,8 @@ class ToolReturnValue(BaseModel):
     def brief(self) -> str:
         """Get the brief display block data, if any."""
         for block in self.display:
-            if block.type == "brief" and isinstance(block.data, str):
-                return block.data
+            if isinstance(block, BriefDisplayBlock):
+                return block.text
         return ""
 
 
@@ -90,7 +136,7 @@ class ToolOk(ToolReturnValue):
             is_error=False,
             output=([output] if isinstance(output, ContentPart) else output),
             message=message,
-            display=[DisplayBlock(type="brief", data=brief)] if brief else [],
+            display=[BriefDisplayBlock(text=brief)] if brief else [],
         )
 
 
@@ -104,7 +150,7 @@ class ToolError(ToolReturnValue):
             is_error=True,
             output=([output] if isinstance(output, ContentPart) else output),
             message=message,
-            display=[DisplayBlock(type="brief", data=brief)] if brief else [],
+            display=[BriefDisplayBlock(text=brief)] if brief else [],
         )
 
 

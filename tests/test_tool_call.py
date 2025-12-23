@@ -2,10 +2,12 @@ import asyncio
 import json
 from typing import override
 
+from inline_snapshot import snapshot
 from pydantic import BaseModel, Field
 
 from kosong.message import ToolCall
 from kosong.tooling import (
+    BriefDisplayBlock,
     CallableTool,
     CallableTool2,
     ParametersType,
@@ -235,8 +237,7 @@ def test_simple_toolset():
     assert isinstance(results[4].return_value, ToolNotFoundError)
     assert isinstance(results[5].return_value, ToolError)
     assert results[5].return_value.message == "test error"
-    assert results[5].return_value.display[0].type == "brief"
-    assert results[5].return_value.display[0].data == "Error"
+    assert results[5].return_value.display == snapshot([BriefDisplayBlock(text="Error")])
 
 
 def test_callable_tool_2():
