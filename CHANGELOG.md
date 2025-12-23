@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+- Add registry-based `DisplayBlock` validation to allow custom tool/UI display block subclasses, plus `BriefDisplayBlock`
+- Rename brief display payload field to `text` and keep tool return display blocks empty when no brief is provided
+
+
 ## [0.34.1] - 2025-12-22
 
 - Add `convert_mcp_content` util to convert MCP content type to kosong content type

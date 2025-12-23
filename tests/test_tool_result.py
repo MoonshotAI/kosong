@@ -1,7 +1,7 @@
 from inline_snapshot import snapshot
 
 from kosong.message import ImageURLPart, TextPart
-from kosong.tooling import DisplayBlock, ToolError, ToolOk, ToolReturnValue
+from kosong.tooling import BriefDisplayBlock, ToolError, ToolOk, ToolReturnValue
 from kosong.tooling.error import ToolNotFoundError
 
 
@@ -17,7 +17,7 @@ def test_tool_return_value():
         ],
         message="This is a successful tool call.",
         display=[
-            DisplayBlock(type="brief", data="a brief msg for user"),
+            BriefDisplayBlock(text="a brief msg for user"),
         ],
         extras={"key1": "value1", "key2": 42},
     )
@@ -33,7 +33,7 @@ def test_tool_return_value():
                 },
             ],
             "message": "This is a successful tool call.",
-            "display": [{"type": "brief", "data": "a brief msg for user"}],
+            "display": [{"type": "brief", "text": "a brief msg for user"}],
             "extras": {"key1": "value1", "key2": 42},
         }
     )
@@ -53,7 +53,7 @@ def test_tool_ok():
             "is_error": False,
             "output": "output text",
             "message": "This is a successful tool call.",
-            "display": [{"type": "brief", "data": "a brief msg for user"}],
+            "display": [{"type": "brief", "text": "a brief msg for user"}],
         }
     )
 
@@ -70,7 +70,7 @@ def test_tool_error():
             "is_error": True,
             "output": "error output text",
             "message": "This is a failed tool call.",
-            "display": [{"type": "brief", "data": "a brief error msg for user"}],
+            "display": [{"type": "brief", "text": "a brief error msg for user"}],
         }
     )
 
@@ -99,7 +99,7 @@ def test_tool_ok_with_content_parts():
                 },
             ],
             "message": "This is a successful tool call.",
-            "display": [{"type": "brief", "data": "a brief msg for user"}],
+            "display": [{"type": "brief", "text": "a brief msg for user"}],
         }
     )
 
@@ -113,6 +113,6 @@ def test_tool_error_subclass():
             "is_error": True,
             "output": "",
             "message": "Tool `non_existent_tool` not found",
-            "display": [{"type": "brief", "data": "Tool `non_existent_tool` not found"}],
+            "display": [{"type": "brief", "text": "Tool `non_existent_tool` not found"}],
         }
     )
