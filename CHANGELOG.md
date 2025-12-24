@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+
+## [0.35.0] - 2025-12-24
+
 - Add registry-based `DisplayBlock` validation to allow custom tool/UI display block subclasses, plus `BriefDisplayBlock` and `UnknownDisplayBlock`
 - Rename brief display payload field to `text` and keep tool return display blocks empty when no brief is provided
 
