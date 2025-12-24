@@ -76,7 +76,12 @@ class DisplayBlock(BaseModel, ABC):
                     type_value: Any | None = cast(dict[str, Any], value).get("type")
                     if not isinstance(type_value, str):
                         raise ValueError(f"Cannot validate {value} as DisplayBlock")
-                    target_class = cls.__display_block_registry[type_value]
+                    target_class = cls.__display_block_registry.get(type_value)
+                    if target_class is None:
+                        data = {k: v for k, v in cast(dict[str, Any], value).items() if k != "type"}
+                        return UnknownDisplayBlock.model_validate(
+                            {"type": type_value, "data": data}
+                        )
                     return target_class.model_validate(value)
 
                 raise ValueError(f"Cannot validate {value} as DisplayBlock")
@@ -85,6 +90,13 @@ class DisplayBlock(BaseModel, ABC):
 
         # for subclasses, use the default schema
         return handler(source_type)
+
+
+class UnknownDisplayBlock(DisplayBlock):
+    """Fallback display block for unknown types."""
+
+    type: str = "unknown"
+    data: JsonType
 
 
 class BriefDisplayBlock(DisplayBlock):
