@@ -39,7 +39,7 @@
     </ul>
 
 
-            <footer>kosong 0.35.4</footer>
+            <footer>kosong 0.36.0</footer>
 
         <a class="attribution" title="pdoc: Python API documentation generator" href="https://pdoc.dev" target="_blank">
             built with <span class="visually-hidden">pdoc</span><img
@@ -60,17 +60,18 @@
 
                         <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Awaitable</span><span class="p">,</span> <span class="n">Callable</span>
-</span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a>
-</span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a><span class="nb">type</span> <span class="n">Callback</span><span class="p">[</span><span class="o">**</span><span class="n">Params</span><span class="p">,</span> <span class="n">Return</span><span class="p">]</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[</span><span class="n">Params</span><span class="p">,</span> <span class="n">Awaitable</span><span class="p">[</span><span class="n">Return</span><span class="p">]</span> <span class="o">|</span> <span class="n">Return</span><span class="p">]</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a>
+</span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">cast</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a>
+</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a><span class="nb">type</span> <span class="n">Callback</span><span class="p">[</span><span class="o">**</span><span class="n">Params</span><span class="p">,</span> <span class="n">Return</span><span class="p">]</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[</span><span class="n">Params</span><span class="p">,</span> <span class="n">Awaitable</span><span class="p">[</span><span class="n">Return</span><span class="p">]</span> <span class="o">|</span> <span class="n">Return</span><span class="p">]</span>
 </span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a>
-</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">callback</span><span class="p">[</span><span class="o">**</span><span class="n">Params</span><span class="p">,</span> <span class="n">Return</span><span class="p">](</span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a>    <span class="n">fn</span><span class="p">:</span> <span class="n">Callback</span><span class="p">[</span><span class="n">Params</span><span class="p">,</span> <span class="n">Return</span><span class="p">],</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Params</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Params</span><span class="o">.</span><span class="n">kwargs</span>
-</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Return</span><span class="p">:</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a>    <span class="n">ret</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a>    <span class="k">if</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isawaitable</span><span class="p">(</span><span class="n">ret</span><span class="p">):</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a>        <span class="k">return</span> <span class="k">await</span> <span class="n">ret</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a>    <span class="k">return</span> <span class="n">ret</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a>
+</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">callback</span><span class="p">[</span><span class="o">**</span><span class="n">Params</span><span class="p">,</span> <span class="n">Return</span><span class="p">](</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a>    <span class="n">fn</span><span class="p">:</span> <span class="n">Callback</span><span class="p">[</span><span class="n">Params</span><span class="p">,</span> <span class="n">Return</span><span class="p">],</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Params</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Params</span><span class="o">.</span><span class="n">kwargs</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Return</span><span class="p">:</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a>    <span class="n">ret</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a>    <span class="k">if</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isawaitable</span><span class="p">(</span><span class="n">ret</span><span class="p">):</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a>        <span class="k">return</span> <span class="k">await</span> <span class="n">cast</span><span class="p">(</span><span class="n">Awaitable</span><span class="p">[</span><span class="n">Return</span><span class="p">],</span> <span class="n">ret</span><span class="p">)</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a>    <span class="k">return</span> <span class="n">ret</span>
 </span></pre></div>
 
 
@@ -98,13 +99,13 @@
 
     </div>
     <a class="headerlink" href="#callback"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="callback-8"><a href="#callback-8"><span class="linenos"> 8</span></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">callback</span><span class="p">[</span><span class="o">**</span><span class="n">Params</span><span class="p">,</span> <span class="n">Return</span><span class="p">](</span>
-</span><span id="callback-9"><a href="#callback-9"><span class="linenos"> 9</span></a>    <span class="n">fn</span><span class="p">:</span> <span class="n">Callback</span><span class="p">[</span><span class="n">Params</span><span class="p">,</span> <span class="n">Return</span><span class="p">],</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Params</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Params</span><span class="o">.</span><span class="n">kwargs</span>
-</span><span id="callback-10"><a href="#callback-10"><span class="linenos">10</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Return</span><span class="p">:</span>
-</span><span id="callback-11"><a href="#callback-11"><span class="linenos">11</span></a>    <span class="n">ret</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</span><span id="callback-12"><a href="#callback-12"><span class="linenos">12</span></a>    <span class="k">if</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isawaitable</span><span class="p">(</span><span class="n">ret</span><span class="p">):</span>
-</span><span id="callback-13"><a href="#callback-13"><span class="linenos">13</span></a>        <span class="k">return</span> <span class="k">await</span> <span class="n">ret</span>
-</span><span id="callback-14"><a href="#callback-14"><span class="linenos">14</span></a>    <span class="k">return</span> <span class="n">ret</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="callback-9"><a href="#callback-9"><span class="linenos"> 9</span></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">callback</span><span class="p">[</span><span class="o">**</span><span class="n">Params</span><span class="p">,</span> <span class="n">Return</span><span class="p">](</span>
+</span><span id="callback-10"><a href="#callback-10"><span class="linenos">10</span></a>    <span class="n">fn</span><span class="p">:</span> <span class="n">Callback</span><span class="p">[</span><span class="n">Params</span><span class="p">,</span> <span class="n">Return</span><span class="p">],</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Params</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Params</span><span class="o">.</span><span class="n">kwargs</span>
+</span><span id="callback-11"><a href="#callback-11"><span class="linenos">11</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Return</span><span class="p">:</span>
+</span><span id="callback-12"><a href="#callback-12"><span class="linenos">12</span></a>    <span class="n">ret</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span id="callback-13"><a href="#callback-13"><span class="linenos">13</span></a>    <span class="k">if</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isawaitable</span><span class="p">(</span><span class="n">ret</span><span class="p">):</span>
+</span><span id="callback-14"><a href="#callback-14"><span class="linenos">14</span></a>        <span class="k">return</span> <span class="k">await</span> <span class="n">cast</span><span class="p">(</span><span class="n">Awaitable</span><span class="p">[</span><span class="n">Return</span><span class="p">],</span> <span class="n">ret</span><span class="p">)</span>
+</span><span id="callback-15"><a href="#callback-15"><span class="linenos">15</span></a>    <span class="k">return</span> <span class="n">ret</span>
 </span></pre></div>
 
 

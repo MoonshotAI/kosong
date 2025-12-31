@@ -130,6 +130,30 @@
 
             </li>
             <li>
+                    <a class="class" href="#VideoURLPart">VideoURLPart</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="class" href="#VideoURLPart.VideoURL">VideoURLPart.VideoURL</a>
+                                        <ul class="memberlist">
+                                    <li>
+                                            <a class="variable" href="#VideoURLPart.VideoURL.url">url</a>
+                                    </li>
+                                    <li>
+                                            <a class="variable" href="#VideoURLPart.VideoURL.id">id</a>
+                                    </li>
+                            </ul>
+
+                        </li>
+                        <li>
+                                <a class="variable" href="#VideoURLPart.type">type</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#VideoURLPart.video_url">video_url</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
                     <a class="class" href="#ToolCall">ToolCall</a>
                             <ul class="memberlist">
                         <li>
@@ -207,7 +231,7 @@
     </ul>
 
 
-            <footer>kosong 0.35.4</footer>
+            <footer>kosong 0.36.0</footer>
 
         <a class="attribution" title="pdoc: Python API documentation generator" href="https://pdoc.dev" target="_blank">
             built with <span class="visually-hidden">pdoc</span><img
@@ -370,136 +394,156 @@
 </span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a>    <span class="n">audio_url</span><span class="p">:</span> <span class="n">AudioURL</span>
 </span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a>
 </span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a>
-</span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ToolCall</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">,</span> <span class="n">MergeableMixin</span><span class="p">):</span>
+</span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a><span class="k">class</span><span class="w"> </span><span class="nc">VideoURLPart</span><span class="p">(</span><span class="n">ContentPart</span><span class="p">):</span>
 </span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a><span class="sd">    A tool call requested by the assistant.</span>
-</span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a>
-</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a><span class="sd">    &gt;&gt;&gt; ToolCall(</span>
-</span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a><span class="sd">    ...     id=&quot;123&quot;,</span>
-</span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a><span class="sd">    ...     function=ToolCall.FunctionBody(name=&quot;function&quot;, arguments=&quot;{}&quot;),</span>
-</span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a><span class="sd">    ... ).model_dump(exclude_none=True)</span>
-</span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a><span class="sd">    {&#39;type&#39;: &#39;function&#39;, &#39;id&#39;: &#39;123&#39;, &#39;function&#39;: {&#39;name&#39;: &#39;function&#39;, &#39;arguments&#39;: &#39;{}&#39;}}</span>
-</span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a><span class="sd">    &gt;&gt;&gt; VideoURLPart(</span>
+</span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a><span class="sd">    ...     video_url=VideoURLPart.VideoURL(url=&quot;https://example.com/video.mp4&quot;)</span>
+</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a><span class="sd">    ... ).model_dump()</span>
+</span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a><span class="sd">    {&#39;type&#39;: &#39;video_url&#39;, &#39;video_url&#39;: {&#39;url&#39;: &#39;https://example.com/video.mp4&#39;, &#39;id&#39;: None}}</span>
+</span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a>
+</span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a>    <span class="k">class</span><span class="w"> </span><span class="nc">VideoURL</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Video URL payload.&quot;&quot;&quot;</span>
 </span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a>
-</span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a>    <span class="k">class</span><span class="w"> </span><span class="nc">FunctionBody</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Tool call function body.&quot;&quot;&quot;</span>
-</span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a>
-</span><span id="L-159"><a href="#L-159"><span class="linenos">159</span></a>        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="L-160"><a href="#L-160"><span class="linenos">160</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;The name of the tool to be called.&quot;&quot;&quot;</span>
-</span><span id="L-161"><a href="#L-161"><span class="linenos">161</span></a>        <span class="n">arguments</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
-</span><span id="L-162"><a href="#L-162"><span class="linenos">162</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Arguments of the tool call in JSON string format.&quot;&quot;&quot;</span>
+</span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a>        <span class="n">url</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;The URL of the video, can be data URI scheme like `data:video/mp4;base64,...`.&quot;&quot;&quot;</span>
+</span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a>        <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="L-159"><a href="#L-159"><span class="linenos">159</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;The ID of the video, to allow LLMs to distinguish different videos.&quot;&quot;&quot;</span>
+</span><span id="L-160"><a href="#L-160"><span class="linenos">160</span></a>
+</span><span id="L-161"><a href="#L-161"><span class="linenos">161</span></a>    <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;video_url&quot;</span>
+</span><span id="L-162"><a href="#L-162"><span class="linenos">162</span></a>    <span class="n">video_url</span><span class="p">:</span> <span class="n">VideoURL</span>
 </span><span id="L-163"><a href="#L-163"><span class="linenos">163</span></a>
-</span><span id="L-164"><a href="#L-164"><span class="linenos">164</span></a>    <span class="nb">type</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;function&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;function&quot;</span>
-</span><span id="L-165"><a href="#L-165"><span class="linenos">165</span></a>
-</span><span id="L-166"><a href="#L-166"><span class="linenos">166</span></a>    <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="L-167"><a href="#L-167"><span class="linenos">167</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The ID of the tool call.&quot;&quot;&quot;</span>
-</span><span id="L-168"><a href="#L-168"><span class="linenos">168</span></a>    <span class="n">function</span><span class="p">:</span> <span class="n">FunctionBody</span>
-</span><span id="L-169"><a href="#L-169"><span class="linenos">169</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The function body of the tool call.&quot;&quot;&quot;</span>
-</span><span id="L-170"><a href="#L-170"><span class="linenos">170</span></a>    <span class="n">extras</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">JsonType</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="L-171"><a href="#L-171"><span class="linenos">171</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Extra information about the tool call.&quot;&quot;&quot;</span>
-</span><span id="L-172"><a href="#L-172"><span class="linenos">172</span></a>
-</span><span id="L-173"><a href="#L-173"><span class="linenos">173</span></a>    <span class="nd">@override</span>
-</span><span id="L-174"><a href="#L-174"><span class="linenos">174</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">merge_in_place</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-</span><span id="L-175"><a href="#L-175"><span class="linenos">175</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">ToolCallPart</span><span class="p">):</span>
-</span><span id="L-176"><a href="#L-176"><span class="linenos">176</span></a>            <span class="k">return</span> <span class="kc">False</span>
-</span><span id="L-177"><a href="#L-177"><span class="linenos">177</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">arguments</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="L-178"><a href="#L-178"><span class="linenos">178</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">arguments</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">arguments_part</span>
-</span><span id="L-179"><a href="#L-179"><span class="linenos">179</span></a>        <span class="k">else</span><span class="p">:</span>
-</span><span id="L-180"><a href="#L-180"><span class="linenos">180</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">arguments</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">arguments_part</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span>
-</span><span id="L-181"><a href="#L-181"><span class="linenos">181</span></a>        <span class="k">return</span> <span class="kc">True</span>
-</span><span id="L-182"><a href="#L-182"><span class="linenos">182</span></a>
+</span><span id="L-164"><a href="#L-164"><span class="linenos">164</span></a>
+</span><span id="L-165"><a href="#L-165"><span class="linenos">165</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ToolCall</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">,</span> <span class="n">MergeableMixin</span><span class="p">):</span>
+</span><span id="L-166"><a href="#L-166"><span class="linenos">166</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-167"><a href="#L-167"><span class="linenos">167</span></a><span class="sd">    A tool call requested by the assistant.</span>
+</span><span id="L-168"><a href="#L-168"><span class="linenos">168</span></a>
+</span><span id="L-169"><a href="#L-169"><span class="linenos">169</span></a><span class="sd">    &gt;&gt;&gt; ToolCall(</span>
+</span><span id="L-170"><a href="#L-170"><span class="linenos">170</span></a><span class="sd">    ...     id=&quot;123&quot;,</span>
+</span><span id="L-171"><a href="#L-171"><span class="linenos">171</span></a><span class="sd">    ...     function=ToolCall.FunctionBody(name=&quot;function&quot;, arguments=&quot;{}&quot;),</span>
+</span><span id="L-172"><a href="#L-172"><span class="linenos">172</span></a><span class="sd">    ... ).model_dump(exclude_none=True)</span>
+</span><span id="L-173"><a href="#L-173"><span class="linenos">173</span></a><span class="sd">    {&#39;type&#39;: &#39;function&#39;, &#39;id&#39;: &#39;123&#39;, &#39;function&#39;: {&#39;name&#39;: &#39;function&#39;, &#39;arguments&#39;: &#39;{}&#39;}}</span>
+</span><span id="L-174"><a href="#L-174"><span class="linenos">174</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-175"><a href="#L-175"><span class="linenos">175</span></a>
+</span><span id="L-176"><a href="#L-176"><span class="linenos">176</span></a>    <span class="k">class</span><span class="w"> </span><span class="nc">FunctionBody</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="L-177"><a href="#L-177"><span class="linenos">177</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Tool call function body.&quot;&quot;&quot;</span>
+</span><span id="L-178"><a href="#L-178"><span class="linenos">178</span></a>
+</span><span id="L-179"><a href="#L-179"><span class="linenos">179</span></a>        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="L-180"><a href="#L-180"><span class="linenos">180</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;The name of the tool to be called.&quot;&quot;&quot;</span>
+</span><span id="L-181"><a href="#L-181"><span class="linenos">181</span></a>        <span class="n">arguments</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+</span><span id="L-182"><a href="#L-182"><span class="linenos">182</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Arguments of the tool call in JSON string format.&quot;&quot;&quot;</span>
 </span><span id="L-183"><a href="#L-183"><span class="linenos">183</span></a>
-</span><span id="L-184"><a href="#L-184"><span class="linenos">184</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ToolCallPart</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">,</span> <span class="n">MergeableMixin</span><span class="p">):</span>
-</span><span id="L-185"><a href="#L-185"><span class="linenos">185</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A part of the tool call.&quot;&quot;&quot;</span>
-</span><span id="L-186"><a href="#L-186"><span class="linenos">186</span></a>
-</span><span id="L-187"><a href="#L-187"><span class="linenos">187</span></a>    <span class="n">arguments_part</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="L-188"><a href="#L-188"><span class="linenos">188</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A part of the arguments of the tool call.&quot;&quot;&quot;</span>
-</span><span id="L-189"><a href="#L-189"><span class="linenos">189</span></a>
-</span><span id="L-190"><a href="#L-190"><span class="linenos">190</span></a>    <span class="nd">@override</span>
-</span><span id="L-191"><a href="#L-191"><span class="linenos">191</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">merge_in_place</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-</span><span id="L-192"><a href="#L-192"><span class="linenos">192</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">ToolCallPart</span><span class="p">):</span>
-</span><span id="L-193"><a href="#L-193"><span class="linenos">193</span></a>            <span class="k">return</span> <span class="kc">False</span>
-</span><span id="L-194"><a href="#L-194"><span class="linenos">194</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments_part</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="L-195"><a href="#L-195"><span class="linenos">195</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">arguments_part</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">arguments_part</span>
-</span><span id="L-196"><a href="#L-196"><span class="linenos">196</span></a>        <span class="k">else</span><span class="p">:</span>
-</span><span id="L-197"><a href="#L-197"><span class="linenos">197</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">arguments_part</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">arguments_part</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span>
-</span><span id="L-198"><a href="#L-198"><span class="linenos">198</span></a>        <span class="k">return</span> <span class="kc">True</span>
-</span><span id="L-199"><a href="#L-199"><span class="linenos">199</span></a>
-</span><span id="L-200"><a href="#L-200"><span class="linenos">200</span></a>
-</span><span id="L-201"><a href="#L-201"><span class="linenos">201</span></a><span class="nb">type</span> <span class="n">Role</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span>
-</span><span id="L-202"><a href="#L-202"><span class="linenos">202</span></a>    <span class="c1"># for OpenAI API, this should be converted to `developer`</span>
-</span><span id="L-203"><a href="#L-203"><span class="linenos">203</span></a>    <span class="c1"># OpenAI &amp; Kimi support system messages in the middle of the conversation.</span>
-</span><span id="L-204"><a href="#L-204"><span class="linenos">204</span></a>    <span class="c1"># Anthropic only support system messages at the beginning https://docs.claude.com/en/api/messages#body-messages</span>
-</span><span id="L-205"><a href="#L-205"><span class="linenos">205</span></a>    <span class="c1"># In this case, we map `system` message to a `user` message wrapped in `&lt;system&gt;&lt;/system&gt;` tags.</span>
-</span><span id="L-206"><a href="#L-206"><span class="linenos">206</span></a>    <span class="s2">&quot;system&quot;</span><span class="p">,</span>
-</span><span id="L-207"><a href="#L-207"><span class="linenos">207</span></a>    <span class="s2">&quot;user&quot;</span><span class="p">,</span>
-</span><span id="L-208"><a href="#L-208"><span class="linenos">208</span></a>    <span class="s2">&quot;assistant&quot;</span><span class="p">,</span>
-</span><span id="L-209"><a href="#L-209"><span class="linenos">209</span></a>    <span class="s2">&quot;tool&quot;</span><span class="p">,</span>
-</span><span id="L-210"><a href="#L-210"><span class="linenos">210</span></a><span class="p">]</span>
-</span><span id="L-211"><a href="#L-211"><span class="linenos">211</span></a><span class="sd">&quot;&quot;&quot;The role of a message sender.&quot;&quot;&quot;</span>
-</span><span id="L-212"><a href="#L-212"><span class="linenos">212</span></a>
-</span><span id="L-213"><a href="#L-213"><span class="linenos">213</span></a>
-</span><span id="L-214"><a href="#L-214"><span class="linenos">214</span></a><span class="k">class</span><span class="w"> </span><span class="nc">Message</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="L-215"><a href="#L-215"><span class="linenos">215</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A message in a conversation.&quot;&quot;&quot;</span>
-</span><span id="L-216"><a href="#L-216"><span class="linenos">216</span></a>
-</span><span id="L-217"><a href="#L-217"><span class="linenos">217</span></a>    <span class="n">role</span><span class="p">:</span> <span class="n">Role</span>
-</span><span id="L-218"><a href="#L-218"><span class="linenos">218</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The role of the message sender.&quot;&quot;&quot;</span>
+</span><span id="L-184"><a href="#L-184"><span class="linenos">184</span></a>    <span class="nb">type</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;function&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;function&quot;</span>
+</span><span id="L-185"><a href="#L-185"><span class="linenos">185</span></a>
+</span><span id="L-186"><a href="#L-186"><span class="linenos">186</span></a>    <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="L-187"><a href="#L-187"><span class="linenos">187</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The ID of the tool call.&quot;&quot;&quot;</span>
+</span><span id="L-188"><a href="#L-188"><span class="linenos">188</span></a>    <span class="n">function</span><span class="p">:</span> <span class="n">FunctionBody</span>
+</span><span id="L-189"><a href="#L-189"><span class="linenos">189</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The function body of the tool call.&quot;&quot;&quot;</span>
+</span><span id="L-190"><a href="#L-190"><span class="linenos">190</span></a>    <span class="n">extras</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">JsonType</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="L-191"><a href="#L-191"><span class="linenos">191</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Extra information about the tool call.&quot;&quot;&quot;</span>
+</span><span id="L-192"><a href="#L-192"><span class="linenos">192</span></a>
+</span><span id="L-193"><a href="#L-193"><span class="linenos">193</span></a>    <span class="nd">@override</span>
+</span><span id="L-194"><a href="#L-194"><span class="linenos">194</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">merge_in_place</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span><span id="L-195"><a href="#L-195"><span class="linenos">195</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">ToolCallPart</span><span class="p">):</span>
+</span><span id="L-196"><a href="#L-196"><span class="linenos">196</span></a>            <span class="k">return</span> <span class="kc">False</span>
+</span><span id="L-197"><a href="#L-197"><span class="linenos">197</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">arguments</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-198"><a href="#L-198"><span class="linenos">198</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">arguments</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">arguments_part</span>
+</span><span id="L-199"><a href="#L-199"><span class="linenos">199</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="L-200"><a href="#L-200"><span class="linenos">200</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">arguments</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">arguments_part</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span>
+</span><span id="L-201"><a href="#L-201"><span class="linenos">201</span></a>        <span class="k">return</span> <span class="kc">True</span>
+</span><span id="L-202"><a href="#L-202"><span class="linenos">202</span></a>
+</span><span id="L-203"><a href="#L-203"><span class="linenos">203</span></a>
+</span><span id="L-204"><a href="#L-204"><span class="linenos">204</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ToolCallPart</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">,</span> <span class="n">MergeableMixin</span><span class="p">):</span>
+</span><span id="L-205"><a href="#L-205"><span class="linenos">205</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A part of the tool call.&quot;&quot;&quot;</span>
+</span><span id="L-206"><a href="#L-206"><span class="linenos">206</span></a>
+</span><span id="L-207"><a href="#L-207"><span class="linenos">207</span></a>    <span class="n">arguments_part</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="L-208"><a href="#L-208"><span class="linenos">208</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A part of the arguments of the tool call.&quot;&quot;&quot;</span>
+</span><span id="L-209"><a href="#L-209"><span class="linenos">209</span></a>
+</span><span id="L-210"><a href="#L-210"><span class="linenos">210</span></a>    <span class="nd">@override</span>
+</span><span id="L-211"><a href="#L-211"><span class="linenos">211</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">merge_in_place</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span><span id="L-212"><a href="#L-212"><span class="linenos">212</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">ToolCallPart</span><span class="p">):</span>
+</span><span id="L-213"><a href="#L-213"><span class="linenos">213</span></a>            <span class="k">return</span> <span class="kc">False</span>
+</span><span id="L-214"><a href="#L-214"><span class="linenos">214</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments_part</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-215"><a href="#L-215"><span class="linenos">215</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">arguments_part</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">arguments_part</span>
+</span><span id="L-216"><a href="#L-216"><span class="linenos">216</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="L-217"><a href="#L-217"><span class="linenos">217</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">arguments_part</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">arguments_part</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span>
+</span><span id="L-218"><a href="#L-218"><span class="linenos">218</span></a>        <span class="k">return</span> <span class="kc">True</span>
 </span><span id="L-219"><a href="#L-219"><span class="linenos">219</span></a>
-</span><span id="L-220"><a href="#L-220"><span class="linenos">220</span></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="L-221"><a href="#L-221"><span class="linenos">221</span></a>
-</span><span id="L-222"><a href="#L-222"><span class="linenos">222</span></a>    <span class="n">content</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ContentPart</span><span class="p">]</span>
-</span><span id="L-223"><a href="#L-223"><span class="linenos">223</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-224"><a href="#L-224"><span class="linenos">224</span></a><span class="sd">    The content of the message.</span>
-</span><span id="L-225"><a href="#L-225"><span class="linenos">225</span></a><span class="sd">    Empty list `[]` will be interpreted as no content.</span>
-</span><span id="L-226"><a href="#L-226"><span class="linenos">226</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-227"><a href="#L-227"><span class="linenos">227</span></a>
-</span><span id="L-228"><a href="#L-228"><span class="linenos">228</span></a>    <span class="n">tool_calls</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ToolCall</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="L-229"><a href="#L-229"><span class="linenos">229</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Tool calls requested by the assistant in this message.&quot;&quot;&quot;</span>
-</span><span id="L-230"><a href="#L-230"><span class="linenos">230</span></a>
-</span><span id="L-231"><a href="#L-231"><span class="linenos">231</span></a>    <span class="n">tool_call_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="L-232"><a href="#L-232"><span class="linenos">232</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The ID of the tool call if this message is a tool response.&quot;&quot;&quot;</span>
+</span><span id="L-220"><a href="#L-220"><span class="linenos">220</span></a>
+</span><span id="L-221"><a href="#L-221"><span class="linenos">221</span></a><span class="nb">type</span> <span class="n">Role</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span>
+</span><span id="L-222"><a href="#L-222"><span class="linenos">222</span></a>    <span class="c1"># for OpenAI API, this should be converted to `developer`</span>
+</span><span id="L-223"><a href="#L-223"><span class="linenos">223</span></a>    <span class="c1"># OpenAI &amp; Kimi support system messages in the middle of the conversation.</span>
+</span><span id="L-224"><a href="#L-224"><span class="linenos">224</span></a>    <span class="c1"># Anthropic only support system messages at the beginning https://docs.claude.com/en/api/messages#body-messages</span>
+</span><span id="L-225"><a href="#L-225"><span class="linenos">225</span></a>    <span class="c1"># In this case, we map `system` message to a `user` message wrapped in `&lt;system&gt;&lt;/system&gt;` tags.</span>
+</span><span id="L-226"><a href="#L-226"><span class="linenos">226</span></a>    <span class="s2">&quot;system&quot;</span><span class="p">,</span>
+</span><span id="L-227"><a href="#L-227"><span class="linenos">227</span></a>    <span class="s2">&quot;user&quot;</span><span class="p">,</span>
+</span><span id="L-228"><a href="#L-228"><span class="linenos">228</span></a>    <span class="s2">&quot;assistant&quot;</span><span class="p">,</span>
+</span><span id="L-229"><a href="#L-229"><span class="linenos">229</span></a>    <span class="s2">&quot;tool&quot;</span><span class="p">,</span>
+</span><span id="L-230"><a href="#L-230"><span class="linenos">230</span></a><span class="p">]</span>
+</span><span id="L-231"><a href="#L-231"><span class="linenos">231</span></a><span class="sd">&quot;&quot;&quot;The role of a message sender.&quot;&quot;&quot;</span>
+</span><span id="L-232"><a href="#L-232"><span class="linenos">232</span></a>
 </span><span id="L-233"><a href="#L-233"><span class="linenos">233</span></a>
-</span><span id="L-234"><a href="#L-234"><span class="linenos">234</span></a>    <span class="n">partial</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="L-235"><a href="#L-235"><span class="linenos">235</span></a>
-</span><span id="L-236"><a href="#L-236"><span class="linenos">236</span></a>    <span class="nd">@field_serializer</span><span class="p">(</span><span class="s2">&quot;content&quot;</span><span class="p">)</span>
-</span><span id="L-237"><a href="#L-237"><span class="linenos">237</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_serialize_content</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">content</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ContentPart</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="L-238"><a href="#L-238"><span class="linenos">238</span></a>        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">content</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">content</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">TextPart</span><span class="p">):</span>
-</span><span id="L-239"><a href="#L-239"><span class="linenos">239</span></a>            <span class="k">return</span> <span class="n">content</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
-</span><span id="L-240"><a href="#L-240"><span class="linenos">240</span></a>        <span class="k">return</span> <span class="p">[</span><span class="n">part</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span> <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">content</span><span class="p">]</span>
+</span><span id="L-234"><a href="#L-234"><span class="linenos">234</span></a><span class="k">class</span><span class="w"> </span><span class="nc">Message</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="L-235"><a href="#L-235"><span class="linenos">235</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A message in a conversation.&quot;&quot;&quot;</span>
+</span><span id="L-236"><a href="#L-236"><span class="linenos">236</span></a>
+</span><span id="L-237"><a href="#L-237"><span class="linenos">237</span></a>    <span class="n">role</span><span class="p">:</span> <span class="n">Role</span>
+</span><span id="L-238"><a href="#L-238"><span class="linenos">238</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The role of the message sender.&quot;&quot;&quot;</span>
+</span><span id="L-239"><a href="#L-239"><span class="linenos">239</span></a>
+</span><span id="L-240"><a href="#L-240"><span class="linenos">240</span></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 </span><span id="L-241"><a href="#L-241"><span class="linenos">241</span></a>
-</span><span id="L-242"><a href="#L-242"><span class="linenos">242</span></a>    <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">&quot;content&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;before&quot;</span><span class="p">)</span>
-</span><span id="L-243"><a href="#L-243"><span class="linenos">243</span></a>    <span class="nd">@classmethod</span>
-</span><span id="L-244"><a href="#L-244"><span class="linenos">244</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_coerce_none_content</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-</span><span id="L-245"><a href="#L-245"><span class="linenos">245</span></a>        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="L-246"><a href="#L-246"><span class="linenos">246</span></a>            <span class="k">return</span> <span class="p">[]</span>
-</span><span id="L-247"><a href="#L-247"><span class="linenos">247</span></a>        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-</span><span id="L-248"><a href="#L-248"><span class="linenos">248</span></a>            <span class="k">return</span> <span class="p">[</span><span class="n">TextPart</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">value</span><span class="p">)]</span>
-</span><span id="L-249"><a href="#L-249"><span class="linenos">249</span></a>        <span class="k">return</span> <span class="n">value</span>
+</span><span id="L-242"><a href="#L-242"><span class="linenos">242</span></a>    <span class="n">content</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ContentPart</span><span class="p">]</span>
+</span><span id="L-243"><a href="#L-243"><span class="linenos">243</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-244"><a href="#L-244"><span class="linenos">244</span></a><span class="sd">    The content of the message.</span>
+</span><span id="L-245"><a href="#L-245"><span class="linenos">245</span></a><span class="sd">    Empty list `[]` will be interpreted as no content.</span>
+</span><span id="L-246"><a href="#L-246"><span class="linenos">246</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-247"><a href="#L-247"><span class="linenos">247</span></a>
+</span><span id="L-248"><a href="#L-248"><span class="linenos">248</span></a>    <span class="n">tool_calls</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ToolCall</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="L-249"><a href="#L-249"><span class="linenos">249</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Tool calls requested by the assistant in this message.&quot;&quot;&quot;</span>
 </span><span id="L-250"><a href="#L-250"><span class="linenos">250</span></a>
-</span><span id="L-251"><a href="#L-251"><span class="linenos">251</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
-</span><span id="L-252"><a href="#L-252"><span class="linenos">252</span></a>        <span class="bp">self</span><span class="p">,</span>
-</span><span id="L-253"><a href="#L-253"><span class="linenos">253</span></a>        <span class="o">*</span><span class="p">,</span>
-</span><span id="L-254"><a href="#L-254"><span class="linenos">254</span></a>        <span class="n">role</span><span class="p">:</span> <span class="n">Role</span><span class="p">,</span>
-</span><span id="L-255"><a href="#L-255"><span class="linenos">255</span></a>        <span class="n">content</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ContentPart</span><span class="p">]</span> <span class="o">|</span> <span class="n">ContentPart</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span>
-</span><span id="L-256"><a href="#L-256"><span class="linenos">256</span></a>        <span class="n">tool_calls</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ToolCall</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="L-257"><a href="#L-257"><span class="linenos">257</span></a>        <span class="n">tool_call_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="L-258"><a href="#L-258"><span class="linenos">258</span></a>        <span class="o">**</span><span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
-</span><span id="L-259"><a href="#L-259"><span class="linenos">259</span></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="L-260"><a href="#L-260"><span class="linenos">260</span></a>        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-</span><span id="L-261"><a href="#L-261"><span class="linenos">261</span></a>            <span class="n">content</span> <span class="o">=</span> <span class="p">[</span><span class="n">TextPart</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">content</span><span class="p">)]</span>
-</span><span id="L-262"><a href="#L-262"><span class="linenos">262</span></a>        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">ContentPart</span><span class="p">):</span>
-</span><span id="L-263"><a href="#L-263"><span class="linenos">263</span></a>            <span class="n">content</span> <span class="o">=</span> <span class="p">[</span><span class="n">content</span><span class="p">]</span>
-</span><span id="L-264"><a href="#L-264"><span class="linenos">264</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-</span><span id="L-265"><a href="#L-265"><span class="linenos">265</span></a>            <span class="n">role</span><span class="o">=</span><span class="n">role</span><span class="p">,</span>
-</span><span id="L-266"><a href="#L-266"><span class="linenos">266</span></a>            <span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">,</span>
-</span><span id="L-267"><a href="#L-267"><span class="linenos">267</span></a>            <span class="n">tool_calls</span><span class="o">=</span><span class="n">tool_calls</span><span class="p">,</span>
-</span><span id="L-268"><a href="#L-268"><span class="linenos">268</span></a>            <span class="n">tool_call_id</span><span class="o">=</span><span class="n">tool_call_id</span><span class="p">,</span>
-</span><span id="L-269"><a href="#L-269"><span class="linenos">269</span></a>            <span class="o">**</span><span class="n">data</span><span class="p">,</span>
-</span><span id="L-270"><a href="#L-270"><span class="linenos">270</span></a>        <span class="p">)</span>
-</span><span id="L-271"><a href="#L-271"><span class="linenos">271</span></a>
-</span><span id="L-272"><a href="#L-272"><span class="linenos">272</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">extract_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sep</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-</span><span id="L-273"><a href="#L-273"><span class="linenos">273</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract and concatenate all text parts in the message content.&quot;&quot;&quot;</span>
-</span><span id="L-274"><a href="#L-274"><span class="linenos">274</span></a>        <span class="k">return</span> <span class="n">sep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">text</span> <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">part</span><span class="p">,</span> <span class="n">TextPart</span><span class="p">))</span>
+</span><span id="L-251"><a href="#L-251"><span class="linenos">251</span></a>    <span class="n">tool_call_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="L-252"><a href="#L-252"><span class="linenos">252</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The ID of the tool call if this message is a tool response.&quot;&quot;&quot;</span>
+</span><span id="L-253"><a href="#L-253"><span class="linenos">253</span></a>
+</span><span id="L-254"><a href="#L-254"><span class="linenos">254</span></a>    <span class="n">partial</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="L-255"><a href="#L-255"><span class="linenos">255</span></a>
+</span><span id="L-256"><a href="#L-256"><span class="linenos">256</span></a>    <span class="nd">@field_serializer</span><span class="p">(</span><span class="s2">&quot;content&quot;</span><span class="p">)</span>
+</span><span id="L-257"><a href="#L-257"><span class="linenos">257</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_serialize_content</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">content</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ContentPart</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-258"><a href="#L-258"><span class="linenos">258</span></a>        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">content</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">content</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">TextPart</span><span class="p">):</span>
+</span><span id="L-259"><a href="#L-259"><span class="linenos">259</span></a>            <span class="k">return</span> <span class="n">content</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+</span><span id="L-260"><a href="#L-260"><span class="linenos">260</span></a>        <span class="k">return</span> <span class="p">[</span><span class="n">part</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span> <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">content</span><span class="p">]</span>
+</span><span id="L-261"><a href="#L-261"><span class="linenos">261</span></a>
+</span><span id="L-262"><a href="#L-262"><span class="linenos">262</span></a>    <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">&quot;content&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;before&quot;</span><span class="p">)</span>
+</span><span id="L-263"><a href="#L-263"><span class="linenos">263</span></a>    <span class="nd">@classmethod</span>
+</span><span id="L-264"><a href="#L-264"><span class="linenos">264</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_coerce_none_content</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+</span><span id="L-265"><a href="#L-265"><span class="linenos">265</span></a>        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-266"><a href="#L-266"><span class="linenos">266</span></a>            <span class="k">return</span> <span class="p">[]</span>
+</span><span id="L-267"><a href="#L-267"><span class="linenos">267</span></a>        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="L-268"><a href="#L-268"><span class="linenos">268</span></a>            <span class="k">return</span> <span class="p">[</span><span class="n">TextPart</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">value</span><span class="p">)]</span>
+</span><span id="L-269"><a href="#L-269"><span class="linenos">269</span></a>        <span class="k">return</span> <span class="n">value</span>
+</span><span id="L-270"><a href="#L-270"><span class="linenos">270</span></a>
+</span><span id="L-271"><a href="#L-271"><span class="linenos">271</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+</span><span id="L-272"><a href="#L-272"><span class="linenos">272</span></a>        <span class="bp">self</span><span class="p">,</span>
+</span><span id="L-273"><a href="#L-273"><span class="linenos">273</span></a>        <span class="o">*</span><span class="p">,</span>
+</span><span id="L-274"><a href="#L-274"><span class="linenos">274</span></a>        <span class="n">role</span><span class="p">:</span> <span class="n">Role</span><span class="p">,</span>
+</span><span id="L-275"><a href="#L-275"><span class="linenos">275</span></a>        <span class="n">content</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ContentPart</span><span class="p">]</span> <span class="o">|</span> <span class="n">ContentPart</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="L-276"><a href="#L-276"><span class="linenos">276</span></a>        <span class="n">tool_calls</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ToolCall</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="L-277"><a href="#L-277"><span class="linenos">277</span></a>        <span class="n">tool_call_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="L-278"><a href="#L-278"><span class="linenos">278</span></a>        <span class="o">**</span><span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+</span><span id="L-279"><a href="#L-279"><span class="linenos">279</span></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-280"><a href="#L-280"><span class="linenos">280</span></a>        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="L-281"><a href="#L-281"><span class="linenos">281</span></a>            <span class="n">content</span> <span class="o">=</span> <span class="p">[</span><span class="n">TextPart</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">content</span><span class="p">)]</span>
+</span><span id="L-282"><a href="#L-282"><span class="linenos">282</span></a>        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">ContentPart</span><span class="p">):</span>
+</span><span id="L-283"><a href="#L-283"><span class="linenos">283</span></a>            <span class="n">content</span> <span class="o">=</span> <span class="p">[</span><span class="n">content</span><span class="p">]</span>
+</span><span id="L-284"><a href="#L-284"><span class="linenos">284</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+</span><span id="L-285"><a href="#L-285"><span class="linenos">285</span></a>            <span class="n">role</span><span class="o">=</span><span class="n">role</span><span class="p">,</span>
+</span><span id="L-286"><a href="#L-286"><span class="linenos">286</span></a>            <span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">,</span>
+</span><span id="L-287"><a href="#L-287"><span class="linenos">287</span></a>            <span class="n">tool_calls</span><span class="o">=</span><span class="n">tool_calls</span><span class="p">,</span>
+</span><span id="L-288"><a href="#L-288"><span class="linenos">288</span></a>            <span class="n">tool_call_id</span><span class="o">=</span><span class="n">tool_call_id</span><span class="p">,</span>
+</span><span id="L-289"><a href="#L-289"><span class="linenos">289</span></a>            <span class="o">**</span><span class="n">data</span><span class="p">,</span>
+</span><span id="L-290"><a href="#L-290"><span class="linenos">290</span></a>        <span class="p">)</span>
+</span><span id="L-291"><a href="#L-291"><span class="linenos">291</span></a>
+</span><span id="L-292"><a href="#L-292"><span class="linenos">292</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">extract_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sep</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span id="L-293"><a href="#L-293"><span class="linenos">293</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract and concatenate all text parts in the message content.&quot;&quot;&quot;</span>
+</span><span id="L-294"><a href="#L-294"><span class="linenos">294</span></a>        <span class="k">return</span> <span class="n">sep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">text</span> <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">part</span><span class="p">,</span> <span class="n">TextPart</span><span class="p">))</span>
 </span></pre></div>
 
 
@@ -1094,6 +1138,136 @@
 
                             </div>
                 </section>
+                <section id="VideoURLPart">
+                            <input id="VideoURLPart-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr class">
+            
+    <span class="def">class</span>
+    <span class="name">VideoURLPart</span><wbr>(<span class="base"><a href="#ContentPart">ContentPart</a></span>):
+
+                <label class="view-source-button" for="VideoURLPart-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#VideoURLPart"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="VideoURLPart-146"><a href="#VideoURLPart-146"><span class="linenos">146</span></a><span class="k">class</span><span class="w"> </span><span class="nc">VideoURLPart</span><span class="p">(</span><span class="n">ContentPart</span><span class="p">):</span>
+</span><span id="VideoURLPart-147"><a href="#VideoURLPart-147"><span class="linenos">147</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="VideoURLPart-148"><a href="#VideoURLPart-148"><span class="linenos">148</span></a><span class="sd">    &gt;&gt;&gt; VideoURLPart(</span>
+</span><span id="VideoURLPart-149"><a href="#VideoURLPart-149"><span class="linenos">149</span></a><span class="sd">    ...     video_url=VideoURLPart.VideoURL(url=&quot;https://example.com/video.mp4&quot;)</span>
+</span><span id="VideoURLPart-150"><a href="#VideoURLPart-150"><span class="linenos">150</span></a><span class="sd">    ... ).model_dump()</span>
+</span><span id="VideoURLPart-151"><a href="#VideoURLPart-151"><span class="linenos">151</span></a><span class="sd">    {&#39;type&#39;: &#39;video_url&#39;, &#39;video_url&#39;: {&#39;url&#39;: &#39;https://example.com/video.mp4&#39;, &#39;id&#39;: None}}</span>
+</span><span id="VideoURLPart-152"><a href="#VideoURLPart-152"><span class="linenos">152</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="VideoURLPart-153"><a href="#VideoURLPart-153"><span class="linenos">153</span></a>
+</span><span id="VideoURLPart-154"><a href="#VideoURLPart-154"><span class="linenos">154</span></a>    <span class="k">class</span><span class="w"> </span><span class="nc">VideoURL</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="VideoURLPart-155"><a href="#VideoURLPart-155"><span class="linenos">155</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Video URL payload.&quot;&quot;&quot;</span>
+</span><span id="VideoURLPart-156"><a href="#VideoURLPart-156"><span class="linenos">156</span></a>
+</span><span id="VideoURLPart-157"><a href="#VideoURLPart-157"><span class="linenos">157</span></a>        <span class="n">url</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="VideoURLPart-158"><a href="#VideoURLPart-158"><span class="linenos">158</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;The URL of the video, can be data URI scheme like `data:video/mp4;base64,...`.&quot;&quot;&quot;</span>
+</span><span id="VideoURLPart-159"><a href="#VideoURLPart-159"><span class="linenos">159</span></a>        <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="VideoURLPart-160"><a href="#VideoURLPart-160"><span class="linenos">160</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;The ID of the video, to allow LLMs to distinguish different videos.&quot;&quot;&quot;</span>
+</span><span id="VideoURLPart-161"><a href="#VideoURLPart-161"><span class="linenos">161</span></a>
+</span><span id="VideoURLPart-162"><a href="#VideoURLPart-162"><span class="linenos">162</span></a>    <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;video_url&quot;</span>
+</span><span id="VideoURLPart-163"><a href="#VideoURLPart-163"><span class="linenos">163</span></a>    <span class="n">video_url</span><span class="p">:</span> <span class="n">VideoURL</span>
+</span></pre></div>
+
+
+            <div class="docstring"><div class="pdoc-code codehilite">
+<pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">VideoURLPart</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">video_url</span><span class="o">=</span><span class="n"><a href="#VideoURLPart.VideoURL">VideoURLPart.VideoURL</a></span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="s2">&quot;https://example.com/video.mp4&quot;</span><span class="p">)</span>
+<span class="gp">... </span><span class="p">)</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span>
+<span class="go">{&#39;type&#39;: &#39;video_url&#39;, &#39;video_url&#39;: {&#39;url&#39;: &#39;https://example.com/video.mp4&#39;, &#39;id&#39;: None}}</span>
+</code></pre>
+</div>
+</div>
+
+
+                            <div id="VideoURLPart.type" class="classattr">
+                                <div class="attr variable">
+            <span class="name">type</span><span class="annotation">: str</span>        =
+<span class="default_value">&#39;video_url&#39;</span>
+
+        
+    </div>
+    <a class="headerlink" href="#VideoURLPart.type"></a>
+    
+    
+
+                            </div>
+                            <div id="VideoURLPart.video_url" class="classattr">
+                                <div class="attr variable">
+            <span class="name">video_url</span><span class="annotation">: <a href="#VideoURLPart.VideoURL">VideoURLPart.VideoURL</a></span>        =
+<span class="default_value">PydanticUndefined</span>
+
+        
+    </div>
+    <a class="headerlink" href="#VideoURLPart.video_url"></a>
+    
+    
+
+                            </div>
+                            <div class="inherited">
+                                <h5>Inherited Members</h5>
+                                <dl>
+                                    <div><dt><a href="#MergeableMixin">MergeableMixin</a></dt>
+                                <dd id="VideoURLPart.merge_in_place" class="function"><a href="#MergeableMixin.merge_in_place">merge_in_place</a></dd>
+
+            </div>
+                                </dl>
+                            </div>
+                </section>
+                <section id="VideoURLPart.VideoURL">
+                            <input id="VideoURLPart.VideoURL-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr class">
+            
+    <span class="def">class</span>
+    <span class="name">VideoURLPart.VideoURL</span><wbr>(<span class="base">pydantic.main.BaseModel</span>):
+
+                <label class="view-source-button" for="VideoURLPart.VideoURL-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#VideoURLPart.VideoURL"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="VideoURLPart.VideoURL-154"><a href="#VideoURLPart.VideoURL-154"><span class="linenos">154</span></a>    <span class="k">class</span><span class="w"> </span><span class="nc">VideoURL</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="VideoURLPart.VideoURL-155"><a href="#VideoURLPart.VideoURL-155"><span class="linenos">155</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Video URL payload.&quot;&quot;&quot;</span>
+</span><span id="VideoURLPart.VideoURL-156"><a href="#VideoURLPart.VideoURL-156"><span class="linenos">156</span></a>
+</span><span id="VideoURLPart.VideoURL-157"><a href="#VideoURLPart.VideoURL-157"><span class="linenos">157</span></a>        <span class="n">url</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="VideoURLPart.VideoURL-158"><a href="#VideoURLPart.VideoURL-158"><span class="linenos">158</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;The URL of the video, can be data URI scheme like `data:video/mp4;base64,...`.&quot;&quot;&quot;</span>
+</span><span id="VideoURLPart.VideoURL-159"><a href="#VideoURLPart.VideoURL-159"><span class="linenos">159</span></a>        <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="VideoURLPart.VideoURL-160"><a href="#VideoURLPart.VideoURL-160"><span class="linenos">160</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;The ID of the video, to allow LLMs to distinguish different videos.&quot;&quot;&quot;</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>Video URL payload.</p>
+</div>
+
+
+                            <div id="VideoURLPart.VideoURL.url" class="classattr">
+                                <div class="attr variable">
+            <span class="name">url</span><span class="annotation">: str</span>        =
+<span class="default_value">PydanticUndefined</span>
+
+        
+    </div>
+    <a class="headerlink" href="#VideoURLPart.VideoURL.url"></a>
+    
+            <div class="docstring"><p>The URL of the video, can be data URI scheme like <code>data:video/mp4;base64,...</code>.</p>
+</div>
+
+
+                            </div>
+                            <div id="VideoURLPart.VideoURL.id" class="classattr">
+                                <div class="attr variable">
+            <span class="name">id</span><span class="annotation">: str | None</span>        =
+<span class="default_value">None</span>
+
+        
+    </div>
+    <a class="headerlink" href="#VideoURLPart.VideoURL.id"></a>
+    
+            <div class="docstring"><p>The ID of the video, to allow LLMs to distinguish different videos.</p>
+</div>
+
+
+                            </div>
+                </section>
                 <section id="ToolCall">
                             <input id="ToolCall-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr class">
@@ -1105,43 +1279,43 @@
 
     </div>
     <a class="headerlink" href="#ToolCall"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ToolCall-146"><a href="#ToolCall-146"><span class="linenos">146</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ToolCall</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">,</span> <span class="n">MergeableMixin</span><span class="p">):</span>
-</span><span id="ToolCall-147"><a href="#ToolCall-147"><span class="linenos">147</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="ToolCall-148"><a href="#ToolCall-148"><span class="linenos">148</span></a><span class="sd">    A tool call requested by the assistant.</span>
-</span><span id="ToolCall-149"><a href="#ToolCall-149"><span class="linenos">149</span></a>
-</span><span id="ToolCall-150"><a href="#ToolCall-150"><span class="linenos">150</span></a><span class="sd">    &gt;&gt;&gt; ToolCall(</span>
-</span><span id="ToolCall-151"><a href="#ToolCall-151"><span class="linenos">151</span></a><span class="sd">    ...     id=&quot;123&quot;,</span>
-</span><span id="ToolCall-152"><a href="#ToolCall-152"><span class="linenos">152</span></a><span class="sd">    ...     function=ToolCall.FunctionBody(name=&quot;function&quot;, arguments=&quot;{}&quot;),</span>
-</span><span id="ToolCall-153"><a href="#ToolCall-153"><span class="linenos">153</span></a><span class="sd">    ... ).model_dump(exclude_none=True)</span>
-</span><span id="ToolCall-154"><a href="#ToolCall-154"><span class="linenos">154</span></a><span class="sd">    {&#39;type&#39;: &#39;function&#39;, &#39;id&#39;: &#39;123&#39;, &#39;function&#39;: {&#39;name&#39;: &#39;function&#39;, &#39;arguments&#39;: &#39;{}&#39;}}</span>
-</span><span id="ToolCall-155"><a href="#ToolCall-155"><span class="linenos">155</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="ToolCall-156"><a href="#ToolCall-156"><span class="linenos">156</span></a>
-</span><span id="ToolCall-157"><a href="#ToolCall-157"><span class="linenos">157</span></a>    <span class="k">class</span><span class="w"> </span><span class="nc">FunctionBody</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="ToolCall-158"><a href="#ToolCall-158"><span class="linenos">158</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Tool call function body.&quot;&quot;&quot;</span>
-</span><span id="ToolCall-159"><a href="#ToolCall-159"><span class="linenos">159</span></a>
-</span><span id="ToolCall-160"><a href="#ToolCall-160"><span class="linenos">160</span></a>        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="ToolCall-161"><a href="#ToolCall-161"><span class="linenos">161</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;The name of the tool to be called.&quot;&quot;&quot;</span>
-</span><span id="ToolCall-162"><a href="#ToolCall-162"><span class="linenos">162</span></a>        <span class="n">arguments</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
-</span><span id="ToolCall-163"><a href="#ToolCall-163"><span class="linenos">163</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Arguments of the tool call in JSON string format.&quot;&quot;&quot;</span>
-</span><span id="ToolCall-164"><a href="#ToolCall-164"><span class="linenos">164</span></a>
-</span><span id="ToolCall-165"><a href="#ToolCall-165"><span class="linenos">165</span></a>    <span class="nb">type</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;function&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;function&quot;</span>
-</span><span id="ToolCall-166"><a href="#ToolCall-166"><span class="linenos">166</span></a>
-</span><span id="ToolCall-167"><a href="#ToolCall-167"><span class="linenos">167</span></a>    <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="ToolCall-168"><a href="#ToolCall-168"><span class="linenos">168</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The ID of the tool call.&quot;&quot;&quot;</span>
-</span><span id="ToolCall-169"><a href="#ToolCall-169"><span class="linenos">169</span></a>    <span class="n">function</span><span class="p">:</span> <span class="n">FunctionBody</span>
-</span><span id="ToolCall-170"><a href="#ToolCall-170"><span class="linenos">170</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The function body of the tool call.&quot;&quot;&quot;</span>
-</span><span id="ToolCall-171"><a href="#ToolCall-171"><span class="linenos">171</span></a>    <span class="n">extras</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">JsonType</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="ToolCall-172"><a href="#ToolCall-172"><span class="linenos">172</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Extra information about the tool call.&quot;&quot;&quot;</span>
-</span><span id="ToolCall-173"><a href="#ToolCall-173"><span class="linenos">173</span></a>
-</span><span id="ToolCall-174"><a href="#ToolCall-174"><span class="linenos">174</span></a>    <span class="nd">@override</span>
-</span><span id="ToolCall-175"><a href="#ToolCall-175"><span class="linenos">175</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">merge_in_place</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-</span><span id="ToolCall-176"><a href="#ToolCall-176"><span class="linenos">176</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">ToolCallPart</span><span class="p">):</span>
-</span><span id="ToolCall-177"><a href="#ToolCall-177"><span class="linenos">177</span></a>            <span class="k">return</span> <span class="kc">False</span>
-</span><span id="ToolCall-178"><a href="#ToolCall-178"><span class="linenos">178</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">arguments</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="ToolCall-179"><a href="#ToolCall-179"><span class="linenos">179</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">arguments</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">arguments_part</span>
-</span><span id="ToolCall-180"><a href="#ToolCall-180"><span class="linenos">180</span></a>        <span class="k">else</span><span class="p">:</span>
-</span><span id="ToolCall-181"><a href="#ToolCall-181"><span class="linenos">181</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">arguments</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">arguments_part</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span>
-</span><span id="ToolCall-182"><a href="#ToolCall-182"><span class="linenos">182</span></a>        <span class="k">return</span> <span class="kc">True</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ToolCall-166"><a href="#ToolCall-166"><span class="linenos">166</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ToolCall</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">,</span> <span class="n">MergeableMixin</span><span class="p">):</span>
+</span><span id="ToolCall-167"><a href="#ToolCall-167"><span class="linenos">167</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="ToolCall-168"><a href="#ToolCall-168"><span class="linenos">168</span></a><span class="sd">    A tool call requested by the assistant.</span>
+</span><span id="ToolCall-169"><a href="#ToolCall-169"><span class="linenos">169</span></a>
+</span><span id="ToolCall-170"><a href="#ToolCall-170"><span class="linenos">170</span></a><span class="sd">    &gt;&gt;&gt; ToolCall(</span>
+</span><span id="ToolCall-171"><a href="#ToolCall-171"><span class="linenos">171</span></a><span class="sd">    ...     id=&quot;123&quot;,</span>
+</span><span id="ToolCall-172"><a href="#ToolCall-172"><span class="linenos">172</span></a><span class="sd">    ...     function=ToolCall.FunctionBody(name=&quot;function&quot;, arguments=&quot;{}&quot;),</span>
+</span><span id="ToolCall-173"><a href="#ToolCall-173"><span class="linenos">173</span></a><span class="sd">    ... ).model_dump(exclude_none=True)</span>
+</span><span id="ToolCall-174"><a href="#ToolCall-174"><span class="linenos">174</span></a><span class="sd">    {&#39;type&#39;: &#39;function&#39;, &#39;id&#39;: &#39;123&#39;, &#39;function&#39;: {&#39;name&#39;: &#39;function&#39;, &#39;arguments&#39;: &#39;{}&#39;}}</span>
+</span><span id="ToolCall-175"><a href="#ToolCall-175"><span class="linenos">175</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="ToolCall-176"><a href="#ToolCall-176"><span class="linenos">176</span></a>
+</span><span id="ToolCall-177"><a href="#ToolCall-177"><span class="linenos">177</span></a>    <span class="k">class</span><span class="w"> </span><span class="nc">FunctionBody</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="ToolCall-178"><a href="#ToolCall-178"><span class="linenos">178</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Tool call function body.&quot;&quot;&quot;</span>
+</span><span id="ToolCall-179"><a href="#ToolCall-179"><span class="linenos">179</span></a>
+</span><span id="ToolCall-180"><a href="#ToolCall-180"><span class="linenos">180</span></a>        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="ToolCall-181"><a href="#ToolCall-181"><span class="linenos">181</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;The name of the tool to be called.&quot;&quot;&quot;</span>
+</span><span id="ToolCall-182"><a href="#ToolCall-182"><span class="linenos">182</span></a>        <span class="n">arguments</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+</span><span id="ToolCall-183"><a href="#ToolCall-183"><span class="linenos">183</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Arguments of the tool call in JSON string format.&quot;&quot;&quot;</span>
+</span><span id="ToolCall-184"><a href="#ToolCall-184"><span class="linenos">184</span></a>
+</span><span id="ToolCall-185"><a href="#ToolCall-185"><span class="linenos">185</span></a>    <span class="nb">type</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;function&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;function&quot;</span>
+</span><span id="ToolCall-186"><a href="#ToolCall-186"><span class="linenos">186</span></a>
+</span><span id="ToolCall-187"><a href="#ToolCall-187"><span class="linenos">187</span></a>    <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="ToolCall-188"><a href="#ToolCall-188"><span class="linenos">188</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The ID of the tool call.&quot;&quot;&quot;</span>
+</span><span id="ToolCall-189"><a href="#ToolCall-189"><span class="linenos">189</span></a>    <span class="n">function</span><span class="p">:</span> <span class="n">FunctionBody</span>
+</span><span id="ToolCall-190"><a href="#ToolCall-190"><span class="linenos">190</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The function body of the tool call.&quot;&quot;&quot;</span>
+</span><span id="ToolCall-191"><a href="#ToolCall-191"><span class="linenos">191</span></a>    <span class="n">extras</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">JsonType</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="ToolCall-192"><a href="#ToolCall-192"><span class="linenos">192</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Extra information about the tool call.&quot;&quot;&quot;</span>
+</span><span id="ToolCall-193"><a href="#ToolCall-193"><span class="linenos">193</span></a>
+</span><span id="ToolCall-194"><a href="#ToolCall-194"><span class="linenos">194</span></a>    <span class="nd">@override</span>
+</span><span id="ToolCall-195"><a href="#ToolCall-195"><span class="linenos">195</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">merge_in_place</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span><span id="ToolCall-196"><a href="#ToolCall-196"><span class="linenos">196</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">ToolCallPart</span><span class="p">):</span>
+</span><span id="ToolCall-197"><a href="#ToolCall-197"><span class="linenos">197</span></a>            <span class="k">return</span> <span class="kc">False</span>
+</span><span id="ToolCall-198"><a href="#ToolCall-198"><span class="linenos">198</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">arguments</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="ToolCall-199"><a href="#ToolCall-199"><span class="linenos">199</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">arguments</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">arguments_part</span>
+</span><span id="ToolCall-200"><a href="#ToolCall-200"><span class="linenos">200</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="ToolCall-201"><a href="#ToolCall-201"><span class="linenos">201</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">arguments</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">arguments_part</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span>
+</span><span id="ToolCall-202"><a href="#ToolCall-202"><span class="linenos">202</span></a>        <span class="k">return</span> <span class="kc">True</span>
 </span></pre></div>
 
 
@@ -1224,15 +1398,15 @@
 
     </div>
     <a class="headerlink" href="#ToolCall.merge_in_place"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ToolCall.merge_in_place-174"><a href="#ToolCall.merge_in_place-174"><span class="linenos">174</span></a>    <span class="nd">@override</span>
-</span><span id="ToolCall.merge_in_place-175"><a href="#ToolCall.merge_in_place-175"><span class="linenos">175</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">merge_in_place</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-</span><span id="ToolCall.merge_in_place-176"><a href="#ToolCall.merge_in_place-176"><span class="linenos">176</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">ToolCallPart</span><span class="p">):</span>
-</span><span id="ToolCall.merge_in_place-177"><a href="#ToolCall.merge_in_place-177"><span class="linenos">177</span></a>            <span class="k">return</span> <span class="kc">False</span>
-</span><span id="ToolCall.merge_in_place-178"><a href="#ToolCall.merge_in_place-178"><span class="linenos">178</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">arguments</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="ToolCall.merge_in_place-179"><a href="#ToolCall.merge_in_place-179"><span class="linenos">179</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">arguments</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">arguments_part</span>
-</span><span id="ToolCall.merge_in_place-180"><a href="#ToolCall.merge_in_place-180"><span class="linenos">180</span></a>        <span class="k">else</span><span class="p">:</span>
-</span><span id="ToolCall.merge_in_place-181"><a href="#ToolCall.merge_in_place-181"><span class="linenos">181</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">arguments</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">arguments_part</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span>
-</span><span id="ToolCall.merge_in_place-182"><a href="#ToolCall.merge_in_place-182"><span class="linenos">182</span></a>        <span class="k">return</span> <span class="kc">True</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ToolCall.merge_in_place-194"><a href="#ToolCall.merge_in_place-194"><span class="linenos">194</span></a>    <span class="nd">@override</span>
+</span><span id="ToolCall.merge_in_place-195"><a href="#ToolCall.merge_in_place-195"><span class="linenos">195</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">merge_in_place</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span><span id="ToolCall.merge_in_place-196"><a href="#ToolCall.merge_in_place-196"><span class="linenos">196</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">ToolCallPart</span><span class="p">):</span>
+</span><span id="ToolCall.merge_in_place-197"><a href="#ToolCall.merge_in_place-197"><span class="linenos">197</span></a>            <span class="k">return</span> <span class="kc">False</span>
+</span><span id="ToolCall.merge_in_place-198"><a href="#ToolCall.merge_in_place-198"><span class="linenos">198</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">arguments</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="ToolCall.merge_in_place-199"><a href="#ToolCall.merge_in_place-199"><span class="linenos">199</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">arguments</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">arguments_part</span>
+</span><span id="ToolCall.merge_in_place-200"><a href="#ToolCall.merge_in_place-200"><span class="linenos">200</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="ToolCall.merge_in_place-201"><a href="#ToolCall.merge_in_place-201"><span class="linenos">201</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">arguments</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">arguments_part</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span>
+</span><span id="ToolCall.merge_in_place-202"><a href="#ToolCall.merge_in_place-202"><span class="linenos">202</span></a>        <span class="k">return</span> <span class="kc">True</span>
 </span></pre></div>
 
 
@@ -1253,13 +1427,13 @@
 
     </div>
     <a class="headerlink" href="#ToolCall.FunctionBody"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ToolCall.FunctionBody-157"><a href="#ToolCall.FunctionBody-157"><span class="linenos">157</span></a>    <span class="k">class</span><span class="w"> </span><span class="nc">FunctionBody</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="ToolCall.FunctionBody-158"><a href="#ToolCall.FunctionBody-158"><span class="linenos">158</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Tool call function body.&quot;&quot;&quot;</span>
-</span><span id="ToolCall.FunctionBody-159"><a href="#ToolCall.FunctionBody-159"><span class="linenos">159</span></a>
-</span><span id="ToolCall.FunctionBody-160"><a href="#ToolCall.FunctionBody-160"><span class="linenos">160</span></a>        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="ToolCall.FunctionBody-161"><a href="#ToolCall.FunctionBody-161"><span class="linenos">161</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;The name of the tool to be called.&quot;&quot;&quot;</span>
-</span><span id="ToolCall.FunctionBody-162"><a href="#ToolCall.FunctionBody-162"><span class="linenos">162</span></a>        <span class="n">arguments</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
-</span><span id="ToolCall.FunctionBody-163"><a href="#ToolCall.FunctionBody-163"><span class="linenos">163</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Arguments of the tool call in JSON string format.&quot;&quot;&quot;</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ToolCall.FunctionBody-177"><a href="#ToolCall.FunctionBody-177"><span class="linenos">177</span></a>    <span class="k">class</span><span class="w"> </span><span class="nc">FunctionBody</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="ToolCall.FunctionBody-178"><a href="#ToolCall.FunctionBody-178"><span class="linenos">178</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Tool call function body.&quot;&quot;&quot;</span>
+</span><span id="ToolCall.FunctionBody-179"><a href="#ToolCall.FunctionBody-179"><span class="linenos">179</span></a>
+</span><span id="ToolCall.FunctionBody-180"><a href="#ToolCall.FunctionBody-180"><span class="linenos">180</span></a>        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="ToolCall.FunctionBody-181"><a href="#ToolCall.FunctionBody-181"><span class="linenos">181</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;The name of the tool to be called.&quot;&quot;&quot;</span>
+</span><span id="ToolCall.FunctionBody-182"><a href="#ToolCall.FunctionBody-182"><span class="linenos">182</span></a>        <span class="n">arguments</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+</span><span id="ToolCall.FunctionBody-183"><a href="#ToolCall.FunctionBody-183"><span class="linenos">183</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Arguments of the tool call in JSON string format.&quot;&quot;&quot;</span>
 </span></pre></div>
 
 
@@ -1307,21 +1481,21 @@
 
     </div>
     <a class="headerlink" href="#ToolCallPart"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ToolCallPart-185"><a href="#ToolCallPart-185"><span class="linenos">185</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ToolCallPart</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">,</span> <span class="n">MergeableMixin</span><span class="p">):</span>
-</span><span id="ToolCallPart-186"><a href="#ToolCallPart-186"><span class="linenos">186</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A part of the tool call.&quot;&quot;&quot;</span>
-</span><span id="ToolCallPart-187"><a href="#ToolCallPart-187"><span class="linenos">187</span></a>
-</span><span id="ToolCallPart-188"><a href="#ToolCallPart-188"><span class="linenos">188</span></a>    <span class="n">arguments_part</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="ToolCallPart-189"><a href="#ToolCallPart-189"><span class="linenos">189</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A part of the arguments of the tool call.&quot;&quot;&quot;</span>
-</span><span id="ToolCallPart-190"><a href="#ToolCallPart-190"><span class="linenos">190</span></a>
-</span><span id="ToolCallPart-191"><a href="#ToolCallPart-191"><span class="linenos">191</span></a>    <span class="nd">@override</span>
-</span><span id="ToolCallPart-192"><a href="#ToolCallPart-192"><span class="linenos">192</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">merge_in_place</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-</span><span id="ToolCallPart-193"><a href="#ToolCallPart-193"><span class="linenos">193</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">ToolCallPart</span><span class="p">):</span>
-</span><span id="ToolCallPart-194"><a href="#ToolCallPart-194"><span class="linenos">194</span></a>            <span class="k">return</span> <span class="kc">False</span>
-</span><span id="ToolCallPart-195"><a href="#ToolCallPart-195"><span class="linenos">195</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments_part</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="ToolCallPart-196"><a href="#ToolCallPart-196"><span class="linenos">196</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">arguments_part</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">arguments_part</span>
-</span><span id="ToolCallPart-197"><a href="#ToolCallPart-197"><span class="linenos">197</span></a>        <span class="k">else</span><span class="p">:</span>
-</span><span id="ToolCallPart-198"><a href="#ToolCallPart-198"><span class="linenos">198</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">arguments_part</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">arguments_part</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span>
-</span><span id="ToolCallPart-199"><a href="#ToolCallPart-199"><span class="linenos">199</span></a>        <span class="k">return</span> <span class="kc">True</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ToolCallPart-205"><a href="#ToolCallPart-205"><span class="linenos">205</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ToolCallPart</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">,</span> <span class="n">MergeableMixin</span><span class="p">):</span>
+</span><span id="ToolCallPart-206"><a href="#ToolCallPart-206"><span class="linenos">206</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A part of the tool call.&quot;&quot;&quot;</span>
+</span><span id="ToolCallPart-207"><a href="#ToolCallPart-207"><span class="linenos">207</span></a>
+</span><span id="ToolCallPart-208"><a href="#ToolCallPart-208"><span class="linenos">208</span></a>    <span class="n">arguments_part</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="ToolCallPart-209"><a href="#ToolCallPart-209"><span class="linenos">209</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A part of the arguments of the tool call.&quot;&quot;&quot;</span>
+</span><span id="ToolCallPart-210"><a href="#ToolCallPart-210"><span class="linenos">210</span></a>
+</span><span id="ToolCallPart-211"><a href="#ToolCallPart-211"><span class="linenos">211</span></a>    <span class="nd">@override</span>
+</span><span id="ToolCallPart-212"><a href="#ToolCallPart-212"><span class="linenos">212</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">merge_in_place</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span><span id="ToolCallPart-213"><a href="#ToolCallPart-213"><span class="linenos">213</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">ToolCallPart</span><span class="p">):</span>
+</span><span id="ToolCallPart-214"><a href="#ToolCallPart-214"><span class="linenos">214</span></a>            <span class="k">return</span> <span class="kc">False</span>
+</span><span id="ToolCallPart-215"><a href="#ToolCallPart-215"><span class="linenos">215</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments_part</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="ToolCallPart-216"><a href="#ToolCallPart-216"><span class="linenos">216</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">arguments_part</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">arguments_part</span>
+</span><span id="ToolCallPart-217"><a href="#ToolCallPart-217"><span class="linenos">217</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="ToolCallPart-218"><a href="#ToolCallPart-218"><span class="linenos">218</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">arguments_part</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">arguments_part</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span>
+</span><span id="ToolCallPart-219"><a href="#ToolCallPart-219"><span class="linenos">219</span></a>        <span class="k">return</span> <span class="kc">True</span>
 </span></pre></div>
 
 
@@ -1355,15 +1529,15 @@
 
     </div>
     <a class="headerlink" href="#ToolCallPart.merge_in_place"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ToolCallPart.merge_in_place-191"><a href="#ToolCallPart.merge_in_place-191"><span class="linenos">191</span></a>    <span class="nd">@override</span>
-</span><span id="ToolCallPart.merge_in_place-192"><a href="#ToolCallPart.merge_in_place-192"><span class="linenos">192</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">merge_in_place</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-</span><span id="ToolCallPart.merge_in_place-193"><a href="#ToolCallPart.merge_in_place-193"><span class="linenos">193</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">ToolCallPart</span><span class="p">):</span>
-</span><span id="ToolCallPart.merge_in_place-194"><a href="#ToolCallPart.merge_in_place-194"><span class="linenos">194</span></a>            <span class="k">return</span> <span class="kc">False</span>
-</span><span id="ToolCallPart.merge_in_place-195"><a href="#ToolCallPart.merge_in_place-195"><span class="linenos">195</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments_part</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="ToolCallPart.merge_in_place-196"><a href="#ToolCallPart.merge_in_place-196"><span class="linenos">196</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">arguments_part</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">arguments_part</span>
-</span><span id="ToolCallPart.merge_in_place-197"><a href="#ToolCallPart.merge_in_place-197"><span class="linenos">197</span></a>        <span class="k">else</span><span class="p">:</span>
-</span><span id="ToolCallPart.merge_in_place-198"><a href="#ToolCallPart.merge_in_place-198"><span class="linenos">198</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">arguments_part</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">arguments_part</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span>
-</span><span id="ToolCallPart.merge_in_place-199"><a href="#ToolCallPart.merge_in_place-199"><span class="linenos">199</span></a>        <span class="k">return</span> <span class="kc">True</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ToolCallPart.merge_in_place-211"><a href="#ToolCallPart.merge_in_place-211"><span class="linenos">211</span></a>    <span class="nd">@override</span>
+</span><span id="ToolCallPart.merge_in_place-212"><a href="#ToolCallPart.merge_in_place-212"><span class="linenos">212</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">merge_in_place</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span><span id="ToolCallPart.merge_in_place-213"><a href="#ToolCallPart.merge_in_place-213"><span class="linenos">213</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">ToolCallPart</span><span class="p">):</span>
+</span><span id="ToolCallPart.merge_in_place-214"><a href="#ToolCallPart.merge_in_place-214"><span class="linenos">214</span></a>            <span class="k">return</span> <span class="kc">False</span>
+</span><span id="ToolCallPart.merge_in_place-215"><a href="#ToolCallPart.merge_in_place-215"><span class="linenos">215</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments_part</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="ToolCallPart.merge_in_place-216"><a href="#ToolCallPart.merge_in_place-216"><span class="linenos">216</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">arguments_part</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">arguments_part</span>
+</span><span id="ToolCallPart.merge_in_place-217"><a href="#ToolCallPart.merge_in_place-217"><span class="linenos">217</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="ToolCallPart.merge_in_place-218"><a href="#ToolCallPart.merge_in_place-218"><span class="linenos">218</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">arguments_part</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">arguments_part</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span>
+</span><span id="ToolCallPart.merge_in_place-219"><a href="#ToolCallPart.merge_in_place-219"><span class="linenos">219</span></a>        <span class="k">return</span> <span class="kc">True</span>
 </span></pre></div>
 
 
@@ -1398,67 +1572,67 @@
 
     </div>
     <a class="headerlink" href="#Message"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Message-215"><a href="#Message-215"><span class="linenos">215</span></a><span class="k">class</span><span class="w"> </span><span class="nc">Message</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="Message-216"><a href="#Message-216"><span class="linenos">216</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A message in a conversation.&quot;&quot;&quot;</span>
-</span><span id="Message-217"><a href="#Message-217"><span class="linenos">217</span></a>
-</span><span id="Message-218"><a href="#Message-218"><span class="linenos">218</span></a>    <span class="n">role</span><span class="p">:</span> <span class="n">Role</span>
-</span><span id="Message-219"><a href="#Message-219"><span class="linenos">219</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The role of the message sender.&quot;&quot;&quot;</span>
-</span><span id="Message-220"><a href="#Message-220"><span class="linenos">220</span></a>
-</span><span id="Message-221"><a href="#Message-221"><span class="linenos">221</span></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="Message-222"><a href="#Message-222"><span class="linenos">222</span></a>
-</span><span id="Message-223"><a href="#Message-223"><span class="linenos">223</span></a>    <span class="n">content</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ContentPart</span><span class="p">]</span>
-</span><span id="Message-224"><a href="#Message-224"><span class="linenos">224</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Message-225"><a href="#Message-225"><span class="linenos">225</span></a><span class="sd">    The content of the message.</span>
-</span><span id="Message-226"><a href="#Message-226"><span class="linenos">226</span></a><span class="sd">    Empty list `[]` will be interpreted as no content.</span>
-</span><span id="Message-227"><a href="#Message-227"><span class="linenos">227</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="Message-228"><a href="#Message-228"><span class="linenos">228</span></a>
-</span><span id="Message-229"><a href="#Message-229"><span class="linenos">229</span></a>    <span class="n">tool_calls</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ToolCall</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="Message-230"><a href="#Message-230"><span class="linenos">230</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Tool calls requested by the assistant in this message.&quot;&quot;&quot;</span>
-</span><span id="Message-231"><a href="#Message-231"><span class="linenos">231</span></a>
-</span><span id="Message-232"><a href="#Message-232"><span class="linenos">232</span></a>    <span class="n">tool_call_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="Message-233"><a href="#Message-233"><span class="linenos">233</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The ID of the tool call if this message is a tool response.&quot;&quot;&quot;</span>
-</span><span id="Message-234"><a href="#Message-234"><span class="linenos">234</span></a>
-</span><span id="Message-235"><a href="#Message-235"><span class="linenos">235</span></a>    <span class="n">partial</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="Message-236"><a href="#Message-236"><span class="linenos">236</span></a>
-</span><span id="Message-237"><a href="#Message-237"><span class="linenos">237</span></a>    <span class="nd">@field_serializer</span><span class="p">(</span><span class="s2">&quot;content&quot;</span><span class="p">)</span>
-</span><span id="Message-238"><a href="#Message-238"><span class="linenos">238</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_serialize_content</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">content</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ContentPart</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="Message-239"><a href="#Message-239"><span class="linenos">239</span></a>        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">content</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">content</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">TextPart</span><span class="p">):</span>
-</span><span id="Message-240"><a href="#Message-240"><span class="linenos">240</span></a>            <span class="k">return</span> <span class="n">content</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
-</span><span id="Message-241"><a href="#Message-241"><span class="linenos">241</span></a>        <span class="k">return</span> <span class="p">[</span><span class="n">part</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span> <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">content</span><span class="p">]</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Message-235"><a href="#Message-235"><span class="linenos">235</span></a><span class="k">class</span><span class="w"> </span><span class="nc">Message</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="Message-236"><a href="#Message-236"><span class="linenos">236</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A message in a conversation.&quot;&quot;&quot;</span>
+</span><span id="Message-237"><a href="#Message-237"><span class="linenos">237</span></a>
+</span><span id="Message-238"><a href="#Message-238"><span class="linenos">238</span></a>    <span class="n">role</span><span class="p">:</span> <span class="n">Role</span>
+</span><span id="Message-239"><a href="#Message-239"><span class="linenos">239</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The role of the message sender.&quot;&quot;&quot;</span>
+</span><span id="Message-240"><a href="#Message-240"><span class="linenos">240</span></a>
+</span><span id="Message-241"><a href="#Message-241"><span class="linenos">241</span></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 </span><span id="Message-242"><a href="#Message-242"><span class="linenos">242</span></a>
-</span><span id="Message-243"><a href="#Message-243"><span class="linenos">243</span></a>    <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">&quot;content&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;before&quot;</span><span class="p">)</span>
-</span><span id="Message-244"><a href="#Message-244"><span class="linenos">244</span></a>    <span class="nd">@classmethod</span>
-</span><span id="Message-245"><a href="#Message-245"><span class="linenos">245</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_coerce_none_content</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-</span><span id="Message-246"><a href="#Message-246"><span class="linenos">246</span></a>        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="Message-247"><a href="#Message-247"><span class="linenos">247</span></a>            <span class="k">return</span> <span class="p">[]</span>
-</span><span id="Message-248"><a href="#Message-248"><span class="linenos">248</span></a>        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-</span><span id="Message-249"><a href="#Message-249"><span class="linenos">249</span></a>            <span class="k">return</span> <span class="p">[</span><span class="n">TextPart</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">value</span><span class="p">)]</span>
-</span><span id="Message-250"><a href="#Message-250"><span class="linenos">250</span></a>        <span class="k">return</span> <span class="n">value</span>
+</span><span id="Message-243"><a href="#Message-243"><span class="linenos">243</span></a>    <span class="n">content</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ContentPart</span><span class="p">]</span>
+</span><span id="Message-244"><a href="#Message-244"><span class="linenos">244</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Message-245"><a href="#Message-245"><span class="linenos">245</span></a><span class="sd">    The content of the message.</span>
+</span><span id="Message-246"><a href="#Message-246"><span class="linenos">246</span></a><span class="sd">    Empty list `[]` will be interpreted as no content.</span>
+</span><span id="Message-247"><a href="#Message-247"><span class="linenos">247</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="Message-248"><a href="#Message-248"><span class="linenos">248</span></a>
+</span><span id="Message-249"><a href="#Message-249"><span class="linenos">249</span></a>    <span class="n">tool_calls</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ToolCall</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="Message-250"><a href="#Message-250"><span class="linenos">250</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Tool calls requested by the assistant in this message.&quot;&quot;&quot;</span>
 </span><span id="Message-251"><a href="#Message-251"><span class="linenos">251</span></a>
-</span><span id="Message-252"><a href="#Message-252"><span class="linenos">252</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
-</span><span id="Message-253"><a href="#Message-253"><span class="linenos">253</span></a>        <span class="bp">self</span><span class="p">,</span>
-</span><span id="Message-254"><a href="#Message-254"><span class="linenos">254</span></a>        <span class="o">*</span><span class="p">,</span>
-</span><span id="Message-255"><a href="#Message-255"><span class="linenos">255</span></a>        <span class="n">role</span><span class="p">:</span> <span class="n">Role</span><span class="p">,</span>
-</span><span id="Message-256"><a href="#Message-256"><span class="linenos">256</span></a>        <span class="n">content</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ContentPart</span><span class="p">]</span> <span class="o">|</span> <span class="n">ContentPart</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span>
-</span><span id="Message-257"><a href="#Message-257"><span class="linenos">257</span></a>        <span class="n">tool_calls</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ToolCall</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="Message-258"><a href="#Message-258"><span class="linenos">258</span></a>        <span class="n">tool_call_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="Message-259"><a href="#Message-259"><span class="linenos">259</span></a>        <span class="o">**</span><span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
-</span><span id="Message-260"><a href="#Message-260"><span class="linenos">260</span></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="Message-261"><a href="#Message-261"><span class="linenos">261</span></a>        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-</span><span id="Message-262"><a href="#Message-262"><span class="linenos">262</span></a>            <span class="n">content</span> <span class="o">=</span> <span class="p">[</span><span class="n">TextPart</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">content</span><span class="p">)]</span>
-</span><span id="Message-263"><a href="#Message-263"><span class="linenos">263</span></a>        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">ContentPart</span><span class="p">):</span>
-</span><span id="Message-264"><a href="#Message-264"><span class="linenos">264</span></a>            <span class="n">content</span> <span class="o">=</span> <span class="p">[</span><span class="n">content</span><span class="p">]</span>
-</span><span id="Message-265"><a href="#Message-265"><span class="linenos">265</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-</span><span id="Message-266"><a href="#Message-266"><span class="linenos">266</span></a>            <span class="n">role</span><span class="o">=</span><span class="n">role</span><span class="p">,</span>
-</span><span id="Message-267"><a href="#Message-267"><span class="linenos">267</span></a>            <span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">,</span>
-</span><span id="Message-268"><a href="#Message-268"><span class="linenos">268</span></a>            <span class="n">tool_calls</span><span class="o">=</span><span class="n">tool_calls</span><span class="p">,</span>
-</span><span id="Message-269"><a href="#Message-269"><span class="linenos">269</span></a>            <span class="n">tool_call_id</span><span class="o">=</span><span class="n">tool_call_id</span><span class="p">,</span>
-</span><span id="Message-270"><a href="#Message-270"><span class="linenos">270</span></a>            <span class="o">**</span><span class="n">data</span><span class="p">,</span>
-</span><span id="Message-271"><a href="#Message-271"><span class="linenos">271</span></a>        <span class="p">)</span>
-</span><span id="Message-272"><a href="#Message-272"><span class="linenos">272</span></a>
-</span><span id="Message-273"><a href="#Message-273"><span class="linenos">273</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">extract_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sep</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-</span><span id="Message-274"><a href="#Message-274"><span class="linenos">274</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract and concatenate all text parts in the message content.&quot;&quot;&quot;</span>
-</span><span id="Message-275"><a href="#Message-275"><span class="linenos">275</span></a>        <span class="k">return</span> <span class="n">sep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">text</span> <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">part</span><span class="p">,</span> <span class="n">TextPart</span><span class="p">))</span>
+</span><span id="Message-252"><a href="#Message-252"><span class="linenos">252</span></a>    <span class="n">tool_call_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="Message-253"><a href="#Message-253"><span class="linenos">253</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The ID of the tool call if this message is a tool response.&quot;&quot;&quot;</span>
+</span><span id="Message-254"><a href="#Message-254"><span class="linenos">254</span></a>
+</span><span id="Message-255"><a href="#Message-255"><span class="linenos">255</span></a>    <span class="n">partial</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="Message-256"><a href="#Message-256"><span class="linenos">256</span></a>
+</span><span id="Message-257"><a href="#Message-257"><span class="linenos">257</span></a>    <span class="nd">@field_serializer</span><span class="p">(</span><span class="s2">&quot;content&quot;</span><span class="p">)</span>
+</span><span id="Message-258"><a href="#Message-258"><span class="linenos">258</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_serialize_content</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">content</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ContentPart</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="Message-259"><a href="#Message-259"><span class="linenos">259</span></a>        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">content</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">content</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">TextPart</span><span class="p">):</span>
+</span><span id="Message-260"><a href="#Message-260"><span class="linenos">260</span></a>            <span class="k">return</span> <span class="n">content</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+</span><span id="Message-261"><a href="#Message-261"><span class="linenos">261</span></a>        <span class="k">return</span> <span class="p">[</span><span class="n">part</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span> <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">content</span><span class="p">]</span>
+</span><span id="Message-262"><a href="#Message-262"><span class="linenos">262</span></a>
+</span><span id="Message-263"><a href="#Message-263"><span class="linenos">263</span></a>    <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">&quot;content&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;before&quot;</span><span class="p">)</span>
+</span><span id="Message-264"><a href="#Message-264"><span class="linenos">264</span></a>    <span class="nd">@classmethod</span>
+</span><span id="Message-265"><a href="#Message-265"><span class="linenos">265</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_coerce_none_content</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+</span><span id="Message-266"><a href="#Message-266"><span class="linenos">266</span></a>        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="Message-267"><a href="#Message-267"><span class="linenos">267</span></a>            <span class="k">return</span> <span class="p">[]</span>
+</span><span id="Message-268"><a href="#Message-268"><span class="linenos">268</span></a>        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="Message-269"><a href="#Message-269"><span class="linenos">269</span></a>            <span class="k">return</span> <span class="p">[</span><span class="n">TextPart</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">value</span><span class="p">)]</span>
+</span><span id="Message-270"><a href="#Message-270"><span class="linenos">270</span></a>        <span class="k">return</span> <span class="n">value</span>
+</span><span id="Message-271"><a href="#Message-271"><span class="linenos">271</span></a>
+</span><span id="Message-272"><a href="#Message-272"><span class="linenos">272</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+</span><span id="Message-273"><a href="#Message-273"><span class="linenos">273</span></a>        <span class="bp">self</span><span class="p">,</span>
+</span><span id="Message-274"><a href="#Message-274"><span class="linenos">274</span></a>        <span class="o">*</span><span class="p">,</span>
+</span><span id="Message-275"><a href="#Message-275"><span class="linenos">275</span></a>        <span class="n">role</span><span class="p">:</span> <span class="n">Role</span><span class="p">,</span>
+</span><span id="Message-276"><a href="#Message-276"><span class="linenos">276</span></a>        <span class="n">content</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ContentPart</span><span class="p">]</span> <span class="o">|</span> <span class="n">ContentPart</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="Message-277"><a href="#Message-277"><span class="linenos">277</span></a>        <span class="n">tool_calls</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ToolCall</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="Message-278"><a href="#Message-278"><span class="linenos">278</span></a>        <span class="n">tool_call_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="Message-279"><a href="#Message-279"><span class="linenos">279</span></a>        <span class="o">**</span><span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+</span><span id="Message-280"><a href="#Message-280"><span class="linenos">280</span></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="Message-281"><a href="#Message-281"><span class="linenos">281</span></a>        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="Message-282"><a href="#Message-282"><span class="linenos">282</span></a>            <span class="n">content</span> <span class="o">=</span> <span class="p">[</span><span class="n">TextPart</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">content</span><span class="p">)]</span>
+</span><span id="Message-283"><a href="#Message-283"><span class="linenos">283</span></a>        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">ContentPart</span><span class="p">):</span>
+</span><span id="Message-284"><a href="#Message-284"><span class="linenos">284</span></a>            <span class="n">content</span> <span class="o">=</span> <span class="p">[</span><span class="n">content</span><span class="p">]</span>
+</span><span id="Message-285"><a href="#Message-285"><span class="linenos">285</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+</span><span id="Message-286"><a href="#Message-286"><span class="linenos">286</span></a>            <span class="n">role</span><span class="o">=</span><span class="n">role</span><span class="p">,</span>
+</span><span id="Message-287"><a href="#Message-287"><span class="linenos">287</span></a>            <span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">,</span>
+</span><span id="Message-288"><a href="#Message-288"><span class="linenos">288</span></a>            <span class="n">tool_calls</span><span class="o">=</span><span class="n">tool_calls</span><span class="p">,</span>
+</span><span id="Message-289"><a href="#Message-289"><span class="linenos">289</span></a>            <span class="n">tool_call_id</span><span class="o">=</span><span class="n">tool_call_id</span><span class="p">,</span>
+</span><span id="Message-290"><a href="#Message-290"><span class="linenos">290</span></a>            <span class="o">**</span><span class="n">data</span><span class="p">,</span>
+</span><span id="Message-291"><a href="#Message-291"><span class="linenos">291</span></a>        <span class="p">)</span>
+</span><span id="Message-292"><a href="#Message-292"><span class="linenos">292</span></a>
+</span><span id="Message-293"><a href="#Message-293"><span class="linenos">293</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">extract_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sep</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span id="Message-294"><a href="#Message-294"><span class="linenos">294</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract and concatenate all text parts in the message content.&quot;&quot;&quot;</span>
+</span><span id="Message-295"><a href="#Message-295"><span class="linenos">295</span></a>        <span class="k">return</span> <span class="n">sep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">text</span> <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">part</span><span class="p">,</span> <span class="n">TextPart</span><span class="p">))</span>
 </span></pre></div>
 
 
@@ -1558,9 +1732,9 @@ Empty list <code>[]</code> will be interpreted as no content.</p>
 
     </div>
     <a class="headerlink" href="#Message.extract_text"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Message.extract_text-273"><a href="#Message.extract_text-273"><span class="linenos">273</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">extract_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sep</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-</span><span id="Message.extract_text-274"><a href="#Message.extract_text-274"><span class="linenos">274</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract and concatenate all text parts in the message content.&quot;&quot;&quot;</span>
-</span><span id="Message.extract_text-275"><a href="#Message.extract_text-275"><span class="linenos">275</span></a>        <span class="k">return</span> <span class="n">sep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">text</span> <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">part</span><span class="p">,</span> <span class="n">TextPart</span><span class="p">))</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Message.extract_text-293"><a href="#Message.extract_text-293"><span class="linenos">293</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">extract_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sep</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span id="Message.extract_text-294"><a href="#Message.extract_text-294"><span class="linenos">294</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract and concatenate all text parts in the message content.&quot;&quot;&quot;</span>
+</span><span id="Message.extract_text-295"><a href="#Message.extract_text-295"><span class="linenos">295</span></a>        <span class="k">return</span> <span class="n">sep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">text</span> <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">part</span><span class="p">,</span> <span class="n">TextPart</span><span class="p">))</span>
 </span></pre></div>
 
 
