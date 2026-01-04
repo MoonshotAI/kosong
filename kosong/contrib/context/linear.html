@@ -111,7 +111,7 @@
     </ul>
 
 
-            <footer>kosong 0.36.0</footer>
+            <footer>kosong 0.36.1</footer>
 
         <a class="attribution" title="pdoc: Python API documentation generator" href="https://pdoc.dev" target="_blank">
             built with <span class="visually-hidden">pdoc</span><img
@@ -491,33 +491,33 @@ Protocol classes can be generic, they are defined as::</p>
 
     </div>
     <a class="headerlink" href="#LinearStorage.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LinearStorage.__init__-1957"><a href="#LinearStorage.__init__-1957"><span class="linenos">1957</span></a><span class="k">def</span><span class="w"> </span><span class="nf">_no_init_or_replace_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-</span><span id="LinearStorage.__init__-1958"><a href="#LinearStorage.__init__-1958"><span class="linenos">1958</span></a>    <span class="bp">cls</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-</span><span id="LinearStorage.__init__-1959"><a href="#LinearStorage.__init__-1959"><span class="linenos">1959</span></a>
-</span><span id="LinearStorage.__init__-1960"><a href="#LinearStorage.__init__-1960"><span class="linenos">1960</span></a>    <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_is_protocol</span><span class="p">:</span>
-</span><span id="LinearStorage.__init__-1961"><a href="#LinearStorage.__init__-1961"><span class="linenos">1961</span></a>        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Protocols cannot be instantiated&#39;</span><span class="p">)</span>
-</span><span id="LinearStorage.__init__-1962"><a href="#LinearStorage.__init__-1962"><span class="linenos">1962</span></a>
-</span><span id="LinearStorage.__init__-1963"><a href="#LinearStorage.__init__-1963"><span class="linenos">1963</span></a>    <span class="c1"># Already using a custom `__init__`. No need to calculate correct</span>
-</span><span id="LinearStorage.__init__-1964"><a href="#LinearStorage.__init__-1964"><span class="linenos">1964</span></a>    <span class="c1"># `__init__` to call. This can lead to RecursionError. See bpo-45121.</span>
-</span><span id="LinearStorage.__init__-1965"><a href="#LinearStorage.__init__-1965"><span class="linenos">1965</span></a>    <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="fm">__init__</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_no_init_or_replace_init</span><span class="p">:</span>
-</span><span id="LinearStorage.__init__-1966"><a href="#LinearStorage.__init__-1966"><span class="linenos">1966</span></a>        <span class="k">return</span>
-</span><span id="LinearStorage.__init__-1967"><a href="#LinearStorage.__init__-1967"><span class="linenos">1967</span></a>
-</span><span id="LinearStorage.__init__-1968"><a href="#LinearStorage.__init__-1968"><span class="linenos">1968</span></a>    <span class="c1"># Initially, `__init__` of a protocol subclass is set to `_no_init_or_replace_init`.</span>
-</span><span id="LinearStorage.__init__-1969"><a href="#LinearStorage.__init__-1969"><span class="linenos">1969</span></a>    <span class="c1"># The first instantiation of the subclass will call `_no_init_or_replace_init` which</span>
-</span><span id="LinearStorage.__init__-1970"><a href="#LinearStorage.__init__-1970"><span class="linenos">1970</span></a>    <span class="c1"># searches for a proper new `__init__` in the MRO. The new `__init__`</span>
-</span><span id="LinearStorage.__init__-1971"><a href="#LinearStorage.__init__-1971"><span class="linenos">1971</span></a>    <span class="c1"># replaces the subclass&#39; old `__init__` (ie `_no_init_or_replace_init`). Subsequent</span>
-</span><span id="LinearStorage.__init__-1972"><a href="#LinearStorage.__init__-1972"><span class="linenos">1972</span></a>    <span class="c1"># instantiation of the protocol subclass will thus use the new</span>
-</span><span id="LinearStorage.__init__-1973"><a href="#LinearStorage.__init__-1973"><span class="linenos">1973</span></a>    <span class="c1"># `__init__` and no longer call `_no_init_or_replace_init`.</span>
-</span><span id="LinearStorage.__init__-1974"><a href="#LinearStorage.__init__-1974"><span class="linenos">1974</span></a>    <span class="k">for</span> <span class="n">base</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__mro__</span><span class="p">:</span>
-</span><span id="LinearStorage.__init__-1975"><a href="#LinearStorage.__init__-1975"><span class="linenos">1975</span></a>        <span class="n">init</span> <span class="o">=</span> <span class="n">base</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;__init__&#39;</span><span class="p">,</span> <span class="n">_no_init_or_replace_init</span><span class="p">)</span>
-</span><span id="LinearStorage.__init__-1976"><a href="#LinearStorage.__init__-1976"><span class="linenos">1976</span></a>        <span class="k">if</span> <span class="n">init</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_no_init_or_replace_init</span><span class="p">:</span>
-</span><span id="LinearStorage.__init__-1977"><a href="#LinearStorage.__init__-1977"><span class="linenos">1977</span></a>            <span class="bp">cls</span><span class="o">.</span><span class="fm">__init__</span> <span class="o">=</span> <span class="n">init</span>
-</span><span id="LinearStorage.__init__-1978"><a href="#LinearStorage.__init__-1978"><span class="linenos">1978</span></a>            <span class="k">break</span>
-</span><span id="LinearStorage.__init__-1979"><a href="#LinearStorage.__init__-1979"><span class="linenos">1979</span></a>    <span class="k">else</span><span class="p">:</span>
-</span><span id="LinearStorage.__init__-1980"><a href="#LinearStorage.__init__-1980"><span class="linenos">1980</span></a>        <span class="c1"># should not happen</span>
-</span><span id="LinearStorage.__init__-1981"><a href="#LinearStorage.__init__-1981"><span class="linenos">1981</span></a>        <span class="bp">cls</span><span class="o">.</span><span class="fm">__init__</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__init__</span>
-</span><span id="LinearStorage.__init__-1982"><a href="#LinearStorage.__init__-1982"><span class="linenos">1982</span></a>
-</span><span id="LinearStorage.__init__-1983"><a href="#LinearStorage.__init__-1983"><span class="linenos">1983</span></a>    <span class="bp">cls</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LinearStorage.__init__-1866"><a href="#LinearStorage.__init__-1866"><span class="linenos">1866</span></a><span class="k">def</span><span class="w"> </span><span class="nf">_no_init_or_replace_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</span><span id="LinearStorage.__init__-1867"><a href="#LinearStorage.__init__-1867"><span class="linenos">1867</span></a>    <span class="bp">cls</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+</span><span id="LinearStorage.__init__-1868"><a href="#LinearStorage.__init__-1868"><span class="linenos">1868</span></a>
+</span><span id="LinearStorage.__init__-1869"><a href="#LinearStorage.__init__-1869"><span class="linenos">1869</span></a>    <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_is_protocol</span><span class="p">:</span>
+</span><span id="LinearStorage.__init__-1870"><a href="#LinearStorage.__init__-1870"><span class="linenos">1870</span></a>        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Protocols cannot be instantiated&#39;</span><span class="p">)</span>
+</span><span id="LinearStorage.__init__-1871"><a href="#LinearStorage.__init__-1871"><span class="linenos">1871</span></a>
+</span><span id="LinearStorage.__init__-1872"><a href="#LinearStorage.__init__-1872"><span class="linenos">1872</span></a>    <span class="c1"># Already using a custom `__init__`. No need to calculate correct</span>
+</span><span id="LinearStorage.__init__-1873"><a href="#LinearStorage.__init__-1873"><span class="linenos">1873</span></a>    <span class="c1"># `__init__` to call. This can lead to RecursionError. See bpo-45121.</span>
+</span><span id="LinearStorage.__init__-1874"><a href="#LinearStorage.__init__-1874"><span class="linenos">1874</span></a>    <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="fm">__init__</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_no_init_or_replace_init</span><span class="p">:</span>
+</span><span id="LinearStorage.__init__-1875"><a href="#LinearStorage.__init__-1875"><span class="linenos">1875</span></a>        <span class="k">return</span>
+</span><span id="LinearStorage.__init__-1876"><a href="#LinearStorage.__init__-1876"><span class="linenos">1876</span></a>
+</span><span id="LinearStorage.__init__-1877"><a href="#LinearStorage.__init__-1877"><span class="linenos">1877</span></a>    <span class="c1"># Initially, `__init__` of a protocol subclass is set to `_no_init_or_replace_init`.</span>
+</span><span id="LinearStorage.__init__-1878"><a href="#LinearStorage.__init__-1878"><span class="linenos">1878</span></a>    <span class="c1"># The first instantiation of the subclass will call `_no_init_or_replace_init` which</span>
+</span><span id="LinearStorage.__init__-1879"><a href="#LinearStorage.__init__-1879"><span class="linenos">1879</span></a>    <span class="c1"># searches for a proper new `__init__` in the MRO. The new `__init__`</span>
+</span><span id="LinearStorage.__init__-1880"><a href="#LinearStorage.__init__-1880"><span class="linenos">1880</span></a>    <span class="c1"># replaces the subclass&#39; old `__init__` (ie `_no_init_or_replace_init`). Subsequent</span>
+</span><span id="LinearStorage.__init__-1881"><a href="#LinearStorage.__init__-1881"><span class="linenos">1881</span></a>    <span class="c1"># instantiation of the protocol subclass will thus use the new</span>
+</span><span id="LinearStorage.__init__-1882"><a href="#LinearStorage.__init__-1882"><span class="linenos">1882</span></a>    <span class="c1"># `__init__` and no longer call `_no_init_or_replace_init`.</span>
+</span><span id="LinearStorage.__init__-1883"><a href="#LinearStorage.__init__-1883"><span class="linenos">1883</span></a>    <span class="k">for</span> <span class="n">base</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__mro__</span><span class="p">:</span>
+</span><span id="LinearStorage.__init__-1884"><a href="#LinearStorage.__init__-1884"><span class="linenos">1884</span></a>        <span class="n">init</span> <span class="o">=</span> <span class="n">base</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;__init__&#39;</span><span class="p">,</span> <span class="n">_no_init_or_replace_init</span><span class="p">)</span>
+</span><span id="LinearStorage.__init__-1885"><a href="#LinearStorage.__init__-1885"><span class="linenos">1885</span></a>        <span class="k">if</span> <span class="n">init</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_no_init_or_replace_init</span><span class="p">:</span>
+</span><span id="LinearStorage.__init__-1886"><a href="#LinearStorage.__init__-1886"><span class="linenos">1886</span></a>            <span class="bp">cls</span><span class="o">.</span><span class="fm">__init__</span> <span class="o">=</span> <span class="n">init</span>
+</span><span id="LinearStorage.__init__-1887"><a href="#LinearStorage.__init__-1887"><span class="linenos">1887</span></a>            <span class="k">break</span>
+</span><span id="LinearStorage.__init__-1888"><a href="#LinearStorage.__init__-1888"><span class="linenos">1888</span></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="LinearStorage.__init__-1889"><a href="#LinearStorage.__init__-1889"><span class="linenos">1889</span></a>        <span class="c1"># should not happen</span>
+</span><span id="LinearStorage.__init__-1890"><a href="#LinearStorage.__init__-1890"><span class="linenos">1890</span></a>        <span class="bp">cls</span><span class="o">.</span><span class="fm">__init__</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__init__</span>
+</span><span id="LinearStorage.__init__-1891"><a href="#LinearStorage.__init__-1891"><span class="linenos">1891</span></a>
+</span><span id="LinearStorage.__init__-1892"><a href="#LinearStorage.__init__-1892"><span class="linenos">1892</span></a>    <span class="bp">cls</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -815,7 +815,7 @@ This may not be the precise token count, depending on the caller of <code><a hre
                                         <input id="JsonlLinearStorage.__init__-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
             
-        <span class="name">JsonlLinearStorage</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">path</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span></span>)</span>
+        <span class="name">JsonlLinearStorage</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">path</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span></span>)</span>
 
                 <label class="view-source-button" for="JsonlLinearStorage.__init__-view-source"><span>View Source</span></label>
 
