@@ -37,12 +37,15 @@
                     <a class="function" href="#thinking_effort_to_reasoning_effort">thinking_effort_to_reasoning_effort</a>
             </li>
             <li>
+                    <a class="function" href="#reasoning_effort_to_thinking_effort">reasoning_effort_to_thinking_effort</a>
+            </li>
+            <li>
                     <a class="function" href="#tool_to_openai">tool_to_openai</a>
             </li>
     </ul>
 
 
-            <footer>kosong 0.37.0</footer>
+            <footer>kosong 0.38.0</footer>
 
         <a class="attribution" title="pdoc: Python API documentation generator" href="https://pdoc.dev" target="_blank">
             built with <span class="visually-hidden">pdoc</span><img
@@ -107,17 +110,29 @@
 </span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a>            <span class="k">return</span> <span class="s2">&quot;high&quot;</span>
 </span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a>
 </span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a>
-</span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a><span class="k">def</span><span class="w"> </span><span class="nf">tool_to_openai</span><span class="p">(</span><span class="n">tool</span><span class="p">:</span> <span class="n">Tool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ChatCompletionToolParam</span><span class="p">:</span>
-</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert a single tool to OpenAI tool format.&quot;&quot;&quot;</span>
-</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a>    <span class="c1"># simply `model_dump` because the `Tool` type is OpenAI-compatible</span>
-</span><span id="L-50"><a href="#L-50"><span class="linenos">50</span></a>    <span class="k">return</span> <span class="p">{</span>
-</span><span id="L-51"><a href="#L-51"><span class="linenos">51</span></a>        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;function&quot;</span><span class="p">,</span>
-</span><span id="L-52"><a href="#L-52"><span class="linenos">52</span></a>        <span class="s2">&quot;function&quot;</span><span class="p">:</span> <span class="p">{</span>
-</span><span id="L-53"><a href="#L-53"><span class="linenos">53</span></a>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">tool</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-</span><span id="L-54"><a href="#L-54"><span class="linenos">54</span></a>            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="n">tool</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
-</span><span id="L-55"><a href="#L-55"><span class="linenos">55</span></a>            <span class="s2">&quot;parameters&quot;</span><span class="p">:</span> <span class="n">tool</span><span class="o">.</span><span class="n">parameters</span><span class="p">,</span>
-</span><span id="L-56"><a href="#L-56"><span class="linenos">56</span></a>        <span class="p">},</span>
-</span><span id="L-57"><a href="#L-57"><span class="linenos">57</span></a>    <span class="p">}</span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a><span class="k">def</span><span class="w"> </span><span class="nf">reasoning_effort_to_thinking_effort</span><span class="p">(</span><span class="n">effort</span><span class="p">:</span> <span class="n">ReasoningEffort</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ThinkingEffort</span><span class="p">:</span>
+</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a>    <span class="k">match</span> <span class="n">effort</span><span class="p">:</span>
+</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a>        <span class="k">case</span> <span class="s2">&quot;low&quot;</span> <span class="o">|</span> <span class="s2">&quot;minimal&quot;</span><span class="p">:</span>
+</span><span id="L-50"><a href="#L-50"><span class="linenos">50</span></a>            <span class="k">return</span> <span class="s2">&quot;low&quot;</span>
+</span><span id="L-51"><a href="#L-51"><span class="linenos">51</span></a>        <span class="k">case</span> <span class="s2">&quot;medium&quot;</span><span class="p">:</span>
+</span><span id="L-52"><a href="#L-52"><span class="linenos">52</span></a>            <span class="k">return</span> <span class="s2">&quot;medium&quot;</span>
+</span><span id="L-53"><a href="#L-53"><span class="linenos">53</span></a>        <span class="k">case</span> <span class="s2">&quot;high&quot;</span> <span class="o">|</span> <span class="s2">&quot;xhigh&quot;</span><span class="p">:</span>
+</span><span id="L-54"><a href="#L-54"><span class="linenos">54</span></a>            <span class="k">return</span> <span class="s2">&quot;high&quot;</span>
+</span><span id="L-55"><a href="#L-55"><span class="linenos">55</span></a>        <span class="k">case</span> <span class="s2">&quot;none&quot;</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-56"><a href="#L-56"><span class="linenos">56</span></a>            <span class="k">return</span> <span class="s2">&quot;off&quot;</span>
+</span><span id="L-57"><a href="#L-57"><span class="linenos">57</span></a>
+</span><span id="L-58"><a href="#L-58"><span class="linenos">58</span></a>
+</span><span id="L-59"><a href="#L-59"><span class="linenos">59</span></a><span class="k">def</span><span class="w"> </span><span class="nf">tool_to_openai</span><span class="p">(</span><span class="n">tool</span><span class="p">:</span> <span class="n">Tool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ChatCompletionToolParam</span><span class="p">:</span>
+</span><span id="L-60"><a href="#L-60"><span class="linenos">60</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert a single tool to OpenAI tool format.&quot;&quot;&quot;</span>
+</span><span id="L-61"><a href="#L-61"><span class="linenos">61</span></a>    <span class="c1"># simply `model_dump` because the `Tool` type is OpenAI-compatible</span>
+</span><span id="L-62"><a href="#L-62"><span class="linenos">62</span></a>    <span class="k">return</span> <span class="p">{</span>
+</span><span id="L-63"><a href="#L-63"><span class="linenos">63</span></a>        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;function&quot;</span><span class="p">,</span>
+</span><span id="L-64"><a href="#L-64"><span class="linenos">64</span></a>        <span class="s2">&quot;function&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span id="L-65"><a href="#L-65"><span class="linenos">65</span></a>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">tool</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+</span><span id="L-66"><a href="#L-66"><span class="linenos">66</span></a>            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="n">tool</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+</span><span id="L-67"><a href="#L-67"><span class="linenos">67</span></a>            <span class="s2">&quot;parameters&quot;</span><span class="p">:</span> <span class="n">tool</span><span class="o">.</span><span class="n">parameters</span><span class="p">,</span>
+</span><span id="L-68"><a href="#L-68"><span class="linenos">68</span></a>        <span class="p">},</span>
+</span><span id="L-69"><a href="#L-69"><span class="linenos">69</span></a>    <span class="p">}</span>
 </span></pre></div>
 
 
@@ -182,6 +197,33 @@
     
 
                 </section>
+                <section id="reasoning_effort_to_thinking_effort">
+                            <input id="reasoning_effort_to_thinking_effort-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">reasoning_effort_to_thinking_effort</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">effort</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="s1">&#39;minimal&#39;</span><span class="p">,</span> <span class="s1">&#39;low&#39;</span><span class="p">,</span> <span class="s1">&#39;medium&#39;</span><span class="p">,</span> <span class="s1">&#39;high&#39;</span><span class="p">,</span> <span class="s1">&#39;xhigh&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span></span><span class="return-annotation">) -> <span class="n">ThinkingEffort</span>:</span></span>
+
+                <label class="view-source-button" for="reasoning_effort_to_thinking_effort-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#reasoning_effort_to_thinking_effort"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="reasoning_effort_to_thinking_effort-48"><a href="#reasoning_effort_to_thinking_effort-48"><span class="linenos">48</span></a><span class="k">def</span><span class="w"> </span><span class="nf">reasoning_effort_to_thinking_effort</span><span class="p">(</span><span class="n">effort</span><span class="p">:</span> <span class="n">ReasoningEffort</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ThinkingEffort</span><span class="p">:</span>
+</span><span id="reasoning_effort_to_thinking_effort-49"><a href="#reasoning_effort_to_thinking_effort-49"><span class="linenos">49</span></a>    <span class="k">match</span> <span class="n">effort</span><span class="p">:</span>
+</span><span id="reasoning_effort_to_thinking_effort-50"><a href="#reasoning_effort_to_thinking_effort-50"><span class="linenos">50</span></a>        <span class="k">case</span> <span class="s2">&quot;low&quot;</span> <span class="o">|</span> <span class="s2">&quot;minimal&quot;</span><span class="p">:</span>
+</span><span id="reasoning_effort_to_thinking_effort-51"><a href="#reasoning_effort_to_thinking_effort-51"><span class="linenos">51</span></a>            <span class="k">return</span> <span class="s2">&quot;low&quot;</span>
+</span><span id="reasoning_effort_to_thinking_effort-52"><a href="#reasoning_effort_to_thinking_effort-52"><span class="linenos">52</span></a>        <span class="k">case</span> <span class="s2">&quot;medium&quot;</span><span class="p">:</span>
+</span><span id="reasoning_effort_to_thinking_effort-53"><a href="#reasoning_effort_to_thinking_effort-53"><span class="linenos">53</span></a>            <span class="k">return</span> <span class="s2">&quot;medium&quot;</span>
+</span><span id="reasoning_effort_to_thinking_effort-54"><a href="#reasoning_effort_to_thinking_effort-54"><span class="linenos">54</span></a>        <span class="k">case</span> <span class="s2">&quot;high&quot;</span> <span class="o">|</span> <span class="s2">&quot;xhigh&quot;</span><span class="p">:</span>
+</span><span id="reasoning_effort_to_thinking_effort-55"><a href="#reasoning_effort_to_thinking_effort-55"><span class="linenos">55</span></a>            <span class="k">return</span> <span class="s2">&quot;high&quot;</span>
+</span><span id="reasoning_effort_to_thinking_effort-56"><a href="#reasoning_effort_to_thinking_effort-56"><span class="linenos">56</span></a>        <span class="k">case</span> <span class="s2">&quot;none&quot;</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="reasoning_effort_to_thinking_effort-57"><a href="#reasoning_effort_to_thinking_effort-57"><span class="linenos">57</span></a>            <span class="k">return</span> <span class="s2">&quot;off&quot;</span>
+</span></pre></div>
+
+
+    
+
+                </section>
                 <section id="tool_to_openai">
                             <input id="tool_to_openai-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
@@ -193,17 +235,17 @@
 
     </div>
     <a class="headerlink" href="#tool_to_openai"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="tool_to_openai-48"><a href="#tool_to_openai-48"><span class="linenos">48</span></a><span class="k">def</span><span class="w"> </span><span class="nf">tool_to_openai</span><span class="p">(</span><span class="n">tool</span><span class="p">:</span> <span class="n">Tool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ChatCompletionToolParam</span><span class="p">:</span>
-</span><span id="tool_to_openai-49"><a href="#tool_to_openai-49"><span class="linenos">49</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert a single tool to OpenAI tool format.&quot;&quot;&quot;</span>
-</span><span id="tool_to_openai-50"><a href="#tool_to_openai-50"><span class="linenos">50</span></a>    <span class="c1"># simply `model_dump` because the `Tool` type is OpenAI-compatible</span>
-</span><span id="tool_to_openai-51"><a href="#tool_to_openai-51"><span class="linenos">51</span></a>    <span class="k">return</span> <span class="p">{</span>
-</span><span id="tool_to_openai-52"><a href="#tool_to_openai-52"><span class="linenos">52</span></a>        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;function&quot;</span><span class="p">,</span>
-</span><span id="tool_to_openai-53"><a href="#tool_to_openai-53"><span class="linenos">53</span></a>        <span class="s2">&quot;function&quot;</span><span class="p">:</span> <span class="p">{</span>
-</span><span id="tool_to_openai-54"><a href="#tool_to_openai-54"><span class="linenos">54</span></a>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">tool</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-</span><span id="tool_to_openai-55"><a href="#tool_to_openai-55"><span class="linenos">55</span></a>            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="n">tool</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
-</span><span id="tool_to_openai-56"><a href="#tool_to_openai-56"><span class="linenos">56</span></a>            <span class="s2">&quot;parameters&quot;</span><span class="p">:</span> <span class="n">tool</span><span class="o">.</span><span class="n">parameters</span><span class="p">,</span>
-</span><span id="tool_to_openai-57"><a href="#tool_to_openai-57"><span class="linenos">57</span></a>        <span class="p">},</span>
-</span><span id="tool_to_openai-58"><a href="#tool_to_openai-58"><span class="linenos">58</span></a>    <span class="p">}</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="tool_to_openai-60"><a href="#tool_to_openai-60"><span class="linenos">60</span></a><span class="k">def</span><span class="w"> </span><span class="nf">tool_to_openai</span><span class="p">(</span><span class="n">tool</span><span class="p">:</span> <span class="n">Tool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ChatCompletionToolParam</span><span class="p">:</span>
+</span><span id="tool_to_openai-61"><a href="#tool_to_openai-61"><span class="linenos">61</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert a single tool to OpenAI tool format.&quot;&quot;&quot;</span>
+</span><span id="tool_to_openai-62"><a href="#tool_to_openai-62"><span class="linenos">62</span></a>    <span class="c1"># simply `model_dump` because the `Tool` type is OpenAI-compatible</span>
+</span><span id="tool_to_openai-63"><a href="#tool_to_openai-63"><span class="linenos">63</span></a>    <span class="k">return</span> <span class="p">{</span>
+</span><span id="tool_to_openai-64"><a href="#tool_to_openai-64"><span class="linenos">64</span></a>        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;function&quot;</span><span class="p">,</span>
+</span><span id="tool_to_openai-65"><a href="#tool_to_openai-65"><span class="linenos">65</span></a>        <span class="s2">&quot;function&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span id="tool_to_openai-66"><a href="#tool_to_openai-66"><span class="linenos">66</span></a>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">tool</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+</span><span id="tool_to_openai-67"><a href="#tool_to_openai-67"><span class="linenos">67</span></a>            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="n">tool</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+</span><span id="tool_to_openai-68"><a href="#tool_to_openai-68"><span class="linenos">68</span></a>            <span class="s2">&quot;parameters&quot;</span><span class="p">:</span> <span class="n">tool</span><span class="o">.</span><span class="n">parameters</span><span class="p">,</span>
+</span><span id="tool_to_openai-69"><a href="#tool_to_openai-69"><span class="linenos">69</span></a>        <span class="p">},</span>
+</span><span id="tool_to_openai-70"><a href="#tool_to_openai-70"><span class="linenos">70</span></a>    <span class="p">}</span>
 </span></pre></div>
 
 
