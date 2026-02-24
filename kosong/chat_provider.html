@@ -63,6 +63,18 @@
 
             </li>
             <li>
+                    <a class="class" href="#RetryableChatProvider">RetryableChatProvider</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="function" href="#RetryableChatProvider.__init__">RetryableChatProvider</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#RetryableChatProvider.on_retryable_error">on_retryable_error</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
                     <a class="variable" href="#StreamedMessagePart">StreamedMessagePart</a>
             </li>
             <li>
@@ -149,7 +161,7 @@
     </ul>
 
 
-            <footer>kosong 0.42.0</footer>
+            <footer>kosong 0.43.0</footer>
 
         <a class="attribution" title="pdoc: Python API documentation generator" href="https://pdoc.dev" target="_blank">
             built with <span class="visually-hidden">pdoc</span><img
@@ -225,82 +237,96 @@
 </span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a>        <span class="o">...</span>
 </span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a>
 </span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a>
-</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a><span class="nb">type</span> <span class="n">StreamedMessagePart</span> <span class="o">=</span> <span class="n">ContentPart</span> <span class="o">|</span> <span class="n">ToolCall</span> <span class="o">|</span> <span class="n">ToolCallPart</span>
-</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a>
-</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a>
-</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a><span class="nd">@runtime_checkable</span>
-</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a><span class="k">class</span><span class="w"> </span><span class="nc">StreamedMessage</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
-</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The interface of streamed messages.&quot;&quot;&quot;</span>
-</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a>
-</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__aiter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AsyncIterator</span><span class="p">[</span><span class="n">StreamedMessagePart</span><span class="p">]:</span>
-</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Create an async iterator from the stream.&quot;&quot;&quot;</span>
-</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a>        <span class="o">...</span>
-</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a>
-</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>    <span class="nd">@property</span>
-</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;The ID of the streamed message.&quot;&quot;&quot;</span>
-</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>        <span class="o">...</span>
+</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a><span class="nd">@runtime_checkable</span>
+</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a><span class="k">class</span><span class="w"> </span><span class="nc">RetryableChatProvider</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Optional interface for providers that can recover from retryable transport errors.&quot;&quot;&quot;</span>
+</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a>
+</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">on_retryable_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">error</span><span class="p">:</span> <span class="ne">BaseException</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a><span class="sd">        Try to recover provider transport state after a retryable error.</span>
+</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a>
+</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a><span class="sd">        Returns:</span>
+</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a><span class="sd">            bool: Whether recovery action was performed.</span>
+</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>        <span class="o">...</span>
+</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a>
+</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>
+</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a><span class="nb">type</span> <span class="n">StreamedMessagePart</span> <span class="o">=</span> <span class="n">ContentPart</span> <span class="o">|</span> <span class="n">ToolCall</span> <span class="o">|</span> <span class="n">ToolCallPart</span>
 </span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>
-</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a>    <span class="nd">@property</span>
-</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">usage</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;TokenUsage | None&quot;</span><span class="p">:</span>
-</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;The token usage of the streamed message.&quot;&quot;&quot;</span>
-</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>        <span class="o">...</span>
+</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a>
+</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a><span class="nd">@runtime_checkable</span>
+</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a><span class="k">class</span><span class="w"> </span><span class="nc">StreamedMessage</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The interface of streamed messages.&quot;&quot;&quot;</span>
 </span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>
-</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>
-</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a><span class="k">class</span><span class="w"> </span><span class="nc">TokenUsage</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Token usage statistics.&quot;&quot;&quot;</span>
+</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__aiter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AsyncIterator</span><span class="p">[</span><span class="n">StreamedMessagePart</span><span class="p">]:</span>
+</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Create an async iterator from the stream.&quot;&quot;&quot;</span>
+</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a>        <span class="o">...</span>
 </span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a>
-</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a>    <span class="n">input_other</span><span class="p">:</span> <span class="nb">int</span>
-</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Input tokens excluding `input_cache_read` and `input_cache_creation`.&quot;&quot;&quot;</span>
-</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>    <span class="n">output</span><span class="p">:</span> <span class="nb">int</span>
-</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Total output tokens.&quot;&quot;&quot;</span>
-</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>    <span class="n">input_cache_read</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Cached input tokens.&quot;&quot;&quot;</span>
-</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a>    <span class="n">input_cache_creation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Input tokens used for cache creation. For now, only Anthropic API supports this.&quot;&quot;&quot;</span>
-</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>
-</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a>    <span class="nd">@property</span>
-</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">total</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Total tokens used, including input and output tokens.&quot;&quot;&quot;</span>
-</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">input</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">output</span>
+</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a>    <span class="nd">@property</span>
+</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;The ID of the streamed message.&quot;&quot;&quot;</span>
+</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>        <span class="o">...</span>
+</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>
+</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>    <span class="nd">@property</span>
+</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">usage</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;TokenUsage | None&quot;</span><span class="p">:</span>
+</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;The token usage of the streamed message.&quot;&quot;&quot;</span>
+</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>        <span class="o">...</span>
+</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a>
+</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>
+</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a><span class="k">class</span><span class="w"> </span><span class="nc">TokenUsage</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Token usage statistics.&quot;&quot;&quot;</span>
 </span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>
-</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>    <span class="nd">@property</span>
-</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">input</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Total input tokens, including cached and uncached tokens.&quot;&quot;&quot;</span>
-</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_other</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_cache_read</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_cache_creation</span>
-</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>
-</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>
-</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a><span class="nb">type</span> <span class="n">ThinkingEffort</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;off&quot;</span><span class="p">,</span> <span class="s2">&quot;low&quot;</span><span class="p">,</span> <span class="s2">&quot;medium&quot;</span><span class="p">,</span> <span class="s2">&quot;high&quot;</span><span class="p">]</span>
-</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a><span class="sd">&quot;&quot;&quot;The effort level for thinking.&quot;&quot;&quot;</span>
+</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>    <span class="n">input_other</span><span class="p">:</span> <span class="nb">int</span>
+</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Input tokens excluding `input_cache_read` and `input_cache_creation`.&quot;&quot;&quot;</span>
+</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>    <span class="n">output</span><span class="p">:</span> <span class="nb">int</span>
+</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Total output tokens.&quot;&quot;&quot;</span>
+</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>    <span class="n">input_cache_read</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Cached input tokens.&quot;&quot;&quot;</span>
+</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>    <span class="n">input_cache_creation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Input tokens used for cache creation. For now, only Anthropic API supports this.&quot;&quot;&quot;</span>
 </span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>
-</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>
-</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ChatProviderError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised by a chat provider.&quot;&quot;&quot;</span>
-</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a>
-</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>
-</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>
-</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a><span class="k">class</span><span class="w"> </span><span class="nc">APIConnectionError</span><span class="p">(</span><span class="n">ChatProviderError</span><span class="p">):</span>
-</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised when the API connection fails.&quot;&quot;&quot;</span>
+</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>    <span class="nd">@property</span>
+</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">total</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Total tokens used, including input and output tokens.&quot;&quot;&quot;</span>
+</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">input</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">output</span>
+</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>
+</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>    <span class="nd">@property</span>
+</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">input</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Total input tokens, including cached and uncached tokens.&quot;&quot;&quot;</span>
+</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_other</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_cache_read</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_cache_creation</span>
+</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a>
 </span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>
-</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a>
-</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a><span class="k">class</span><span class="w"> </span><span class="nc">APITimeoutError</span><span class="p">(</span><span class="n">ChatProviderError</span><span class="p">):</span>
-</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised when the API request times out.&quot;&quot;&quot;</span>
+</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a><span class="nb">type</span> <span class="n">ThinkingEffort</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;off&quot;</span><span class="p">,</span> <span class="s2">&quot;low&quot;</span><span class="p">,</span> <span class="s2">&quot;medium&quot;</span><span class="p">,</span> <span class="s2">&quot;high&quot;</span><span class="p">]</span>
+</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a><span class="sd">&quot;&quot;&quot;The effort level for thinking.&quot;&quot;&quot;</span>
+</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>
 </span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a>
-</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>
-</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a><span class="k">class</span><span class="w"> </span><span class="nc">APIStatusError</span><span class="p">(</span><span class="n">ChatProviderError</span><span class="p">):</span>
-</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised when the API returns a status code of 4xx or 5xx.&quot;&quot;&quot;</span>
-</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a>
-</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a>    <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span>
+</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ChatProviderError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised by a chat provider.&quot;&quot;&quot;</span>
+</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a>
+</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>
-</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">status_code</span> <span class="o">=</span> <span class="n">status_code</span>
+</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>
+</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a><span class="k">class</span><span class="w"> </span><span class="nc">APIConnectionError</span><span class="p">(</span><span class="n">ChatProviderError</span><span class="p">):</span>
+</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised when the API connection fails.&quot;&quot;&quot;</span>
 </span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>
 </span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a>
-</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a><span class="k">class</span><span class="w"> </span><span class="nc">APIEmptyResponseError</span><span class="p">(</span><span class="n">ChatProviderError</span><span class="p">):</span>
-</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised when the API returns an empty response.&quot;&quot;&quot;</span>
+</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a><span class="k">class</span><span class="w"> </span><span class="nc">APITimeoutError</span><span class="p">(</span><span class="n">ChatProviderError</span><span class="p">):</span>
+</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised when the API request times out.&quot;&quot;&quot;</span>
+</span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a>
+</span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a>
+</span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a><span class="k">class</span><span class="w"> </span><span class="nc">APIStatusError</span><span class="p">(</span><span class="n">ChatProviderError</span><span class="p">):</span>
+</span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised when the API returns a status code of 4xx or 5xx.&quot;&quot;&quot;</span>
+</span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a>
+</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>    <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span>
+</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a>
+</span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">status_code</span> <span class="o">=</span> <span class="n">status_code</span>
+</span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a>
+</span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a>
+</span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a><span class="k">class</span><span class="w"> </span><span class="nc">APIEmptyResponseError</span><span class="p">(</span><span class="n">ChatProviderError</span><span class="p">):</span>
+</span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised when the API returns an empty response.&quot;&quot;&quot;</span>
 </span></pre></div>
 
 
@@ -543,6 +569,114 @@ If the chat provider does not support thinking, simply return a copy of self.</p
 
                             </div>
                 </section>
+                <section id="RetryableChatProvider">
+                            <input id="RetryableChatProvider-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr class">
+                    <div class="decorator decorator-runtime_checkable">@runtime_checkable</div>
+
+    <span class="def">class</span>
+    <span class="name">RetryableChatProvider</span><wbr>(<span class="base">typing.Protocol</span>):
+
+                <label class="view-source-button" for="RetryableChatProvider-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#RetryableChatProvider"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="RetryableChatProvider-59"><a href="#RetryableChatProvider-59"><span class="linenos">59</span></a><span class="nd">@runtime_checkable</span>
+</span><span id="RetryableChatProvider-60"><a href="#RetryableChatProvider-60"><span class="linenos">60</span></a><span class="k">class</span><span class="w"> </span><span class="nc">RetryableChatProvider</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+</span><span id="RetryableChatProvider-61"><a href="#RetryableChatProvider-61"><span class="linenos">61</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Optional interface for providers that can recover from retryable transport errors.&quot;&quot;&quot;</span>
+</span><span id="RetryableChatProvider-62"><a href="#RetryableChatProvider-62"><span class="linenos">62</span></a>
+</span><span id="RetryableChatProvider-63"><a href="#RetryableChatProvider-63"><span class="linenos">63</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">on_retryable_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">error</span><span class="p">:</span> <span class="ne">BaseException</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span><span id="RetryableChatProvider-64"><a href="#RetryableChatProvider-64"><span class="linenos">64</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="RetryableChatProvider-65"><a href="#RetryableChatProvider-65"><span class="linenos">65</span></a><span class="sd">        Try to recover provider transport state after a retryable error.</span>
+</span><span id="RetryableChatProvider-66"><a href="#RetryableChatProvider-66"><span class="linenos">66</span></a>
+</span><span id="RetryableChatProvider-67"><a href="#RetryableChatProvider-67"><span class="linenos">67</span></a><span class="sd">        Returns:</span>
+</span><span id="RetryableChatProvider-68"><a href="#RetryableChatProvider-68"><span class="linenos">68</span></a><span class="sd">            bool: Whether recovery action was performed.</span>
+</span><span id="RetryableChatProvider-69"><a href="#RetryableChatProvider-69"><span class="linenos">69</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="RetryableChatProvider-70"><a href="#RetryableChatProvider-70"><span class="linenos">70</span></a>        <span class="o">...</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>Optional interface for providers that can recover from retryable transport errors.</p>
+</div>
+
+
+                            <div id="RetryableChatProvider.__init__" class="classattr">
+                                        <input id="RetryableChatProvider.__init__-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="name">RetryableChatProvider</span><span class="signature pdoc-code condensed">(<span class="param"><span class="o">*</span><span class="n">args</span>, </span><span class="param"><span class="o">**</span><span class="n">kwargs</span></span>)</span>
+
+                <label class="view-source-button" for="RetryableChatProvider.__init__-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#RetryableChatProvider.__init__"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="RetryableChatProvider.__init__-1866"><a href="#RetryableChatProvider.__init__-1866"><span class="linenos">1866</span></a><span class="k">def</span><span class="w"> </span><span class="nf">_no_init_or_replace_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</span><span id="RetryableChatProvider.__init__-1867"><a href="#RetryableChatProvider.__init__-1867"><span class="linenos">1867</span></a>    <span class="bp">cls</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+</span><span id="RetryableChatProvider.__init__-1868"><a href="#RetryableChatProvider.__init__-1868"><span class="linenos">1868</span></a>
+</span><span id="RetryableChatProvider.__init__-1869"><a href="#RetryableChatProvider.__init__-1869"><span class="linenos">1869</span></a>    <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_is_protocol</span><span class="p">:</span>
+</span><span id="RetryableChatProvider.__init__-1870"><a href="#RetryableChatProvider.__init__-1870"><span class="linenos">1870</span></a>        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Protocols cannot be instantiated&#39;</span><span class="p">)</span>
+</span><span id="RetryableChatProvider.__init__-1871"><a href="#RetryableChatProvider.__init__-1871"><span class="linenos">1871</span></a>
+</span><span id="RetryableChatProvider.__init__-1872"><a href="#RetryableChatProvider.__init__-1872"><span class="linenos">1872</span></a>    <span class="c1"># Already using a custom `__init__`. No need to calculate correct</span>
+</span><span id="RetryableChatProvider.__init__-1873"><a href="#RetryableChatProvider.__init__-1873"><span class="linenos">1873</span></a>    <span class="c1"># `__init__` to call. This can lead to RecursionError. See bpo-45121.</span>
+</span><span id="RetryableChatProvider.__init__-1874"><a href="#RetryableChatProvider.__init__-1874"><span class="linenos">1874</span></a>    <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="fm">__init__</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_no_init_or_replace_init</span><span class="p">:</span>
+</span><span id="RetryableChatProvider.__init__-1875"><a href="#RetryableChatProvider.__init__-1875"><span class="linenos">1875</span></a>        <span class="k">return</span>
+</span><span id="RetryableChatProvider.__init__-1876"><a href="#RetryableChatProvider.__init__-1876"><span class="linenos">1876</span></a>
+</span><span id="RetryableChatProvider.__init__-1877"><a href="#RetryableChatProvider.__init__-1877"><span class="linenos">1877</span></a>    <span class="c1"># Initially, `__init__` of a protocol subclass is set to `_no_init_or_replace_init`.</span>
+</span><span id="RetryableChatProvider.__init__-1878"><a href="#RetryableChatProvider.__init__-1878"><span class="linenos">1878</span></a>    <span class="c1"># The first instantiation of the subclass will call `_no_init_or_replace_init` which</span>
+</span><span id="RetryableChatProvider.__init__-1879"><a href="#RetryableChatProvider.__init__-1879"><span class="linenos">1879</span></a>    <span class="c1"># searches for a proper new `__init__` in the MRO. The new `__init__`</span>
+</span><span id="RetryableChatProvider.__init__-1880"><a href="#RetryableChatProvider.__init__-1880"><span class="linenos">1880</span></a>    <span class="c1"># replaces the subclass&#39; old `__init__` (ie `_no_init_or_replace_init`). Subsequent</span>
+</span><span id="RetryableChatProvider.__init__-1881"><a href="#RetryableChatProvider.__init__-1881"><span class="linenos">1881</span></a>    <span class="c1"># instantiation of the protocol subclass will thus use the new</span>
+</span><span id="RetryableChatProvider.__init__-1882"><a href="#RetryableChatProvider.__init__-1882"><span class="linenos">1882</span></a>    <span class="c1"># `__init__` and no longer call `_no_init_or_replace_init`.</span>
+</span><span id="RetryableChatProvider.__init__-1883"><a href="#RetryableChatProvider.__init__-1883"><span class="linenos">1883</span></a>    <span class="k">for</span> <span class="n">base</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__mro__</span><span class="p">:</span>
+</span><span id="RetryableChatProvider.__init__-1884"><a href="#RetryableChatProvider.__init__-1884"><span class="linenos">1884</span></a>        <span class="n">init</span> <span class="o">=</span> <span class="n">base</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;__init__&#39;</span><span class="p">,</span> <span class="n">_no_init_or_replace_init</span><span class="p">)</span>
+</span><span id="RetryableChatProvider.__init__-1885"><a href="#RetryableChatProvider.__init__-1885"><span class="linenos">1885</span></a>        <span class="k">if</span> <span class="n">init</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_no_init_or_replace_init</span><span class="p">:</span>
+</span><span id="RetryableChatProvider.__init__-1886"><a href="#RetryableChatProvider.__init__-1886"><span class="linenos">1886</span></a>            <span class="bp">cls</span><span class="o">.</span><span class="fm">__init__</span> <span class="o">=</span> <span class="n">init</span>
+</span><span id="RetryableChatProvider.__init__-1887"><a href="#RetryableChatProvider.__init__-1887"><span class="linenos">1887</span></a>            <span class="k">break</span>
+</span><span id="RetryableChatProvider.__init__-1888"><a href="#RetryableChatProvider.__init__-1888"><span class="linenos">1888</span></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="RetryableChatProvider.__init__-1889"><a href="#RetryableChatProvider.__init__-1889"><span class="linenos">1889</span></a>        <span class="c1"># should not happen</span>
+</span><span id="RetryableChatProvider.__init__-1890"><a href="#RetryableChatProvider.__init__-1890"><span class="linenos">1890</span></a>        <span class="bp">cls</span><span class="o">.</span><span class="fm">__init__</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__init__</span>
+</span><span id="RetryableChatProvider.__init__-1891"><a href="#RetryableChatProvider.__init__-1891"><span class="linenos">1891</span></a>
+</span><span id="RetryableChatProvider.__init__-1892"><a href="#RetryableChatProvider.__init__-1892"><span class="linenos">1892</span></a>    <span class="bp">cls</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
+                            <div id="RetryableChatProvider.on_retryable_error" class="classattr">
+                                        <input id="RetryableChatProvider.on_retryable_error-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">on_retryable_error</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">error</span><span class="p">:</span> <span class="ne">BaseException</span></span><span class="return-annotation">) -> <span class="nb">bool</span>:</span></span>
+
+                <label class="view-source-button" for="RetryableChatProvider.on_retryable_error-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#RetryableChatProvider.on_retryable_error"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="RetryableChatProvider.on_retryable_error-63"><a href="#RetryableChatProvider.on_retryable_error-63"><span class="linenos">63</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">on_retryable_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">error</span><span class="p">:</span> <span class="ne">BaseException</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span><span id="RetryableChatProvider.on_retryable_error-64"><a href="#RetryableChatProvider.on_retryable_error-64"><span class="linenos">64</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="RetryableChatProvider.on_retryable_error-65"><a href="#RetryableChatProvider.on_retryable_error-65"><span class="linenos">65</span></a><span class="sd">        Try to recover provider transport state after a retryable error.</span>
+</span><span id="RetryableChatProvider.on_retryable_error-66"><a href="#RetryableChatProvider.on_retryable_error-66"><span class="linenos">66</span></a>
+</span><span id="RetryableChatProvider.on_retryable_error-67"><a href="#RetryableChatProvider.on_retryable_error-67"><span class="linenos">67</span></a><span class="sd">        Returns:</span>
+</span><span id="RetryableChatProvider.on_retryable_error-68"><a href="#RetryableChatProvider.on_retryable_error-68"><span class="linenos">68</span></a><span class="sd">            bool: Whether recovery action was performed.</span>
+</span><span id="RetryableChatProvider.on_retryable_error-69"><a href="#RetryableChatProvider.on_retryable_error-69"><span class="linenos">69</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="RetryableChatProvider.on_retryable_error-70"><a href="#RetryableChatProvider.on_retryable_error-70"><span class="linenos">70</span></a>        <span class="o">...</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>Try to recover provider transport state after a retryable error.</p>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>bool: Whether recovery action was performed.</p>
+</blockquote>
+</div>
+
+
+                            </div>
+                </section>
                 <section id="StreamedMessagePart">
                     <div class="attr variable">
             <span class="def">type</span> <span class="name">StreamedMessagePart</span>        =
@@ -567,23 +701,23 @@ If the chat provider does not support thinking, simply return a copy of self.</p
 
     </div>
     <a class="headerlink" href="#StreamedMessage"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="StreamedMessage-62"><a href="#StreamedMessage-62"><span class="linenos">62</span></a><span class="nd">@runtime_checkable</span>
-</span><span id="StreamedMessage-63"><a href="#StreamedMessage-63"><span class="linenos">63</span></a><span class="k">class</span><span class="w"> </span><span class="nc">StreamedMessage</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
-</span><span id="StreamedMessage-64"><a href="#StreamedMessage-64"><span class="linenos">64</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The interface of streamed messages.&quot;&quot;&quot;</span>
-</span><span id="StreamedMessage-65"><a href="#StreamedMessage-65"><span class="linenos">65</span></a>
-</span><span id="StreamedMessage-66"><a href="#StreamedMessage-66"><span class="linenos">66</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__aiter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AsyncIterator</span><span class="p">[</span><span class="n">StreamedMessagePart</span><span class="p">]:</span>
-</span><span id="StreamedMessage-67"><a href="#StreamedMessage-67"><span class="linenos">67</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Create an async iterator from the stream.&quot;&quot;&quot;</span>
-</span><span id="StreamedMessage-68"><a href="#StreamedMessage-68"><span class="linenos">68</span></a>        <span class="o">...</span>
-</span><span id="StreamedMessage-69"><a href="#StreamedMessage-69"><span class="linenos">69</span></a>
-</span><span id="StreamedMessage-70"><a href="#StreamedMessage-70"><span class="linenos">70</span></a>    <span class="nd">@property</span>
-</span><span id="StreamedMessage-71"><a href="#StreamedMessage-71"><span class="linenos">71</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="StreamedMessage-72"><a href="#StreamedMessage-72"><span class="linenos">72</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;The ID of the streamed message.&quot;&quot;&quot;</span>
-</span><span id="StreamedMessage-73"><a href="#StreamedMessage-73"><span class="linenos">73</span></a>        <span class="o">...</span>
-</span><span id="StreamedMessage-74"><a href="#StreamedMessage-74"><span class="linenos">74</span></a>
-</span><span id="StreamedMessage-75"><a href="#StreamedMessage-75"><span class="linenos">75</span></a>    <span class="nd">@property</span>
-</span><span id="StreamedMessage-76"><a href="#StreamedMessage-76"><span class="linenos">76</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">usage</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;TokenUsage | None&quot;</span><span class="p">:</span>
-</span><span id="StreamedMessage-77"><a href="#StreamedMessage-77"><span class="linenos">77</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;The token usage of the streamed message.&quot;&quot;&quot;</span>
-</span><span id="StreamedMessage-78"><a href="#StreamedMessage-78"><span class="linenos">78</span></a>        <span class="o">...</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="StreamedMessage-76"><a href="#StreamedMessage-76"><span class="linenos">76</span></a><span class="nd">@runtime_checkable</span>
+</span><span id="StreamedMessage-77"><a href="#StreamedMessage-77"><span class="linenos">77</span></a><span class="k">class</span><span class="w"> </span><span class="nc">StreamedMessage</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+</span><span id="StreamedMessage-78"><a href="#StreamedMessage-78"><span class="linenos">78</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The interface of streamed messages.&quot;&quot;&quot;</span>
+</span><span id="StreamedMessage-79"><a href="#StreamedMessage-79"><span class="linenos">79</span></a>
+</span><span id="StreamedMessage-80"><a href="#StreamedMessage-80"><span class="linenos">80</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__aiter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AsyncIterator</span><span class="p">[</span><span class="n">StreamedMessagePart</span><span class="p">]:</span>
+</span><span id="StreamedMessage-81"><a href="#StreamedMessage-81"><span class="linenos">81</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Create an async iterator from the stream.&quot;&quot;&quot;</span>
+</span><span id="StreamedMessage-82"><a href="#StreamedMessage-82"><span class="linenos">82</span></a>        <span class="o">...</span>
+</span><span id="StreamedMessage-83"><a href="#StreamedMessage-83"><span class="linenos">83</span></a>
+</span><span id="StreamedMessage-84"><a href="#StreamedMessage-84"><span class="linenos">84</span></a>    <span class="nd">@property</span>
+</span><span id="StreamedMessage-85"><a href="#StreamedMessage-85"><span class="linenos">85</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="StreamedMessage-86"><a href="#StreamedMessage-86"><span class="linenos">86</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;The ID of the streamed message.&quot;&quot;&quot;</span>
+</span><span id="StreamedMessage-87"><a href="#StreamedMessage-87"><span class="linenos">87</span></a>        <span class="o">...</span>
+</span><span id="StreamedMessage-88"><a href="#StreamedMessage-88"><span class="linenos">88</span></a>
+</span><span id="StreamedMessage-89"><a href="#StreamedMessage-89"><span class="linenos">89</span></a>    <span class="nd">@property</span>
+</span><span id="StreamedMessage-90"><a href="#StreamedMessage-90"><span class="linenos">90</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">usage</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;TokenUsage | None&quot;</span><span class="p">:</span>
+</span><span id="StreamedMessage-91"><a href="#StreamedMessage-91"><span class="linenos">91</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;The token usage of the streamed message.&quot;&quot;&quot;</span>
+</span><span id="StreamedMessage-92"><a href="#StreamedMessage-92"><span class="linenos">92</span></a>        <span class="o">...</span>
 </span></pre></div>
 
 
@@ -643,10 +777,10 @@ If the chat provider does not support thinking, simply return a copy of self.</p
 
     </div>
     <a class="headerlink" href="#StreamedMessage.id"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="StreamedMessage.id-70"><a href="#StreamedMessage.id-70"><span class="linenos">70</span></a>    <span class="nd">@property</span>
-</span><span id="StreamedMessage.id-71"><a href="#StreamedMessage.id-71"><span class="linenos">71</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="StreamedMessage.id-72"><a href="#StreamedMessage.id-72"><span class="linenos">72</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;The ID of the streamed message.&quot;&quot;&quot;</span>
-</span><span id="StreamedMessage.id-73"><a href="#StreamedMessage.id-73"><span class="linenos">73</span></a>        <span class="o">...</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="StreamedMessage.id-84"><a href="#StreamedMessage.id-84"><span class="linenos">84</span></a>    <span class="nd">@property</span>
+</span><span id="StreamedMessage.id-85"><a href="#StreamedMessage.id-85"><span class="linenos">85</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="StreamedMessage.id-86"><a href="#StreamedMessage.id-86"><span class="linenos">86</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;The ID of the streamed message.&quot;&quot;&quot;</span>
+</span><span id="StreamedMessage.id-87"><a href="#StreamedMessage.id-87"><span class="linenos">87</span></a>        <span class="o">...</span>
 </span></pre></div>
 
 
@@ -664,10 +798,10 @@ If the chat provider does not support thinking, simply return a copy of self.</p
 
     </div>
     <a class="headerlink" href="#StreamedMessage.usage"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="StreamedMessage.usage-75"><a href="#StreamedMessage.usage-75"><span class="linenos">75</span></a>    <span class="nd">@property</span>
-</span><span id="StreamedMessage.usage-76"><a href="#StreamedMessage.usage-76"><span class="linenos">76</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">usage</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;TokenUsage | None&quot;</span><span class="p">:</span>
-</span><span id="StreamedMessage.usage-77"><a href="#StreamedMessage.usage-77"><span class="linenos">77</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;The token usage of the streamed message.&quot;&quot;&quot;</span>
-</span><span id="StreamedMessage.usage-78"><a href="#StreamedMessage.usage-78"><span class="linenos">78</span></a>        <span class="o">...</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="StreamedMessage.usage-89"><a href="#StreamedMessage.usage-89"><span class="linenos">89</span></a>    <span class="nd">@property</span>
+</span><span id="StreamedMessage.usage-90"><a href="#StreamedMessage.usage-90"><span class="linenos">90</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">usage</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;TokenUsage | None&quot;</span><span class="p">:</span>
+</span><span id="StreamedMessage.usage-91"><a href="#StreamedMessage.usage-91"><span class="linenos">91</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;The token usage of the streamed message.&quot;&quot;&quot;</span>
+</span><span id="StreamedMessage.usage-92"><a href="#StreamedMessage.usage-92"><span class="linenos">92</span></a>        <span class="o">...</span>
 </span></pre></div>
 
 
@@ -688,27 +822,27 @@ If the chat provider does not support thinking, simply return a copy of self.</p
 
     </div>
     <a class="headerlink" href="#TokenUsage"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="TokenUsage-81"><a href="#TokenUsage-81"><span class="linenos"> 81</span></a><span class="k">class</span><span class="w"> </span><span class="nc">TokenUsage</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="TokenUsage-82"><a href="#TokenUsage-82"><span class="linenos"> 82</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Token usage statistics.&quot;&quot;&quot;</span>
-</span><span id="TokenUsage-83"><a href="#TokenUsage-83"><span class="linenos"> 83</span></a>
-</span><span id="TokenUsage-84"><a href="#TokenUsage-84"><span class="linenos"> 84</span></a>    <span class="n">input_other</span><span class="p">:</span> <span class="nb">int</span>
-</span><span id="TokenUsage-85"><a href="#TokenUsage-85"><span class="linenos"> 85</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Input tokens excluding `input_cache_read` and `input_cache_creation`.&quot;&quot;&quot;</span>
-</span><span id="TokenUsage-86"><a href="#TokenUsage-86"><span class="linenos"> 86</span></a>    <span class="n">output</span><span class="p">:</span> <span class="nb">int</span>
-</span><span id="TokenUsage-87"><a href="#TokenUsage-87"><span class="linenos"> 87</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Total output tokens.&quot;&quot;&quot;</span>
-</span><span id="TokenUsage-88"><a href="#TokenUsage-88"><span class="linenos"> 88</span></a>    <span class="n">input_cache_read</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="TokenUsage-89"><a href="#TokenUsage-89"><span class="linenos"> 89</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Cached input tokens.&quot;&quot;&quot;</span>
-</span><span id="TokenUsage-90"><a href="#TokenUsage-90"><span class="linenos"> 90</span></a>    <span class="n">input_cache_creation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="TokenUsage-91"><a href="#TokenUsage-91"><span class="linenos"> 91</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Input tokens used for cache creation. For now, only Anthropic API supports this.&quot;&quot;&quot;</span>
-</span><span id="TokenUsage-92"><a href="#TokenUsage-92"><span class="linenos"> 92</span></a>
-</span><span id="TokenUsage-93"><a href="#TokenUsage-93"><span class="linenos"> 93</span></a>    <span class="nd">@property</span>
-</span><span id="TokenUsage-94"><a href="#TokenUsage-94"><span class="linenos"> 94</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">total</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-</span><span id="TokenUsage-95"><a href="#TokenUsage-95"><span class="linenos"> 95</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Total tokens used, including input and output tokens.&quot;&quot;&quot;</span>
-</span><span id="TokenUsage-96"><a href="#TokenUsage-96"><span class="linenos"> 96</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">input</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">output</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="TokenUsage-95"><a href="#TokenUsage-95"><span class="linenos"> 95</span></a><span class="k">class</span><span class="w"> </span><span class="nc">TokenUsage</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="TokenUsage-96"><a href="#TokenUsage-96"><span class="linenos"> 96</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Token usage statistics.&quot;&quot;&quot;</span>
 </span><span id="TokenUsage-97"><a href="#TokenUsage-97"><span class="linenos"> 97</span></a>
-</span><span id="TokenUsage-98"><a href="#TokenUsage-98"><span class="linenos"> 98</span></a>    <span class="nd">@property</span>
-</span><span id="TokenUsage-99"><a href="#TokenUsage-99"><span class="linenos"> 99</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">input</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-</span><span id="TokenUsage-100"><a href="#TokenUsage-100"><span class="linenos">100</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Total input tokens, including cached and uncached tokens.&quot;&quot;&quot;</span>
-</span><span id="TokenUsage-101"><a href="#TokenUsage-101"><span class="linenos">101</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_other</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_cache_read</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_cache_creation</span>
+</span><span id="TokenUsage-98"><a href="#TokenUsage-98"><span class="linenos"> 98</span></a>    <span class="n">input_other</span><span class="p">:</span> <span class="nb">int</span>
+</span><span id="TokenUsage-99"><a href="#TokenUsage-99"><span class="linenos"> 99</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Input tokens excluding `input_cache_read` and `input_cache_creation`.&quot;&quot;&quot;</span>
+</span><span id="TokenUsage-100"><a href="#TokenUsage-100"><span class="linenos">100</span></a>    <span class="n">output</span><span class="p">:</span> <span class="nb">int</span>
+</span><span id="TokenUsage-101"><a href="#TokenUsage-101"><span class="linenos">101</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Total output tokens.&quot;&quot;&quot;</span>
+</span><span id="TokenUsage-102"><a href="#TokenUsage-102"><span class="linenos">102</span></a>    <span class="n">input_cache_read</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="TokenUsage-103"><a href="#TokenUsage-103"><span class="linenos">103</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Cached input tokens.&quot;&quot;&quot;</span>
+</span><span id="TokenUsage-104"><a href="#TokenUsage-104"><span class="linenos">104</span></a>    <span class="n">input_cache_creation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="TokenUsage-105"><a href="#TokenUsage-105"><span class="linenos">105</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Input tokens used for cache creation. For now, only Anthropic API supports this.&quot;&quot;&quot;</span>
+</span><span id="TokenUsage-106"><a href="#TokenUsage-106"><span class="linenos">106</span></a>
+</span><span id="TokenUsage-107"><a href="#TokenUsage-107"><span class="linenos">107</span></a>    <span class="nd">@property</span>
+</span><span id="TokenUsage-108"><a href="#TokenUsage-108"><span class="linenos">108</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">total</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+</span><span id="TokenUsage-109"><a href="#TokenUsage-109"><span class="linenos">109</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Total tokens used, including input and output tokens.&quot;&quot;&quot;</span>
+</span><span id="TokenUsage-110"><a href="#TokenUsage-110"><span class="linenos">110</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">input</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">output</span>
+</span><span id="TokenUsage-111"><a href="#TokenUsage-111"><span class="linenos">111</span></a>
+</span><span id="TokenUsage-112"><a href="#TokenUsage-112"><span class="linenos">112</span></a>    <span class="nd">@property</span>
+</span><span id="TokenUsage-113"><a href="#TokenUsage-113"><span class="linenos">113</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">input</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+</span><span id="TokenUsage-114"><a href="#TokenUsage-114"><span class="linenos">114</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Total input tokens, including cached and uncached tokens.&quot;&quot;&quot;</span>
+</span><span id="TokenUsage-115"><a href="#TokenUsage-115"><span class="linenos">115</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_other</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_cache_read</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_cache_creation</span>
 </span></pre></div>
 
 
@@ -781,10 +915,10 @@ If the chat provider does not support thinking, simply return a copy of self.</p
 
     </div>
     <a class="headerlink" href="#TokenUsage.total"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="TokenUsage.total-93"><a href="#TokenUsage.total-93"><span class="linenos">93</span></a>    <span class="nd">@property</span>
-</span><span id="TokenUsage.total-94"><a href="#TokenUsage.total-94"><span class="linenos">94</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">total</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-</span><span id="TokenUsage.total-95"><a href="#TokenUsage.total-95"><span class="linenos">95</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Total tokens used, including input and output tokens.&quot;&quot;&quot;</span>
-</span><span id="TokenUsage.total-96"><a href="#TokenUsage.total-96"><span class="linenos">96</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">input</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">output</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="TokenUsage.total-107"><a href="#TokenUsage.total-107"><span class="linenos">107</span></a>    <span class="nd">@property</span>
+</span><span id="TokenUsage.total-108"><a href="#TokenUsage.total-108"><span class="linenos">108</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">total</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+</span><span id="TokenUsage.total-109"><a href="#TokenUsage.total-109"><span class="linenos">109</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Total tokens used, including input and output tokens.&quot;&quot;&quot;</span>
+</span><span id="TokenUsage.total-110"><a href="#TokenUsage.total-110"><span class="linenos">110</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">input</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">output</span>
 </span></pre></div>
 
 
@@ -802,10 +936,10 @@ If the chat provider does not support thinking, simply return a copy of self.</p
 
     </div>
     <a class="headerlink" href="#TokenUsage.input"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="TokenUsage.input-98"><a href="#TokenUsage.input-98"><span class="linenos"> 98</span></a>    <span class="nd">@property</span>
-</span><span id="TokenUsage.input-99"><a href="#TokenUsage.input-99"><span class="linenos"> 99</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">input</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-</span><span id="TokenUsage.input-100"><a href="#TokenUsage.input-100"><span class="linenos">100</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Total input tokens, including cached and uncached tokens.&quot;&quot;&quot;</span>
-</span><span id="TokenUsage.input-101"><a href="#TokenUsage.input-101"><span class="linenos">101</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_other</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_cache_read</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_cache_creation</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="TokenUsage.input-112"><a href="#TokenUsage.input-112"><span class="linenos">112</span></a>    <span class="nd">@property</span>
+</span><span id="TokenUsage.input-113"><a href="#TokenUsage.input-113"><span class="linenos">113</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">input</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+</span><span id="TokenUsage.input-114"><a href="#TokenUsage.input-114"><span class="linenos">114</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Total input tokens, including cached and uncached tokens.&quot;&quot;&quot;</span>
+</span><span id="TokenUsage.input-115"><a href="#TokenUsage.input-115"><span class="linenos">115</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_other</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_cache_read</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_cache_creation</span>
 </span></pre></div>
 
 
@@ -840,11 +974,11 @@ If the chat provider does not support thinking, simply return a copy of self.</p
 
     </div>
     <a class="headerlink" href="#ChatProviderError"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ChatProviderError-108"><a href="#ChatProviderError-108"><span class="linenos">108</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ChatProviderError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-</span><span id="ChatProviderError-109"><a href="#ChatProviderError-109"><span class="linenos">109</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised by a chat provider.&quot;&quot;&quot;</span>
-</span><span id="ChatProviderError-110"><a href="#ChatProviderError-110"><span class="linenos">110</span></a>
-</span><span id="ChatProviderError-111"><a href="#ChatProviderError-111"><span class="linenos">111</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-</span><span id="ChatProviderError-112"><a href="#ChatProviderError-112"><span class="linenos">112</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ChatProviderError-122"><a href="#ChatProviderError-122"><span class="linenos">122</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ChatProviderError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+</span><span id="ChatProviderError-123"><a href="#ChatProviderError-123"><span class="linenos">123</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised by a chat provider.&quot;&quot;&quot;</span>
+</span><span id="ChatProviderError-124"><a href="#ChatProviderError-124"><span class="linenos">124</span></a>
+</span><span id="ChatProviderError-125"><a href="#ChatProviderError-125"><span class="linenos">125</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="ChatProviderError-126"><a href="#ChatProviderError-126"><span class="linenos">126</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -862,8 +996,8 @@ If the chat provider does not support thinking, simply return a copy of self.</p
 
     </div>
     <a class="headerlink" href="#ChatProviderError.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ChatProviderError.__init__-111"><a href="#ChatProviderError.__init__-111"><span class="linenos">111</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-</span><span id="ChatProviderError.__init__-112"><a href="#ChatProviderError.__init__-112"><span class="linenos">112</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ChatProviderError.__init__-125"><a href="#ChatProviderError.__init__-125"><span class="linenos">125</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="ChatProviderError.__init__-126"><a href="#ChatProviderError.__init__-126"><span class="linenos">126</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -882,8 +1016,8 @@ If the chat provider does not support thinking, simply return a copy of self.</p
 
     </div>
     <a class="headerlink" href="#APIConnectionError"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="APIConnectionError-115"><a href="#APIConnectionError-115"><span class="linenos">115</span></a><span class="k">class</span><span class="w"> </span><span class="nc">APIConnectionError</span><span class="p">(</span><span class="n">ChatProviderError</span><span class="p">):</span>
-</span><span id="APIConnectionError-116"><a href="#APIConnectionError-116"><span class="linenos">116</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised when the API connection fails.&quot;&quot;&quot;</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="APIConnectionError-129"><a href="#APIConnectionError-129"><span class="linenos">129</span></a><span class="k">class</span><span class="w"> </span><span class="nc">APIConnectionError</span><span class="p">(</span><span class="n">ChatProviderError</span><span class="p">):</span>
+</span><span id="APIConnectionError-130"><a href="#APIConnectionError-130"><span class="linenos">130</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised when the API connection fails.&quot;&quot;&quot;</span>
 </span></pre></div>
 
 
@@ -912,8 +1046,8 @@ If the chat provider does not support thinking, simply return a copy of self.</p
 
     </div>
     <a class="headerlink" href="#APITimeoutError"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="APITimeoutError-119"><a href="#APITimeoutError-119"><span class="linenos">119</span></a><span class="k">class</span><span class="w"> </span><span class="nc">APITimeoutError</span><span class="p">(</span><span class="n">ChatProviderError</span><span class="p">):</span>
-</span><span id="APITimeoutError-120"><a href="#APITimeoutError-120"><span class="linenos">120</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised when the API request times out.&quot;&quot;&quot;</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="APITimeoutError-133"><a href="#APITimeoutError-133"><span class="linenos">133</span></a><span class="k">class</span><span class="w"> </span><span class="nc">APITimeoutError</span><span class="p">(</span><span class="n">ChatProviderError</span><span class="p">):</span>
+</span><span id="APITimeoutError-134"><a href="#APITimeoutError-134"><span class="linenos">134</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised when the API request times out.&quot;&quot;&quot;</span>
 </span></pre></div>
 
 
@@ -942,14 +1076,14 @@ If the chat provider does not support thinking, simply return a copy of self.</p
 
     </div>
     <a class="headerlink" href="#APIStatusError"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="APIStatusError-123"><a href="#APIStatusError-123"><span class="linenos">123</span></a><span class="k">class</span><span class="w"> </span><span class="nc">APIStatusError</span><span class="p">(</span><span class="n">ChatProviderError</span><span class="p">):</span>
-</span><span id="APIStatusError-124"><a href="#APIStatusError-124"><span class="linenos">124</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised when the API returns a status code of 4xx or 5xx.&quot;&quot;&quot;</span>
-</span><span id="APIStatusError-125"><a href="#APIStatusError-125"><span class="linenos">125</span></a>
-</span><span id="APIStatusError-126"><a href="#APIStatusError-126"><span class="linenos">126</span></a>    <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span>
-</span><span id="APIStatusError-127"><a href="#APIStatusError-127"><span class="linenos">127</span></a>
-</span><span id="APIStatusError-128"><a href="#APIStatusError-128"><span class="linenos">128</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-</span><span id="APIStatusError-129"><a href="#APIStatusError-129"><span class="linenos">129</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</span><span id="APIStatusError-130"><a href="#APIStatusError-130"><span class="linenos">130</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">status_code</span> <span class="o">=</span> <span class="n">status_code</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="APIStatusError-137"><a href="#APIStatusError-137"><span class="linenos">137</span></a><span class="k">class</span><span class="w"> </span><span class="nc">APIStatusError</span><span class="p">(</span><span class="n">ChatProviderError</span><span class="p">):</span>
+</span><span id="APIStatusError-138"><a href="#APIStatusError-138"><span class="linenos">138</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised when the API returns a status code of 4xx or 5xx.&quot;&quot;&quot;</span>
+</span><span id="APIStatusError-139"><a href="#APIStatusError-139"><span class="linenos">139</span></a>
+</span><span id="APIStatusError-140"><a href="#APIStatusError-140"><span class="linenos">140</span></a>    <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span>
+</span><span id="APIStatusError-141"><a href="#APIStatusError-141"><span class="linenos">141</span></a>
+</span><span id="APIStatusError-142"><a href="#APIStatusError-142"><span class="linenos">142</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="APIStatusError-143"><a href="#APIStatusError-143"><span class="linenos">143</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span><span id="APIStatusError-144"><a href="#APIStatusError-144"><span class="linenos">144</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">status_code</span> <span class="o">=</span> <span class="n">status_code</span>
 </span></pre></div>
 
 
@@ -967,9 +1101,9 @@ If the chat provider does not support thinking, simply return a copy of self.</p
 
     </div>
     <a class="headerlink" href="#APIStatusError.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="APIStatusError.__init__-128"><a href="#APIStatusError.__init__-128"><span class="linenos">128</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-</span><span id="APIStatusError.__init__-129"><a href="#APIStatusError.__init__-129"><span class="linenos">129</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</span><span id="APIStatusError.__init__-130"><a href="#APIStatusError.__init__-130"><span class="linenos">130</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">status_code</span> <span class="o">=</span> <span class="n">status_code</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="APIStatusError.__init__-142"><a href="#APIStatusError.__init__-142"><span class="linenos">142</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="APIStatusError.__init__-143"><a href="#APIStatusError.__init__-143"><span class="linenos">143</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span><span id="APIStatusError.__init__-144"><a href="#APIStatusError.__init__-144"><span class="linenos">144</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">status_code</span> <span class="o">=</span> <span class="n">status_code</span>
 </span></pre></div>
 
 
@@ -999,8 +1133,8 @@ If the chat provider does not support thinking, simply return a copy of self.</p
 
     </div>
     <a class="headerlink" href="#APIEmptyResponseError"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="APIEmptyResponseError-133"><a href="#APIEmptyResponseError-133"><span class="linenos">133</span></a><span class="k">class</span><span class="w"> </span><span class="nc">APIEmptyResponseError</span><span class="p">(</span><span class="n">ChatProviderError</span><span class="p">):</span>
-</span><span id="APIEmptyResponseError-134"><a href="#APIEmptyResponseError-134"><span class="linenos">134</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised when the API returns an empty response.&quot;&quot;&quot;</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="APIEmptyResponseError-147"><a href="#APIEmptyResponseError-147"><span class="linenos">147</span></a><span class="k">class</span><span class="w"> </span><span class="nc">APIEmptyResponseError</span><span class="p">(</span><span class="n">ChatProviderError</span><span class="p">):</span>
+</span><span id="APIEmptyResponseError-148"><a href="#APIEmptyResponseError-148"><span class="linenos">148</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised when the API returns an empty response.&quot;&quot;&quot;</span>
 </span></pre></div>
 
 
