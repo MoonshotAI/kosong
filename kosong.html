@@ -84,7 +84,7 @@
     </ul>
 
 
-            <footer>kosong 0.48.0</footer>
+            <footer>kosong 0.49.0</footer>
 
         <a class="attribution" title="pdoc: Python API documentation generator" href="https://pdoc.dev" target="_blank">
             built with <span class="visually-hidden">pdoc</span><img
@@ -466,11 +466,25 @@ exposing <code><a href="#StepResult">StepResult</a></code> with awaited tool out
 </span><span id="generate-75"><a href="#generate-75"><span class="linenos">75</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">message</span><span class="o">.</span><span class="n">content</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">message</span><span class="o">.</span><span class="n">tool_calls</span><span class="p">:</span>
 </span><span id="generate-76"><a href="#generate-76"><span class="linenos">76</span></a>        <span class="k">raise</span> <span class="n">APIEmptyResponseError</span><span class="p">(</span><span class="s2">&quot;The API returned an empty response.&quot;</span><span class="p">)</span>
 </span><span id="generate-77"><a href="#generate-77"><span class="linenos">77</span></a>
-</span><span id="generate-78"><a href="#generate-78"><span class="linenos">78</span></a>    <span class="k">return</span> <span class="n">GenerateResult</span><span class="p">(</span>
-</span><span id="generate-79"><a href="#generate-79"><span class="linenos">79</span></a>        <span class="nb">id</span><span class="o">=</span><span class="n">stream</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
-</span><span id="generate-80"><a href="#generate-80"><span class="linenos">80</span></a>        <span class="n">message</span><span class="o">=</span><span class="n">message</span><span class="p">,</span>
-</span><span id="generate-81"><a href="#generate-81"><span class="linenos">81</span></a>        <span class="n">usage</span><span class="o">=</span><span class="n">stream</span><span class="o">.</span><span class="n">usage</span><span class="p">,</span>
-</span><span id="generate-82"><a href="#generate-82"><span class="linenos">82</span></a>    <span class="p">)</span>
+</span><span id="generate-78"><a href="#generate-78"><span class="linenos">78</span></a>    <span class="c1"># A response with only ThinkPart (no TextPart, no tool calls) indicates an</span>
+</span><span id="generate-79"><a href="#generate-79"><span class="linenos">79</span></a>    <span class="c1"># abnormal termination — typically a stream interruption or max_tokens</span>
+</span><span id="generate-80"><a href="#generate-80"><span class="linenos">80</span></a>    <span class="c1"># exhaustion during reasoning.  The model should always produce visible</span>
+</span><span id="generate-81"><a href="#generate-81"><span class="linenos">81</span></a>    <span class="c1"># output after thinking; a think-only response is never intentional.</span>
+</span><span id="generate-82"><a href="#generate-82"><span class="linenos">82</span></a>    <span class="n">has_think</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">ThinkPart</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">message</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+</span><span id="generate-83"><a href="#generate-83"><span class="linenos">83</span></a>    <span class="n">has_text</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">TextPart</span><span class="p">)</span> <span class="ow">and</span> <span class="n">p</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">message</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+</span><span id="generate-84"><a href="#generate-84"><span class="linenos">84</span></a>    <span class="k">if</span> <span class="n">has_think</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_text</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">message</span><span class="o">.</span><span class="n">tool_calls</span><span class="p">:</span>
+</span><span id="generate-85"><a href="#generate-85"><span class="linenos">85</span></a>        <span class="k">raise</span> <span class="n">APIEmptyResponseError</span><span class="p">(</span>
+</span><span id="generate-86"><a href="#generate-86"><span class="linenos">86</span></a>            <span class="s2">&quot;The API returned a response containing only thinking content &quot;</span>
+</span><span id="generate-87"><a href="#generate-87"><span class="linenos">87</span></a>            <span class="s2">&quot;without any text or tool calls. This usually indicates the &quot;</span>
+</span><span id="generate-88"><a href="#generate-88"><span class="linenos">88</span></a>            <span class="s2">&quot;stream was interrupted or the output token budget was exhausted &quot;</span>
+</span><span id="generate-89"><a href="#generate-89"><span class="linenos">89</span></a>            <span class="s2">&quot;during reasoning.&quot;</span>
+</span><span id="generate-90"><a href="#generate-90"><span class="linenos">90</span></a>        <span class="p">)</span>
+</span><span id="generate-91"><a href="#generate-91"><span class="linenos">91</span></a>
+</span><span id="generate-92"><a href="#generate-92"><span class="linenos">92</span></a>    <span class="k">return</span> <span class="n">GenerateResult</span><span class="p">(</span>
+</span><span id="generate-93"><a href="#generate-93"><span class="linenos">93</span></a>        <span class="nb">id</span><span class="o">=</span><span class="n">stream</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+</span><span id="generate-94"><a href="#generate-94"><span class="linenos">94</span></a>        <span class="n">message</span><span class="o">=</span><span class="n">message</span><span class="p">,</span>
+</span><span id="generate-95"><a href="#generate-95"><span class="linenos">95</span></a>        <span class="n">usage</span><span class="o">=</span><span class="n">stream</span><span class="o">.</span><span class="n">usage</span><span class="p">,</span>
+</span><span id="generate-96"><a href="#generate-96"><span class="linenos">96</span></a>    <span class="p">)</span>
 </span></pre></div>
 
 
@@ -520,16 +534,16 @@ Parts of the message will be streamed to the specified callbacks if provided.</p
 
     </div>
     <a class="headerlink" href="#GenerateResult"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="GenerateResult-85"><a href="#GenerateResult-85"><span class="linenos">85</span></a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="GenerateResult-86"><a href="#GenerateResult-86"><span class="linenos">86</span></a><span class="k">class</span><span class="w"> </span><span class="nc">GenerateResult</span><span class="p">:</span>
-</span><span id="GenerateResult-87"><a href="#GenerateResult-87"><span class="linenos">87</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The result of a generation.&quot;&quot;&quot;</span>
-</span><span id="GenerateResult-88"><a href="#GenerateResult-88"><span class="linenos">88</span></a>
-</span><span id="GenerateResult-89"><a href="#GenerateResult-89"><span class="linenos">89</span></a>    <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
-</span><span id="GenerateResult-90"><a href="#GenerateResult-90"><span class="linenos">90</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The ID of the generated message.&quot;&quot;&quot;</span>
-</span><span id="GenerateResult-91"><a href="#GenerateResult-91"><span class="linenos">91</span></a>    <span class="n">message</span><span class="p">:</span> <span class="n">Message</span>
-</span><span id="GenerateResult-92"><a href="#GenerateResult-92"><span class="linenos">92</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The generated message.&quot;&quot;&quot;</span>
-</span><span id="GenerateResult-93"><a href="#GenerateResult-93"><span class="linenos">93</span></a>    <span class="n">usage</span><span class="p">:</span> <span class="n">TokenUsage</span> <span class="o">|</span> <span class="kc">None</span>
-</span><span id="GenerateResult-94"><a href="#GenerateResult-94"><span class="linenos">94</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The token usage of the generated message.&quot;&quot;&quot;</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="GenerateResult-99"><a href="#GenerateResult-99"><span class="linenos"> 99</span></a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="GenerateResult-100"><a href="#GenerateResult-100"><span class="linenos">100</span></a><span class="k">class</span><span class="w"> </span><span class="nc">GenerateResult</span><span class="p">:</span>
+</span><span id="GenerateResult-101"><a href="#GenerateResult-101"><span class="linenos">101</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The result of a generation.&quot;&quot;&quot;</span>
+</span><span id="GenerateResult-102"><a href="#GenerateResult-102"><span class="linenos">102</span></a>
+</span><span id="GenerateResult-103"><a href="#GenerateResult-103"><span class="linenos">103</span></a>    <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+</span><span id="GenerateResult-104"><a href="#GenerateResult-104"><span class="linenos">104</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The ID of the generated message.&quot;&quot;&quot;</span>
+</span><span id="GenerateResult-105"><a href="#GenerateResult-105"><span class="linenos">105</span></a>    <span class="n">message</span><span class="p">:</span> <span class="n">Message</span>
+</span><span id="GenerateResult-106"><a href="#GenerateResult-106"><span class="linenos">106</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The generated message.&quot;&quot;&quot;</span>
+</span><span id="GenerateResult-107"><a href="#GenerateResult-107"><span class="linenos">107</span></a>    <span class="n">usage</span><span class="p">:</span> <span class="n">TokenUsage</span> <span class="o">|</span> <span class="kc">None</span>
+</span><span id="GenerateResult-108"><a href="#GenerateResult-108"><span class="linenos">108</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The token usage of the generated message.&quot;&quot;&quot;</span>
 </span></pre></div>
 
 
