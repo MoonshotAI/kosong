@@ -167,7 +167,7 @@
     </ul>
 
 
-            <footer>kosong 0.49.0</footer>
+            <footer>kosong 0.50.0</footer>
 
         <a class="attribution" title="pdoc: Python API documentation generator" href="https://pdoc.dev" target="_blank">
             built with <span class="visually-hidden">pdoc</span><img
@@ -307,59 +307,71 @@
 </span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_other</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_cache_read</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_cache_creation</span>
 </span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a>
 </span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>
-</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a><span class="nb">type</span> <span class="n">ThinkingEffort</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;off&quot;</span><span class="p">,</span> <span class="s2">&quot;low&quot;</span><span class="p">,</span> <span class="s2">&quot;medium&quot;</span><span class="p">,</span> <span class="s2">&quot;high&quot;</span><span class="p">]</span>
-</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a><span class="sd">&quot;&quot;&quot;The effort level for thinking.&quot;&quot;&quot;</span>
+</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a><span class="nb">type</span> <span class="n">ThinkingEffort</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;off&quot;</span><span class="p">,</span> <span class="s2">&quot;low&quot;</span><span class="p">,</span> <span class="s2">&quot;medium&quot;</span><span class="p">,</span> <span class="s2">&quot;high&quot;</span><span class="p">,</span> <span class="s2">&quot;xhigh&quot;</span><span class="p">,</span> <span class="s2">&quot;max&quot;</span><span class="p">]</span>
+</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a><span class="sd">&quot;&quot;&quot;The effort level for thinking.</span>
 </span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a>
-</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a>
-</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ChatProviderError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised by a chat provider.&quot;&quot;&quot;</span>
-</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>
-</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a>
-</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a>
-</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a><span class="k">class</span><span class="w"> </span><span class="nc">APIConnectionError</span><span class="p">(</span><span class="n">ChatProviderError</span><span class="p">):</span>
-</span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised when the API connection fails.&quot;&quot;&quot;</span>
-</span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a>
+</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a><span class="sd">Support for levels above ``high`` varies by provider:</span>
+</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>
+</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a><span class="sd">- **Anthropic**: ``xhigh`` is accepted only on Claude Opus 4.7; ``max`` is</span>
+</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a><span class="sd">  accepted on Mythos, Opus 4.7/4.6, and Sonnet 4.6. Unsupported levels are</span>
+</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a><span class="sd">  clamped down to ``high``.</span>
+</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a><span class="sd">- **OpenAI**: ``xhigh`` is accepted natively for reasoning-capable models</span>
+</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a><span class="sd">  after ``gpt-5.1-codex-max`` and passes through unchanged. ``max`` is</span>
+</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a><span class="sd">  Anthropic-specific and clamps to ``xhigh`` (OpenAI&#39;s ceiling).</span>
+</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a><span class="sd">- **Kimi / Gemini**: ``xhigh`` and ``max`` clamp to ``high`` (no native</span>
+</span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a><span class="sd">  support).</span>
+</span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a>
-</span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a><span class="k">class</span><span class="w"> </span><span class="nc">APITimeoutError</span><span class="p">(</span><span class="n">ChatProviderError</span><span class="p">):</span>
-</span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised when the API request times out.&quot;&quot;&quot;</span>
-</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>
+</span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>
+</span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ChatProviderError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised by a chat provider.&quot;&quot;&quot;</span>
 </span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a>
-</span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a><span class="k">class</span><span class="w"> </span><span class="nc">APIStatusError</span><span class="p">(</span><span class="n">ChatProviderError</span><span class="p">):</span>
-</span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised when the API returns a status code of 4xx or 5xx.&quot;&quot;&quot;</span>
+</span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a>
-</span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a>    <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span>
-</span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a>    <span class="n">request_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
-</span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a>
-</span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-</span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">status_code</span> <span class="o">=</span> <span class="n">status_code</span>
-</span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">request_id</span> <span class="o">=</span> <span class="n">request_id</span>
+</span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a>
+</span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a><span class="k">class</span><span class="w"> </span><span class="nc">APIConnectionError</span><span class="p">(</span><span class="n">ChatProviderError</span><span class="p">):</span>
+</span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised when the API connection fails.&quot;&quot;&quot;</span>
+</span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a>
+</span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a>
+</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a><span class="k">class</span><span class="w"> </span><span class="nc">APITimeoutError</span><span class="p">(</span><span class="n">ChatProviderError</span><span class="p">):</span>
+</span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised when the API request times out.&quot;&quot;&quot;</span>
 </span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a>
 </span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a>
-</span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a><span class="k">class</span><span class="w"> </span><span class="nc">APIEmptyResponseError</span><span class="p">(</span><span class="n">ChatProviderError</span><span class="p">):</span>
-</span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised when the API returns an empty response.&quot;&quot;&quot;</span>
+</span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a><span class="k">class</span><span class="w"> </span><span class="nc">APIStatusError</span><span class="p">(</span><span class="n">ChatProviderError</span><span class="p">):</span>
+</span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised when the API returns a status code of 4xx or 5xx.&quot;&quot;&quot;</span>
 </span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a>
-</span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a>
-</span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a><span class="k">def</span><span class="w"> </span><span class="nf">convert_httpx_error</span><span class="p">(</span><span class="n">error</span><span class="p">:</span> <span class="n">httpx</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ChatProviderError</span><span class="p">:</span>
-</span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert an httpx transport error to the corresponding ChatProviderError.</span>
-</span><span id="L-159"><a href="#L-159"><span class="linenos">159</span></a>
-</span><span id="L-160"><a href="#L-160"><span class="linenos">160</span></a><span class="sd">    This is a shared utility for all chat providers. SDK-specific exceptions</span>
-</span><span id="L-161"><a href="#L-161"><span class="linenos">161</span></a><span class="sd">    (e.g. AnthropicError, OpenAIError) should be handled by each provider&#39;s</span>
-</span><span id="L-162"><a href="#L-162"><span class="linenos">162</span></a><span class="sd">    own conversion logic; only raw httpx exceptions that leak through</span>
-</span><span id="L-163"><a href="#L-163"><span class="linenos">163</span></a><span class="sd">    (typically during streaming) should be routed here.</span>
-</span><span id="L-164"><a href="#L-164"><span class="linenos">164</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-165"><a href="#L-165"><span class="linenos">165</span></a>    <span class="kn">import</span><span class="w"> </span><span class="nn">httpx</span>
-</span><span id="L-166"><a href="#L-166"><span class="linenos">166</span></a>
-</span><span id="L-167"><a href="#L-167"><span class="linenos">167</span></a>    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">httpx</span><span class="o">.</span><span class="n">TimeoutException</span><span class="p">):</span>
-</span><span id="L-168"><a href="#L-168"><span class="linenos">168</span></a>        <span class="k">return</span> <span class="n">APITimeoutError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">))</span>
-</span><span id="L-169"><a href="#L-169"><span class="linenos">169</span></a>    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="p">(</span><span class="n">httpx</span><span class="o">.</span><span class="n">NetworkError</span><span class="p">,</span> <span class="n">httpx</span><span class="o">.</span><span class="n">RemoteProtocolError</span><span class="p">)):</span>
-</span><span id="L-170"><a href="#L-170"><span class="linenos">170</span></a>        <span class="k">return</span> <span class="n">APIConnectionError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">))</span>
-</span><span id="L-171"><a href="#L-171"><span class="linenos">171</span></a>    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">httpx</span><span class="o">.</span><span class="n">HTTPStatusError</span><span class="p">):</span>
-</span><span id="L-172"><a href="#L-172"><span class="linenos">172</span></a>        <span class="n">req_id</span> <span class="o">=</span> <span class="n">error</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;x-request-id&quot;</span><span class="p">)</span>
-</span><span id="L-173"><a href="#L-173"><span class="linenos">173</span></a>        <span class="k">return</span> <span class="n">APIStatusError</span><span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">),</span> <span class="n">request_id</span><span class="o">=</span><span class="n">req_id</span><span class="p">)</span>
-</span><span id="L-174"><a href="#L-174"><span class="linenos">174</span></a>    <span class="k">return</span> <span class="n">ChatProviderError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;HTTP error: </span><span class="si">{</span><span class="n">error</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a>    <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span>
+</span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a>    <span class="n">request_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+</span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a>
+</span><span id="L-159"><a href="#L-159"><span class="linenos">159</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+</span><span id="L-160"><a href="#L-160"><span class="linenos">160</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span><span id="L-161"><a href="#L-161"><span class="linenos">161</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">status_code</span> <span class="o">=</span> <span class="n">status_code</span>
+</span><span id="L-162"><a href="#L-162"><span class="linenos">162</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">request_id</span> <span class="o">=</span> <span class="n">request_id</span>
+</span><span id="L-163"><a href="#L-163"><span class="linenos">163</span></a>
+</span><span id="L-164"><a href="#L-164"><span class="linenos">164</span></a>
+</span><span id="L-165"><a href="#L-165"><span class="linenos">165</span></a><span class="k">class</span><span class="w"> </span><span class="nc">APIEmptyResponseError</span><span class="p">(</span><span class="n">ChatProviderError</span><span class="p">):</span>
+</span><span id="L-166"><a href="#L-166"><span class="linenos">166</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised when the API returns an empty response.&quot;&quot;&quot;</span>
+</span><span id="L-167"><a href="#L-167"><span class="linenos">167</span></a>
+</span><span id="L-168"><a href="#L-168"><span class="linenos">168</span></a>
+</span><span id="L-169"><a href="#L-169"><span class="linenos">169</span></a><span class="k">def</span><span class="w"> </span><span class="nf">convert_httpx_error</span><span class="p">(</span><span class="n">error</span><span class="p">:</span> <span class="n">httpx</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ChatProviderError</span><span class="p">:</span>
+</span><span id="L-170"><a href="#L-170"><span class="linenos">170</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert an httpx transport error to the corresponding ChatProviderError.</span>
+</span><span id="L-171"><a href="#L-171"><span class="linenos">171</span></a>
+</span><span id="L-172"><a href="#L-172"><span class="linenos">172</span></a><span class="sd">    This is a shared utility for all chat providers. SDK-specific exceptions</span>
+</span><span id="L-173"><a href="#L-173"><span class="linenos">173</span></a><span class="sd">    (e.g. AnthropicError, OpenAIError) should be handled by each provider&#39;s</span>
+</span><span id="L-174"><a href="#L-174"><span class="linenos">174</span></a><span class="sd">    own conversion logic; only raw httpx exceptions that leak through</span>
+</span><span id="L-175"><a href="#L-175"><span class="linenos">175</span></a><span class="sd">    (typically during streaming) should be routed here.</span>
+</span><span id="L-176"><a href="#L-176"><span class="linenos">176</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-177"><a href="#L-177"><span class="linenos">177</span></a>    <span class="kn">import</span><span class="w"> </span><span class="nn">httpx</span>
+</span><span id="L-178"><a href="#L-178"><span class="linenos">178</span></a>
+</span><span id="L-179"><a href="#L-179"><span class="linenos">179</span></a>    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">httpx</span><span class="o">.</span><span class="n">TimeoutException</span><span class="p">):</span>
+</span><span id="L-180"><a href="#L-180"><span class="linenos">180</span></a>        <span class="k">return</span> <span class="n">APITimeoutError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">))</span>
+</span><span id="L-181"><a href="#L-181"><span class="linenos">181</span></a>    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="p">(</span><span class="n">httpx</span><span class="o">.</span><span class="n">NetworkError</span><span class="p">,</span> <span class="n">httpx</span><span class="o">.</span><span class="n">RemoteProtocolError</span><span class="p">)):</span>
+</span><span id="L-182"><a href="#L-182"><span class="linenos">182</span></a>        <span class="k">return</span> <span class="n">APIConnectionError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">))</span>
+</span><span id="L-183"><a href="#L-183"><span class="linenos">183</span></a>    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">httpx</span><span class="o">.</span><span class="n">HTTPStatusError</span><span class="p">):</span>
+</span><span id="L-184"><a href="#L-184"><span class="linenos">184</span></a>        <span class="n">req_id</span> <span class="o">=</span> <span class="n">error</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;x-request-id&quot;</span><span class="p">)</span>
+</span><span id="L-185"><a href="#L-185"><span class="linenos">185</span></a>        <span class="k">return</span> <span class="n">APIStatusError</span><span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">),</span> <span class="n">request_id</span><span class="o">=</span><span class="n">req_id</span><span class="p">)</span>
+</span><span id="L-186"><a href="#L-186"><span class="linenos">186</span></a>    <span class="k">return</span> <span class="n">ChatProviderError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;HTTP error: </span><span class="si">{</span><span class="n">error</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -985,13 +997,26 @@ If the chat provider does not support thinking, simply return a copy of self.</p
                 <section id="ThinkingEffort">
                     <div class="attr variable">
             <span class="def">type</span> <span class="name">ThinkingEffort</span>        =
-<span class="default_value">Literal[&#39;off&#39;, &#39;low&#39;, &#39;medium&#39;, &#39;high&#39;]</span>
+<span class="default_value">Literal[&#39;off&#39;, &#39;low&#39;, &#39;medium&#39;, &#39;high&#39;, &#39;xhigh&#39;, &#39;max&#39;]</span>
 
         
     </div>
     <a class="headerlink" href="#ThinkingEffort"></a>
     
             <div class="docstring"><p>The effort level for thinking.</p>
+
+<p>Support for levels above <code>high</code> varies by provider:</p>
+
+<ul>
+<li><strong>Anthropic</strong>: <code>xhigh</code> is accepted only on Claude Opus 4.7; <code>max</code> is
+accepted on Mythos, Opus 4.7/4.6, and Sonnet 4.6. Unsupported levels are
+clamped down to <code>high</code>.</li>
+<li><strong>OpenAI</strong>: <code>xhigh</code> is accepted natively for reasoning-capable models
+after <code>gpt-5.1-codex-max</code> and passes through unchanged. <code>max</code> is
+Anthropic-specific and clamps to <code>xhigh</code> (OpenAI's ceiling).</li>
+<li><strong>Kimi / Gemini</strong>: <code>xhigh</code> and <code>max</code> clamp to <code>high</code> (no native
+support).</li>
+</ul>
 </div>
 
 
@@ -1007,11 +1032,11 @@ If the chat provider does not support thinking, simply return a copy of self.</p
 
     </div>
     <a class="headerlink" href="#ChatProviderError"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ChatProviderError-127"><a href="#ChatProviderError-127"><span class="linenos">127</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ChatProviderError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-</span><span id="ChatProviderError-128"><a href="#ChatProviderError-128"><span class="linenos">128</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised by a chat provider.&quot;&quot;&quot;</span>
-</span><span id="ChatProviderError-129"><a href="#ChatProviderError-129"><span class="linenos">129</span></a>
-</span><span id="ChatProviderError-130"><a href="#ChatProviderError-130"><span class="linenos">130</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-</span><span id="ChatProviderError-131"><a href="#ChatProviderError-131"><span class="linenos">131</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ChatProviderError-139"><a href="#ChatProviderError-139"><span class="linenos">139</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ChatProviderError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+</span><span id="ChatProviderError-140"><a href="#ChatProviderError-140"><span class="linenos">140</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised by a chat provider.&quot;&quot;&quot;</span>
+</span><span id="ChatProviderError-141"><a href="#ChatProviderError-141"><span class="linenos">141</span></a>
+</span><span id="ChatProviderError-142"><a href="#ChatProviderError-142"><span class="linenos">142</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="ChatProviderError-143"><a href="#ChatProviderError-143"><span class="linenos">143</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -1029,8 +1054,8 @@ If the chat provider does not support thinking, simply return a copy of self.</p
 
     </div>
     <a class="headerlink" href="#ChatProviderError.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ChatProviderError.__init__-130"><a href="#ChatProviderError.__init__-130"><span class="linenos">130</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-</span><span id="ChatProviderError.__init__-131"><a href="#ChatProviderError.__init__-131"><span class="linenos">131</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ChatProviderError.__init__-142"><a href="#ChatProviderError.__init__-142"><span class="linenos">142</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="ChatProviderError.__init__-143"><a href="#ChatProviderError.__init__-143"><span class="linenos">143</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -1049,8 +1074,8 @@ If the chat provider does not support thinking, simply return a copy of self.</p
 
     </div>
     <a class="headerlink" href="#APIConnectionError"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="APIConnectionError-134"><a href="#APIConnectionError-134"><span class="linenos">134</span></a><span class="k">class</span><span class="w"> </span><span class="nc">APIConnectionError</span><span class="p">(</span><span class="n">ChatProviderError</span><span class="p">):</span>
-</span><span id="APIConnectionError-135"><a href="#APIConnectionError-135"><span class="linenos">135</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised when the API connection fails.&quot;&quot;&quot;</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="APIConnectionError-146"><a href="#APIConnectionError-146"><span class="linenos">146</span></a><span class="k">class</span><span class="w"> </span><span class="nc">APIConnectionError</span><span class="p">(</span><span class="n">ChatProviderError</span><span class="p">):</span>
+</span><span id="APIConnectionError-147"><a href="#APIConnectionError-147"><span class="linenos">147</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised when the API connection fails.&quot;&quot;&quot;</span>
 </span></pre></div>
 
 
@@ -1079,8 +1104,8 @@ If the chat provider does not support thinking, simply return a copy of self.</p
 
     </div>
     <a class="headerlink" href="#APITimeoutError"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="APITimeoutError-138"><a href="#APITimeoutError-138"><span class="linenos">138</span></a><span class="k">class</span><span class="w"> </span><span class="nc">APITimeoutError</span><span class="p">(</span><span class="n">ChatProviderError</span><span class="p">):</span>
-</span><span id="APITimeoutError-139"><a href="#APITimeoutError-139"><span class="linenos">139</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised when the API request times out.&quot;&quot;&quot;</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="APITimeoutError-150"><a href="#APITimeoutError-150"><span class="linenos">150</span></a><span class="k">class</span><span class="w"> </span><span class="nc">APITimeoutError</span><span class="p">(</span><span class="n">ChatProviderError</span><span class="p">):</span>
+</span><span id="APITimeoutError-151"><a href="#APITimeoutError-151"><span class="linenos">151</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised when the API request times out.&quot;&quot;&quot;</span>
 </span></pre></div>
 
 
@@ -1109,16 +1134,16 @@ If the chat provider does not support thinking, simply return a copy of self.</p
 
     </div>
     <a class="headerlink" href="#APIStatusError"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="APIStatusError-142"><a href="#APIStatusError-142"><span class="linenos">142</span></a><span class="k">class</span><span class="w"> </span><span class="nc">APIStatusError</span><span class="p">(</span><span class="n">ChatProviderError</span><span class="p">):</span>
-</span><span id="APIStatusError-143"><a href="#APIStatusError-143"><span class="linenos">143</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised when the API returns a status code of 4xx or 5xx.&quot;&quot;&quot;</span>
-</span><span id="APIStatusError-144"><a href="#APIStatusError-144"><span class="linenos">144</span></a>
-</span><span id="APIStatusError-145"><a href="#APIStatusError-145"><span class="linenos">145</span></a>    <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span>
-</span><span id="APIStatusError-146"><a href="#APIStatusError-146"><span class="linenos">146</span></a>    <span class="n">request_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
-</span><span id="APIStatusError-147"><a href="#APIStatusError-147"><span class="linenos">147</span></a>
-</span><span id="APIStatusError-148"><a href="#APIStatusError-148"><span class="linenos">148</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-</span><span id="APIStatusError-149"><a href="#APIStatusError-149"><span class="linenos">149</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</span><span id="APIStatusError-150"><a href="#APIStatusError-150"><span class="linenos">150</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">status_code</span> <span class="o">=</span> <span class="n">status_code</span>
-</span><span id="APIStatusError-151"><a href="#APIStatusError-151"><span class="linenos">151</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">request_id</span> <span class="o">=</span> <span class="n">request_id</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="APIStatusError-154"><a href="#APIStatusError-154"><span class="linenos">154</span></a><span class="k">class</span><span class="w"> </span><span class="nc">APIStatusError</span><span class="p">(</span><span class="n">ChatProviderError</span><span class="p">):</span>
+</span><span id="APIStatusError-155"><a href="#APIStatusError-155"><span class="linenos">155</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised when the API returns a status code of 4xx or 5xx.&quot;&quot;&quot;</span>
+</span><span id="APIStatusError-156"><a href="#APIStatusError-156"><span class="linenos">156</span></a>
+</span><span id="APIStatusError-157"><a href="#APIStatusError-157"><span class="linenos">157</span></a>    <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span>
+</span><span id="APIStatusError-158"><a href="#APIStatusError-158"><span class="linenos">158</span></a>    <span class="n">request_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+</span><span id="APIStatusError-159"><a href="#APIStatusError-159"><span class="linenos">159</span></a>
+</span><span id="APIStatusError-160"><a href="#APIStatusError-160"><span class="linenos">160</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+</span><span id="APIStatusError-161"><a href="#APIStatusError-161"><span class="linenos">161</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span><span id="APIStatusError-162"><a href="#APIStatusError-162"><span class="linenos">162</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">status_code</span> <span class="o">=</span> <span class="n">status_code</span>
+</span><span id="APIStatusError-163"><a href="#APIStatusError-163"><span class="linenos">163</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">request_id</span> <span class="o">=</span> <span class="n">request_id</span>
 </span></pre></div>
 
 
@@ -1136,10 +1161,10 @@ If the chat provider does not support thinking, simply return a copy of self.</p
 
     </div>
     <a class="headerlink" href="#APIStatusError.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="APIStatusError.__init__-148"><a href="#APIStatusError.__init__-148"><span class="linenos">148</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-</span><span id="APIStatusError.__init__-149"><a href="#APIStatusError.__init__-149"><span class="linenos">149</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</span><span id="APIStatusError.__init__-150"><a href="#APIStatusError.__init__-150"><span class="linenos">150</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">status_code</span> <span class="o">=</span> <span class="n">status_code</span>
-</span><span id="APIStatusError.__init__-151"><a href="#APIStatusError.__init__-151"><span class="linenos">151</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">request_id</span> <span class="o">=</span> <span class="n">request_id</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="APIStatusError.__init__-160"><a href="#APIStatusError.__init__-160"><span class="linenos">160</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+</span><span id="APIStatusError.__init__-161"><a href="#APIStatusError.__init__-161"><span class="linenos">161</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span><span id="APIStatusError.__init__-162"><a href="#APIStatusError.__init__-162"><span class="linenos">162</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">status_code</span> <span class="o">=</span> <span class="n">status_code</span>
+</span><span id="APIStatusError.__init__-163"><a href="#APIStatusError.__init__-163"><span class="linenos">163</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">request_id</span> <span class="o">=</span> <span class="n">request_id</span>
 </span></pre></div>
 
 
@@ -1180,8 +1205,8 @@ If the chat provider does not support thinking, simply return a copy of self.</p
 
     </div>
     <a class="headerlink" href="#APIEmptyResponseError"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="APIEmptyResponseError-154"><a href="#APIEmptyResponseError-154"><span class="linenos">154</span></a><span class="k">class</span><span class="w"> </span><span class="nc">APIEmptyResponseError</span><span class="p">(</span><span class="n">ChatProviderError</span><span class="p">):</span>
-</span><span id="APIEmptyResponseError-155"><a href="#APIEmptyResponseError-155"><span class="linenos">155</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised when the API returns an empty response.&quot;&quot;&quot;</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="APIEmptyResponseError-166"><a href="#APIEmptyResponseError-166"><span class="linenos">166</span></a><span class="k">class</span><span class="w"> </span><span class="nc">APIEmptyResponseError</span><span class="p">(</span><span class="n">ChatProviderError</span><span class="p">):</span>
+</span><span id="APIEmptyResponseError-167"><a href="#APIEmptyResponseError-167"><span class="linenos">167</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The error raised when the API returns an empty response.&quot;&quot;&quot;</span>
 </span></pre></div>
 
 
@@ -1210,24 +1235,24 @@ If the chat provider does not support thinking, simply return a copy of self.</p
 
     </div>
     <a class="headerlink" href="#convert_httpx_error"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="convert_httpx_error-158"><a href="#convert_httpx_error-158"><span class="linenos">158</span></a><span class="k">def</span><span class="w"> </span><span class="nf">convert_httpx_error</span><span class="p">(</span><span class="n">error</span><span class="p">:</span> <span class="n">httpx</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ChatProviderError</span><span class="p">:</span>
-</span><span id="convert_httpx_error-159"><a href="#convert_httpx_error-159"><span class="linenos">159</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert an httpx transport error to the corresponding ChatProviderError.</span>
-</span><span id="convert_httpx_error-160"><a href="#convert_httpx_error-160"><span class="linenos">160</span></a>
-</span><span id="convert_httpx_error-161"><a href="#convert_httpx_error-161"><span class="linenos">161</span></a><span class="sd">    This is a shared utility for all chat providers. SDK-specific exceptions</span>
-</span><span id="convert_httpx_error-162"><a href="#convert_httpx_error-162"><span class="linenos">162</span></a><span class="sd">    (e.g. AnthropicError, OpenAIError) should be handled by each provider&#39;s</span>
-</span><span id="convert_httpx_error-163"><a href="#convert_httpx_error-163"><span class="linenos">163</span></a><span class="sd">    own conversion logic; only raw httpx exceptions that leak through</span>
-</span><span id="convert_httpx_error-164"><a href="#convert_httpx_error-164"><span class="linenos">164</span></a><span class="sd">    (typically during streaming) should be routed here.</span>
-</span><span id="convert_httpx_error-165"><a href="#convert_httpx_error-165"><span class="linenos">165</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="convert_httpx_error-166"><a href="#convert_httpx_error-166"><span class="linenos">166</span></a>    <span class="kn">import</span><span class="w"> </span><span class="nn">httpx</span>
-</span><span id="convert_httpx_error-167"><a href="#convert_httpx_error-167"><span class="linenos">167</span></a>
-</span><span id="convert_httpx_error-168"><a href="#convert_httpx_error-168"><span class="linenos">168</span></a>    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">httpx</span><span class="o">.</span><span class="n">TimeoutException</span><span class="p">):</span>
-</span><span id="convert_httpx_error-169"><a href="#convert_httpx_error-169"><span class="linenos">169</span></a>        <span class="k">return</span> <span class="n">APITimeoutError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">))</span>
-</span><span id="convert_httpx_error-170"><a href="#convert_httpx_error-170"><span class="linenos">170</span></a>    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="p">(</span><span class="n">httpx</span><span class="o">.</span><span class="n">NetworkError</span><span class="p">,</span> <span class="n">httpx</span><span class="o">.</span><span class="n">RemoteProtocolError</span><span class="p">)):</span>
-</span><span id="convert_httpx_error-171"><a href="#convert_httpx_error-171"><span class="linenos">171</span></a>        <span class="k">return</span> <span class="n">APIConnectionError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">))</span>
-</span><span id="convert_httpx_error-172"><a href="#convert_httpx_error-172"><span class="linenos">172</span></a>    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">httpx</span><span class="o">.</span><span class="n">HTTPStatusError</span><span class="p">):</span>
-</span><span id="convert_httpx_error-173"><a href="#convert_httpx_error-173"><span class="linenos">173</span></a>        <span class="n">req_id</span> <span class="o">=</span> <span class="n">error</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;x-request-id&quot;</span><span class="p">)</span>
-</span><span id="convert_httpx_error-174"><a href="#convert_httpx_error-174"><span class="linenos">174</span></a>        <span class="k">return</span> <span class="n">APIStatusError</span><span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">),</span> <span class="n">request_id</span><span class="o">=</span><span class="n">req_id</span><span class="p">)</span>
-</span><span id="convert_httpx_error-175"><a href="#convert_httpx_error-175"><span class="linenos">175</span></a>    <span class="k">return</span> <span class="n">ChatProviderError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;HTTP error: </span><span class="si">{</span><span class="n">error</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="convert_httpx_error-170"><a href="#convert_httpx_error-170"><span class="linenos">170</span></a><span class="k">def</span><span class="w"> </span><span class="nf">convert_httpx_error</span><span class="p">(</span><span class="n">error</span><span class="p">:</span> <span class="n">httpx</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ChatProviderError</span><span class="p">:</span>
+</span><span id="convert_httpx_error-171"><a href="#convert_httpx_error-171"><span class="linenos">171</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert an httpx transport error to the corresponding ChatProviderError.</span>
+</span><span id="convert_httpx_error-172"><a href="#convert_httpx_error-172"><span class="linenos">172</span></a>
+</span><span id="convert_httpx_error-173"><a href="#convert_httpx_error-173"><span class="linenos">173</span></a><span class="sd">    This is a shared utility for all chat providers. SDK-specific exceptions</span>
+</span><span id="convert_httpx_error-174"><a href="#convert_httpx_error-174"><span class="linenos">174</span></a><span class="sd">    (e.g. AnthropicError, OpenAIError) should be handled by each provider&#39;s</span>
+</span><span id="convert_httpx_error-175"><a href="#convert_httpx_error-175"><span class="linenos">175</span></a><span class="sd">    own conversion logic; only raw httpx exceptions that leak through</span>
+</span><span id="convert_httpx_error-176"><a href="#convert_httpx_error-176"><span class="linenos">176</span></a><span class="sd">    (typically during streaming) should be routed here.</span>
+</span><span id="convert_httpx_error-177"><a href="#convert_httpx_error-177"><span class="linenos">177</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="convert_httpx_error-178"><a href="#convert_httpx_error-178"><span class="linenos">178</span></a>    <span class="kn">import</span><span class="w"> </span><span class="nn">httpx</span>
+</span><span id="convert_httpx_error-179"><a href="#convert_httpx_error-179"><span class="linenos">179</span></a>
+</span><span id="convert_httpx_error-180"><a href="#convert_httpx_error-180"><span class="linenos">180</span></a>    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">httpx</span><span class="o">.</span><span class="n">TimeoutException</span><span class="p">):</span>
+</span><span id="convert_httpx_error-181"><a href="#convert_httpx_error-181"><span class="linenos">181</span></a>        <span class="k">return</span> <span class="n">APITimeoutError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">))</span>
+</span><span id="convert_httpx_error-182"><a href="#convert_httpx_error-182"><span class="linenos">182</span></a>    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="p">(</span><span class="n">httpx</span><span class="o">.</span><span class="n">NetworkError</span><span class="p">,</span> <span class="n">httpx</span><span class="o">.</span><span class="n">RemoteProtocolError</span><span class="p">)):</span>
+</span><span id="convert_httpx_error-183"><a href="#convert_httpx_error-183"><span class="linenos">183</span></a>        <span class="k">return</span> <span class="n">APIConnectionError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">))</span>
+</span><span id="convert_httpx_error-184"><a href="#convert_httpx_error-184"><span class="linenos">184</span></a>    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">httpx</span><span class="o">.</span><span class="n">HTTPStatusError</span><span class="p">):</span>
+</span><span id="convert_httpx_error-185"><a href="#convert_httpx_error-185"><span class="linenos">185</span></a>        <span class="n">req_id</span> <span class="o">=</span> <span class="n">error</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;x-request-id&quot;</span><span class="p">)</span>
+</span><span id="convert_httpx_error-186"><a href="#convert_httpx_error-186"><span class="linenos">186</span></a>        <span class="k">return</span> <span class="n">APIStatusError</span><span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">),</span> <span class="n">request_id</span><span class="o">=</span><span class="n">req_id</span><span class="p">)</span>
+</span><span id="convert_httpx_error-187"><a href="#convert_httpx_error-187"><span class="linenos">187</span></a>    <span class="k">return</span> <span class="n">ChatProviderError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;HTTP error: </span><span class="si">{</span><span class="n">error</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </span></pre></div>
 
 
