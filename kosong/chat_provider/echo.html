@@ -63,6 +63,9 @@
                         <li>
                                 <a class="variable" href="#EchoStreamedMessage.usage">usage</a>
                         </li>
+                        <li>
+                                <a class="variable" href="#EchoStreamedMessage.trace_id">trace_id</a>
+                        </li>
                 </ul>
 
             </li>
@@ -102,13 +105,16 @@
                         <li>
                                 <a class="variable" href="#ScriptedEchoStreamedMessage.usage">usage</a>
                         </li>
+                        <li>
+                                <a class="variable" href="#ScriptedEchoStreamedMessage.trace_id">trace_id</a>
+                        </li>
                 </ul>
 
             </li>
     </ul>
 
 
-            <footer>kosong 0.54.0</footer>
+            <footer>kosong 0.55.0</footer>
 
         <a class="attribution" title="pdoc: Python API documentation generator" href="https://pdoc.dev" target="_blank">
             built with <span class="visually-hidden">pdoc</span><img
@@ -402,6 +408,10 @@ tool_call_part: {"arguments_part": " it?\"}"}
 </span><span id="EchoStreamedMessage-124"><a href="#EchoStreamedMessage-124"><span class="linenos">124</span></a>    <span class="nd">@property</span>
 </span><span id="EchoStreamedMessage-125"><a href="#EchoStreamedMessage-125"><span class="linenos">125</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">usage</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TokenUsage</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="EchoStreamedMessage-126"><a href="#EchoStreamedMessage-126"><span class="linenos">126</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_usage</span>
+</span><span id="EchoStreamedMessage-127"><a href="#EchoStreamedMessage-127"><span class="linenos">127</span></a>
+</span><span id="EchoStreamedMessage-128"><a href="#EchoStreamedMessage-128"><span class="linenos">128</span></a>    <span class="nd">@property</span>
+</span><span id="EchoStreamedMessage-129"><a href="#EchoStreamedMessage-129"><span class="linenos">129</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">trace_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="EchoStreamedMessage-130"><a href="#EchoStreamedMessage-130"><span class="linenos">130</span></a>        <span class="k">return</span> <span class="kc">None</span>
 </span></pre></div>
 
 
@@ -473,6 +483,24 @@ tool_call_part: {"arguments_part": " it?\"}"}
             <div class="docstring"><p>The token usage of the streamed message.</p>
 </div>
 
+
+                            </div>
+                            <div id="EchoStreamedMessage.trace_id" class="classattr">
+                                        <input id="EchoStreamedMessage.trace_id-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr variable">
+            <span class="name">trace_id</span><span class="annotation">: str | None</span>
+
+                <label class="view-source-button" for="EchoStreamedMessage.trace_id-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#EchoStreamedMessage.trace_id"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="EchoStreamedMessage.trace_id-128"><a href="#EchoStreamedMessage.trace_id-128"><span class="linenos">128</span></a>    <span class="nd">@property</span>
+</span><span id="EchoStreamedMessage.trace_id-129"><a href="#EchoStreamedMessage.trace_id-129"><span class="linenos">129</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">trace_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="EchoStreamedMessage.trace_id-130"><a href="#EchoStreamedMessage.trace_id-130"><span class="linenos">130</span></a>        <span class="k">return</span> <span class="kc">None</span>
+</span></pre></div>
+
+
+    
 
                             </div>
                 </section>
@@ -704,6 +732,10 @@ tool_call_part: {"arguments_part": " it?\"}"}
 </span><span id="ScriptedEchoStreamedMessage-102"><a href="#ScriptedEchoStreamedMessage-102"><span class="linenos">102</span></a>    <span class="nd">@property</span>
 </span><span id="ScriptedEchoStreamedMessage-103"><a href="#ScriptedEchoStreamedMessage-103"><span class="linenos">103</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">usage</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TokenUsage</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="ScriptedEchoStreamedMessage-104"><a href="#ScriptedEchoStreamedMessage-104"><span class="linenos">104</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_usage</span>
+</span><span id="ScriptedEchoStreamedMessage-105"><a href="#ScriptedEchoStreamedMessage-105"><span class="linenos">105</span></a>
+</span><span id="ScriptedEchoStreamedMessage-106"><a href="#ScriptedEchoStreamedMessage-106"><span class="linenos">106</span></a>    <span class="nd">@property</span>
+</span><span id="ScriptedEchoStreamedMessage-107"><a href="#ScriptedEchoStreamedMessage-107"><span class="linenos">107</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">trace_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="ScriptedEchoStreamedMessage-108"><a href="#ScriptedEchoStreamedMessage-108"><span class="linenos">108</span></a>        <span class="k">return</span> <span class="kc">None</span>
 </span></pre></div>
 
 
@@ -775,6 +807,24 @@ tool_call_part: {"arguments_part": " it?\"}"}
             <div class="docstring"><p>The token usage of the streamed message.</p>
 </div>
 
+
+                            </div>
+                            <div id="ScriptedEchoStreamedMessage.trace_id" class="classattr">
+                                        <input id="ScriptedEchoStreamedMessage.trace_id-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr variable">
+            <span class="name">trace_id</span><span class="annotation">: str | None</span>
+
+                <label class="view-source-button" for="ScriptedEchoStreamedMessage.trace_id-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#ScriptedEchoStreamedMessage.trace_id"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ScriptedEchoStreamedMessage.trace_id-106"><a href="#ScriptedEchoStreamedMessage.trace_id-106"><span class="linenos">106</span></a>    <span class="nd">@property</span>
+</span><span id="ScriptedEchoStreamedMessage.trace_id-107"><a href="#ScriptedEchoStreamedMessage.trace_id-107"><span class="linenos">107</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">trace_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="ScriptedEchoStreamedMessage.trace_id-108"><a href="#ScriptedEchoStreamedMessage.trace_id-108"><span class="linenos">108</span></a>        <span class="k">return</span> <span class="kc">None</span>
+</span></pre></div>
+
+
+    
 
                             </div>
                 </section>

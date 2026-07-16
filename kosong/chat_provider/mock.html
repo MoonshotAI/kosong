@@ -66,13 +66,16 @@
                         <li>
                                 <a class="variable" href="#MockStreamedMessage.usage">usage</a>
                         </li>
+                        <li>
+                                <a class="variable" href="#MockStreamedMessage.trace_id">trace_id</a>
+                        </li>
                 </ul>
 
             </li>
     </ul>
 
 
-            <footer>kosong 0.54.0</footer>
+            <footer>kosong 0.55.0</footer>
 
         <a class="attribution" title="pdoc: Python API documentation generator" href="https://pdoc.dev" target="_blank">
             built with <span class="visually-hidden">pdoc</span><img
@@ -171,6 +174,10 @@
 </span><span id="L-78"><a href="#L-78"><span class="linenos">78</span></a>    <span class="nd">@property</span>
 </span><span id="L-79"><a href="#L-79"><span class="linenos">79</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">usage</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TokenUsage</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="L-80"><a href="#L-80"><span class="linenos">80</span></a>        <span class="k">return</span> <span class="kc">None</span>
+</span><span id="L-81"><a href="#L-81"><span class="linenos">81</span></a>
+</span><span id="L-82"><a href="#L-82"><span class="linenos">82</span></a>    <span class="nd">@property</span>
+</span><span id="L-83"><a href="#L-83"><span class="linenos">83</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">trace_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-84"><a href="#L-84"><span class="linenos">84</span></a>        <span class="k">return</span> <span class="kc">None</span>
 </span></pre></div>
 
 
@@ -390,6 +397,10 @@ If the chat provider does not support thinking, simply return a copy of self.</p
 </span><span id="MockStreamedMessage-79"><a href="#MockStreamedMessage-79"><span class="linenos">79</span></a>    <span class="nd">@property</span>
 </span><span id="MockStreamedMessage-80"><a href="#MockStreamedMessage-80"><span class="linenos">80</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">usage</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TokenUsage</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="MockStreamedMessage-81"><a href="#MockStreamedMessage-81"><span class="linenos">81</span></a>        <span class="k">return</span> <span class="kc">None</span>
+</span><span id="MockStreamedMessage-82"><a href="#MockStreamedMessage-82"><span class="linenos">82</span></a>
+</span><span id="MockStreamedMessage-83"><a href="#MockStreamedMessage-83"><span class="linenos">83</span></a>    <span class="nd">@property</span>
+</span><span id="MockStreamedMessage-84"><a href="#MockStreamedMessage-84"><span class="linenos">84</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">trace_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="MockStreamedMessage-85"><a href="#MockStreamedMessage-85"><span class="linenos">85</span></a>        <span class="k">return</span> <span class="kc">None</span>
 </span></pre></div>
 
 
@@ -453,6 +464,24 @@ If the chat provider does not support thinking, simply return a copy of self.</p
             <div class="docstring"><p>The token usage of the streamed message.</p>
 </div>
 
+
+                            </div>
+                            <div id="MockStreamedMessage.trace_id" class="classattr">
+                                        <input id="MockStreamedMessage.trace_id-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr variable">
+            <span class="name">trace_id</span><span class="annotation">: str | None</span>
+
+                <label class="view-source-button" for="MockStreamedMessage.trace_id-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#MockStreamedMessage.trace_id"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MockStreamedMessage.trace_id-83"><a href="#MockStreamedMessage.trace_id-83"><span class="linenos">83</span></a>    <span class="nd">@property</span>
+</span><span id="MockStreamedMessage.trace_id-84"><a href="#MockStreamedMessage.trace_id-84"><span class="linenos">84</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">trace_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="MockStreamedMessage.trace_id-85"><a href="#MockStreamedMessage.trace_id-85"><span class="linenos">85</span></a>        <span class="k">return</span> <span class="kc">None</span>
+</span></pre></div>
+
+
+    
 
                             </div>
                 </section>
